@@ -11,13 +11,13 @@
 #endif
 
 #include "mapnik_vector_tile.hpp"
-#include "vector_tile_compression.hpp"
-#include "vector_tile_composite.hpp"
-#include "vector_tile_processor.hpp"
-#include "vector_tile_projection.hpp"
-#include "vector_tile_datasource_pbf.hpp"
-#include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_load_tile.hpp"
+//#include "vector_tile_compression.hpp"
+//#include "vector_tile_composite.hpp"
+//#include "vector_tile_processor.hpp"
+//#include "vector_tile_projection.hpp"
+//#include "vector_tile_datasource_pbf.hpp"
+//#include "vector_tile_geometry_decoder.hpp"
+//#include "vector_tile_load_tile.hpp"
 #include "object_to_container.hpp"
 
 // mapnik
@@ -30,7 +30,7 @@
 #include <mapnik/geometry/is_simple.hpp>
 #include <mapnik/geometry/is_valid.hpp>
 #include <mapnik/geometry/reprojection.hpp>
-#include <mapnik/geom_util.hpp>
+//#include <mapnik/geom_util.hpp>
 #include <mapnik/hit_test_filter.hpp>
 #include <mapnik/image_any.hpp>
 #include <mapnik/layer.hpp>
@@ -64,170 +64,61 @@
 // protozero
 #include <protozero/pbf_reader.hpp>
 
-namespace detail
-{
-
-struct p2p_result
-{
-    explicit p2p_result() :
-      distance(-1),
-      x_hit(0),
-      y_hit(0) {}
-
-    double distance;
-    double x_hit;
-    double y_hit;
-};
-
-struct p2p_distance
-{
-    p2p_distance(double x, double y)
-     : x_(x),
-       y_(y) {}
-
-    p2p_result operator() (mapnik::geometry::geometry_empty const& ) const
-    {
-        p2p_result p2p;
-        return p2p;
-    }
-
-    p2p_result operator() (mapnik::geometry::point<double> const& geom) const
-    {
-        p2p_result p2p;
-        p2p.x_hit = geom.x;
-        p2p.y_hit = geom.y;
-        p2p.distance = mapnik::distance(geom.x, geom.y, x_, y_);
-        return p2p;
-    }
-    p2p_result operator() (mapnik::geometry::multi_point<double> const& geom) const
-    {
-        p2p_result p2p;
-        for (auto const& pt : geom)
-        {
-            p2p_result p2p_sub = operator()(pt);
-            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
-            {
-                p2p.x_hit = p2p_sub.x_hit;
-                p2p.y_hit = p2p_sub.y_hit;
-                p2p.distance = p2p_sub.distance;
-            }
-        }
-        return p2p;
-    }
-    p2p_result operator() (mapnik::geometry::line_string<double> const& geom) const
-    {
-        p2p_result p2p;
-        auto num_points = geom.size();
-        if (num_points > 1)
-        {
-            for (std::size_t i = 1; i < num_points; ++i)
-            {
-                auto const& pt0 = geom[i-1];
-                auto const& pt1 = geom[i];
-                double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
-                if (dist >= 0 && (p2p.distance < 0 || dist < p2p.distance))
-                {
-                    p2p.x_hit = pt0.x;
-                    p2p.y_hit = pt0.y;
-                    p2p.distance = dist;
-                }
-            }
-        }
-        return p2p;
-    }
-    p2p_result operator() (mapnik::geometry::multi_line_string<double> const& geom) const
-    {
-        p2p_result p2p;
-        for (auto const& line: geom)
-        {
-            p2p_result p2p_sub = operator()(line);
-            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
-            {
-                p2p.x_hit = p2p_sub.x_hit;
-                p2p.y_hit = p2p_sub.y_hit;
-                p2p.distance = p2p_sub.distance;
-            }
-        }
-        return p2p;
-    }
-    p2p_result operator() (mapnik::geometry::polygon<double> const& poly) const
-    {
-        p2p_result p2p;
-        std::size_t num_rings = poly.size();
-        bool inside = false;
-        for (std::size_t ring_index = 0; ring_index < num_rings; ++ring_index)
-        {
-            auto const& ring = poly[ring_index];
-            auto num_points = ring.size();
-            if (num_points < 4)
-            {
-                if (ring_index == 0) // exterior
-                    return p2p;
-                else // interior
-                    continue;
-            }
-            for (std::size_t index = 1; index < num_points; ++index)
-            {
-                auto const& pt0 = ring[index - 1];
-                auto const& pt1 = ring[index];
-                // todo - account for tolerance
-                if (mapnik::detail::pip(pt0.x, pt0.y, pt1.x, pt1.y, x_,y_))
-                {
-                    inside = !inside;
-                }
-            }
-            if (ring_index == 0 && !inside) return p2p;
-        }
-        if (inside) p2p.distance = 0;
-        return p2p;
-    }
-
-    p2p_result operator() (mapnik::geometry::multi_polygon<double> const& geom) const
-    {
-        p2p_result p2p;
-        for (auto const& poly: geom)
-        {
-            p2p_result p2p_sub = operator()(poly);
-            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
-            {
-                p2p.x_hit = p2p_sub.x_hit;
-                p2p.y_hit = p2p_sub.y_hit;
-                p2p.distance = p2p_sub.distance;
-            }
-        }
-        return p2p;
-    }
-    p2p_result operator() (mapnik::geometry::geometry_collection<double> const& collection) const
-    {
-        // There is no current way that a geometry collection could be returned from a vector tile.
-        /* LCOV_EXCL_START */
-        p2p_result p2p;
-        for (auto const& geom: collection)
-        {
-            p2p_result p2p_sub = mapnik::util::apply_visitor((*this),geom);
-            if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
-            {
-                p2p.x_hit = p2p_sub.x_hit;
-                p2p.y_hit = p2p_sub.y_hit;
-                p2p.distance = p2p_sub.distance;
-            }
-        }
-        return p2p;
-        /* LCOV_EXCL_STOP */
-    }
-
-    double x_;
-    double y_;
-};
-
-}
-
-detail::p2p_result path_to_point_distance(mapnik::geometry::geometry<double> const& geom, double x, double y)
-{
-    return mapnik::util::apply_visitor(detail::p2p_distance(x,y), geom);
-}
-
 Napi::FunctionReference VectorTile::constructor;
+
+//
+
+Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "VectorTile", {
+            InstanceAccessor<&VectorTile::get_tile_x, &VectorTile::set_tile_x>("x"),
+            InstanceAccessor<&VectorTile::get_tile_y, &VectorTile::set_tile_y>("y"),
+            InstanceAccessor<&VectorTile::get_tile_z, &VectorTile::set_tile_z>("z"),
+            InstanceAccessor<&VectorTile::get_tile_size, &VectorTile::set_tile_size>("tileSize"),
+            InstanceAccessor<&VectorTile::get_buffer_size, &VectorTile::set_buffer_size>("bufferSize"),
+            InstanceMethod<&VectorTile::render>("render"),
+            InstanceMethod<&VectorTile::setData>("setData"),
+            InstanceMethod<&VectorTile::setDataSync>("setDataSync"),
+            InstanceMethod<&VectorTile::getData>("getData"),
+            InstanceMethod<&VectorTile::getDataSync>("getDataSync"),
+            InstanceMethod<&VectorTile::addData>("addData"),
+            InstanceMethod<&VectorTile::addDataSync>("addDataSync"),
+            InstanceMethod<&VectorTile::composite>("composite"),
+            InstanceMethod<&VectorTile::compositeSync>("compositeSync"),
+            InstanceMethod<&VectorTile::query>("query"),
+            InstanceMethod<&VectorTile::queryMany>("queryMany"),
+            InstanceMethod<&VectorTile::extent>("extent"),
+            InstanceMethod<&VectorTile::bufferedExtent>("bufferedExtent"),
+            InstanceMethod<&VectorTile::names>("names"),
+            InstanceMethod<&VectorTile::layer>("layer"),
+            InstanceMethod<&VectorTile::emptyLayers>("emptyLayerss"),
+            InstanceMethod<&VectorTile::paintedLayers>("paintedLayers"),
+            InstanceMethod<&VectorTile::toJSON>("toJSON"),
+            InstanceMethod<&VectorTile::toGeoJSON>("toGeoJSON"),
+            InstanceMethod<&VectorTile::toGeoJSONSync>("toGeoJSONSync"),
+            InstanceMethod<&VectorTile::addGeoJSON>("addGeoJSON"),
+            InstanceMethod<&VectorTile::addImage>("addImage"),
+            InstanceMethod<&VectorTile::addImageSync>("addImageSync"),
+            InstanceMethod<&VectorTile::addImageBuffer>("addImageBuffer"),
+            InstanceMethod<&VectorTile::addImageBufferSync>("addImageBufferSync"),
+#if BOOST_VERSION >= 105600
+            InstanceMethod<&VectorTile::reportGeometrySimplicity>("reportGeometrySimplicity"),
+            InstanceMethod<&VectorTile::reportGeometrySimplicitySync>("reportGeometrySimplicitySync"),
+            InstanceMethod<&VectorTile::reportGeometryValidity>("reportGeometryValidity"),
+            InstanceMethod<&VectorTile::reportGeometryValiditySync>("reportGeometryValiditySync"),
+#endif
+            InstanceMethod<&VectorTile::painted>("painted"),
+            InstanceMethod<&VectorTile::clear>("clear"),
+            InstanceMethod<&VectorTile::clearSync>("clearSync"),
+            InstanceMethod<&VectorTile::empty>("empty"),
+            InstanceMethod<&VectorTile::info>("info")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("VectorTile", func);
+    return exports;
+}
 
 /**
  * **`mapnik.VectorTile`**
@@ -250,101 +141,22 @@ Napi::FunctionReference VectorTile::constructor;
  * console.log(vt.z, vt.x, vt.y); // 9, 112, 195
  * console.log(vt.tileSize, vt.bufferSize); // 4096, 128
  */
-void VectorTile::Initialize(Napi::Object target)
+
+VectorTile::VectorTile(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<VectorTile>(info)
 {
-    Napi::HandleScope scope(env);
-
-    Napi::FunctionReference lcons = Napi::Function::New(env, VectorTile::New);
-
-    lcons->SetClassName(Napi::String::New(env, "VectorTile"));
-    InstanceMethod("render", &render),
-    InstanceMethod("setData", &setData),
-    InstanceMethod("setDataSync", &setDataSync),
-    InstanceMethod("getData", &getData),
-    InstanceMethod("getDataSync", &getDataSync),
-    InstanceMethod("addData", &addData),
-    InstanceMethod("addDataSync", &addDataSync),
-    InstanceMethod("composite", &composite),
-    InstanceMethod("compositeSync", &compositeSync),
-    InstanceMethod("query", &query),
-    InstanceMethod("queryMany", &queryMany),
-    InstanceMethod("extent", &extent),
-    InstanceMethod("bufferedExtent", &bufferedExtent),
-    InstanceMethod("names", &names),
-    InstanceMethod("layer", &layer),
-    InstanceMethod("emptyLayers", &emptyLayers),
-    InstanceMethod("paintedLayers", &paintedLayers),
-    InstanceMethod("toJSON", &toJSON),
-    InstanceMethod("toGeoJSON", &toGeoJSON),
-    InstanceMethod("toGeoJSONSync", &toGeoJSONSync),
-    InstanceMethod("addGeoJSON", &addGeoJSON),
-    InstanceMethod("addImage", &addImage),
-    InstanceMethod("addImageSync", &addImageSync),
-    InstanceMethod("addImageBuffer", &addImageBuffer),
-    InstanceMethod("addImageBufferSync", &addImageBufferSync),
-#if BOOST_VERSION >= 105600
-    InstanceMethod("reportGeometrySimplicity", &reportGeometrySimplicity),
-    InstanceMethod("reportGeometrySimplicitySync", &reportGeometrySimplicitySync),
-    InstanceMethod("reportGeometryValidity", &reportGeometryValidity),
-    InstanceMethod("reportGeometryValiditySync", &reportGeometryValiditySync),
-#endif // BOOST_VERSION >= 105600
-    InstanceMethod("painted", &painted),
-    InstanceMethod("clear", &clear),
-    InstanceMethod("clearSync", &clearSync),
-    InstanceMethod("empty", &empty),
-
-    // properties
-    ATTR(lcons, "x", get_tile_x, set_tile_x);
-    ATTR(lcons, "y", get_tile_y, set_tile_y);
-    ATTR(lcons, "z", get_tile_z, set_tile_z);
-    ATTR(lcons, "tileSize", get_tile_size, set_tile_size);
-    ATTR(lcons, "bufferSize", get_buffer_size, set_buffer_size);
-
-    Napi::SetMethod(Napi::GetFunction(lcons).As<Napi::Object>(), "info", info);
-
-    (target).Set(Napi::String::New(env, "VectorTile"), Napi::GetFunction(lcons));
-    constructor.Reset(lcons);
-}
-
-VectorTile::VectorTile(std::uint64_t z,
-                       std::uint64_t x,
-                       std::uint64_t y,
-                       std::uint32_t tile_size,
-                       std::int32_t buffer_size) : Napi::ObjectWrap<VectorTile>(),
-    tile_(std::make_shared<mapnik::vector_tile_impl::merc_tile>(x, y, z, tile_size, buffer_size))
-{
-}
-
-// For some reason coverage never seems to be considered here even though
-// I have tested it and it does print
-/* LCOV_EXCL_START */
-VectorTile::~VectorTile()
-{
-}
-/* LCOV_EXCL_STOP */
-
-Napi::Value VectorTile::New(Napi::CallbackInfo const& info)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
     {
-        Napi::Error::New(env, "Cannot call constructor as function, you need to use 'new' keyword").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    if (info[0].IsExternal())
-    {
-        Napi::External ext = info[0].As<Napi::External>();
-        void* ptr = ext->Value();
-        VectorTile* v =  static_cast<VectorTile*>(ptr);
-        v->Wrap(info.This());
-        return info.This();
+        auto ext = info[0].As<Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>>();
+        if (ext) tile_ = *ext.Data();
         return;
     }
 
     if (info.Length() < 3)
     {
         Napi::Error::New(env, "please provide a z, x, y").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
 
     if (!info[0].IsNumber() ||
@@ -352,27 +164,27 @@ Napi::Value VectorTile::New(Napi::CallbackInfo const& info)
         !info[2].IsNumber())
     {
         Napi::TypeError::New(env, "required parameters (z, x, and y) must be a integers").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
 
-    std::int64_t z = info[0].As<Napi::Number>().Int32Value();
-    std::int64_t x = info[1].As<Napi::Number>().Int32Value();
-    std::int64_t y = info[2].As<Napi::Number>().Int32Value();
+    std::int64_t z = info[0].As<Napi::Number>().Int64Value();
+    std::int64_t x = info[1].As<Napi::Number>().Int64Value();
+    std::int64_t y = info[2].As<Napi::Number>().Int64Value();
     if (z < 0 || x < 0 || y < 0)
     {
         Napi::TypeError::New(env, "required parameters (z, x, and y) must be greater then or equal to zero").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
     std::int64_t max_at_zoom = pow(2,z);
     if (x >= max_at_zoom)
     {
         Napi::TypeError::New(env, "required parameter x is out of range of possible values based on z value").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
     if (y >= max_at_zoom)
     {
         Napi::TypeError::New(env, "required parameter y is out of range of possible values based on z value").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
 
     std::uint32_t tile_size = 4096;
@@ -383,32 +195,32 @@ Napi::Value VectorTile::New(Napi::CallbackInfo const& info)
         if (!info[3].IsObject())
         {
             Napi::TypeError::New(env, "optional fourth argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        options = info[3].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "tile_size")).FromMaybe(false))
+        options = info[3].As<Napi::Object>();
+        if (options.Has("tile_size"))
         {
-            Napi::Value opt = (options).Get(Napi::String::New(env, "tile_size"));
+            Napi::Value opt = options.Get("tile_size");
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'tile_size' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return;
             }
             int tile_size_tmp = opt.As<Napi::Number>().Int32Value();
             if (tile_size_tmp <= 0)
             {
                 Napi::TypeError::New(env, "optional arg 'tile_size' must be greater then zero").ThrowAsJavaScriptException();
-                return env.Null();
+                return;
             }
             tile_size = tile_size_tmp;
         }
-        if ((options).Has(Napi::String::New(env, "buffer_size")).FromMaybe(false))
+        if (options.Has("buffer_size"))
         {
-            Napi::Value opt = (options).Get(Napi::String::New(env, "buffer_size"));
+            Napi::Value opt = options.Get("buffer_size");
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return;
             }
             buffer_size = opt.As<Napi::Number>().Int32Value();
         }
@@ -416,16 +228,11 @@ Napi::Value VectorTile::New(Napi::CallbackInfo const& info)
     if (static_cast<double>(tile_size) + (2 * buffer_size) <= 0)
     {
         Napi::Error::New(env, "too large of a negative buffer for tilesize").ThrowAsJavaScriptException();
-        return env.Null();
+        return;
     }
-
-    VectorTile* d = new VectorTile(z, x, y, tile_size, buffer_size);
-
-    d->Wrap(info.This());
-    return info.This();
-    return;
+    tile_ = std::make_shared<mapnik::vector_tile_impl::merc_tile>(x, y, z, tile_size, buffer_size);
 }
-
+/*
 void _composite(VectorTile* target_vt,
                 std::vector<VectorTile*> & vtiles,
                 double scale_factor,
@@ -482,6 +289,7 @@ void _composite(VectorTile* target_vt,
                                         offset_y,
                                         reencode);
 }
+*/
 
 /**
  * Synchronous version of {@link #VectorTile.composite}
@@ -501,12 +309,10 @@ void _composite(VectorTile* target_vt,
  */
 Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
 {
-    return _compositeSync(info);
-}
-
-Napi::Value VectorTile::_compositeSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     if (info.Length() < 1 || !info[0].IsArray())
     {
         Napi::TypeError::New(env, "must provide an array of VectorTile objects and an optional options object").ThrowAsJavaScriptException();
@@ -833,8 +639,10 @@ Napi::Value VectorTile::_compositeSync(Napi::CallbackInfo const& info)
     }
 
     return scope.Escape(env.Undefined());
+    */
 }
 
+/*
 typedef struct
 {
     uv_work_t request;
@@ -859,6 +667,7 @@ typedef struct
     std::string error_name;
     Napi::FunctionReference cb;
 } vector_tile_composite_baton_t;
+*/
 
 /**
  * Composite an array of vector tiles into one vector tile
@@ -920,6 +729,9 @@ typedef struct
  */
 Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    return env.Undefined();
+    /*
     if ((info.Length() < 2) || !info[info.Length()-1]->IsFunction())
     {
         return _compositeSync(info);
@@ -928,14 +740,14 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
     if (!info[0].IsArray())
     {
         Napi::TypeError::New(env, "must provide an array of VectorTile objects and an optional options object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Array vtiles = info[0].As<Napi::Array>();
     unsigned num_tiles = vtiles->Length();
     if (num_tiles < 1)
     {
         Napi::TypeError::New(env, "must provide an array with at least one VectorTile object and an optional options object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     // options needed for re-rendering tiles
@@ -964,7 +776,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[1].ToObject(Napi::GetCurrentContext());
         if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
@@ -973,13 +785,13 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!area_thres.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             area_threshold = area_thres.As<Napi::Number>().DoubleValue();
             if (area_threshold < 0.0)
             {
                 Napi::TypeError::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
@@ -988,7 +800,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!strict_simp->IsBoolean())
             {
                 Napi::TypeError::New(env, "strictly_simple value must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             strictly_simple = strict_simp.As<Napi::Boolean>().Value();
         }
@@ -998,7 +810,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!mpu->IsBoolean())
             {
                 Napi::TypeError::New(env, "multi_polygon_union value must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             multi_polygon_union = mpu.As<Napi::Boolean>().Value();
         }
@@ -1008,13 +820,13 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!ft.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "threading_mode")).FromMaybe(false))
@@ -1023,7 +835,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
             if (threading_mode != std::launch::async &&
@@ -1031,7 +843,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
                 threading_mode != (std::launch::async | std::launch::deferred))
             {
                 Napi::TypeError::New(env, "optional arg 'threading_mode' is not a valid value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
@@ -1040,13 +852,13 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "scale")).FromMaybe(false))
@@ -1055,13 +867,13 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_factor < 0.0)
             {
                 Napi::TypeError::New(env, "option 'scale' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "scale_denominator")).FromMaybe(false))
@@ -1070,13 +882,13 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_denominator < 0.0)
             {
                 Napi::TypeError::New(env, "option 'scale_denominator' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "offset_x")).FromMaybe(false))
@@ -1085,7 +897,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             offset_x = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -1095,7 +907,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             offset_y = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -1105,7 +917,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!reencode_opt->IsBoolean())
             {
                 Napi::TypeError::New(env, "reencode value must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             reencode = reencode_opt.As<Napi::Boolean>().Value();
         }
@@ -1115,14 +927,14 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!max_extent_opt->IsArray())
             {
                 Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             Napi::Array bbox = max_extent_opt.As<Napi::Array>();
             auto len = bbox->Length();
             if (!(len == 4))
             {
                 Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             Napi::Value minx = (bbox).Get(0);
             Napi::Value miny = (bbox).Get(1);
@@ -1131,7 +943,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
                                                maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
@@ -1141,7 +953,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
             if (!param_val->IsBoolean()) {
                 Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             process_all_rings = param_val.As<Napi::Boolean>().Value();
         }
@@ -1152,14 +964,14 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scaling_method = *method;
         }
@@ -1170,7 +982,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             image_format = TOSTR(param_val);
         }
@@ -1204,14 +1016,14 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         {
             delete closure;
             Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object tile_obj = val->ToObject(Napi::GetCurrentContext());
         if (tile_obj->IsNull() || tile_obj->IsUndefined() || !Napi::New(env, VectorTile::constructor)->HasInstance(tile_obj))
         {
             delete closure;
             Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         VectorTile* vt = tile_obj.Unwrap<VectorTile>();
         vt->Ref();
@@ -1221,8 +1033,9 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
     closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Composite, (uv_after_work_cb)EIO_AfterComposite);
     return;
+    */
 }
-
+/*
 void VectorTile::EIO_Composite(uv_work_t* req)
 {
     vector_tile_composite_baton_t *closure = static_cast<vector_tile_composite_baton_t *>(req->data);
@@ -1266,7 +1079,7 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[2] = { env.Null(), closure->d->handle() };
+        Napi::Value argv[2] = { env.Undefined(), closure->d->handle() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     for (VectorTile* vt : closure->vtiles)
@@ -1277,6 +1090,7 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+*/
 
 /**
  * Get the extent of this vector tile
@@ -1292,15 +1106,16 @@ void VectorTile::EIO_AfterComposite(uv_work_t* req)
  */
 Napi::Value VectorTile::extent(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     Napi::Array arr = Napi::Array::New(env, 4);
-    mapnik::box2d<double> const& e = d->tile_->extent();
-    (arr).Set(0, Napi::Number::New(env, e.minx()));
-    (arr).Set(1, Napi::Number::New(env, e.miny()));
-    (arr).Set(2, Napi::Number::New(env, e.maxx()));
-    (arr).Set(3, Napi::Number::New(env, e.maxy()));
-    return arr;
-    return;
+    mapnik::box2d<double> const& e = tile_->extent();
+    arr.Set(0u, Napi::Number::New(env, e.minx()));
+    arr.Set(1u, Napi::Number::New(env, e.miny()));
+    arr.Set(2u, Napi::Number::New(env, e.maxx()));
+    arr.Set(3u, Napi::Number::New(env, e.maxy()));
+    return scope.Escape(arr);
+
 }
 
 /**
@@ -1317,15 +1132,15 @@ Napi::Value VectorTile::extent(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::bufferedExtent(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
     Napi::Array arr = Napi::Array::New(env, 4);
-    mapnik::box2d<double> e = d->tile_->get_buffered_extent();
-    (arr).Set(0, Napi::Number::New(env, e.minx()));
-    (arr).Set(1, Napi::Number::New(env, e.miny()));
-    (arr).Set(2, Napi::Number::New(env, e.maxx()));
-    (arr).Set(3, Napi::Number::New(env, e.maxy()));
-    return arr;
-    return;
+    mapnik::box2d<double> e = tile_->get_buffered_extent();
+    arr.Set(0u, Napi::Number::New(env, e.minx()));
+    arr.Set(1u, Napi::Number::New(env, e.miny()));
+    arr.Set(2u, Napi::Number::New(env, e.maxx()));
+    arr.Set(3u, Napi::Number::New(env, e.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -1343,16 +1158,16 @@ Napi::Value VectorTile::bufferedExtent(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::names(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    std::vector<std::string> const& names = d->tile_->get_layers();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::vector<std::string> const& names = tile_->get_layers();
     Napi::Array arr = Napi::Array::New(env, names.size());
-    unsigned idx = 0;
+    std::size_t idx = 0;
     for (std::string const& name : names)
     {
-        (arr).Set(idx++,Napi::String::New(env, name));
+        arr.Set(idx++, name);
     }
-    return arr;
-    return;
+    return scope.Escape(arr);
 }
 
 /**
@@ -1373,24 +1188,29 @@ Napi::Value VectorTile::names(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    return env.Undefined();
+    /*
     if (info.Length() < 1)
     {
         Napi::Error::New(env, "first argument must be either a layer name").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Value layer_id = info[0];
     std::string layer_name;
     if (!layer_id.IsString())
     {
         Napi::TypeError::New(env, "'layer' argument must be a layer name (string)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     layer_name = TOSTR(layer_id);
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!d->get_tile()->has_layer(layer_name))
     {
         Napi::TypeError::New(env, "layer does not exist in vector tile").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
     protozero::pbf_reader tile_message(d->get_tile()->get_reader());
@@ -1415,6 +1235,7 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
 
     else return maybe_local;
     return;
+    */
 }
 
 /**
@@ -1432,16 +1253,16 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::emptyLayers(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    std::set<std::string> const& names = d->tile_->get_empty_layers();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::set<std::string> const& names = tile_->get_empty_layers();
     Napi::Array arr = Napi::Array::New(env, names.size());
-    unsigned idx = 0;
+    std::size_t idx = 0;
     for (std::string const& name : names)
     {
-        (arr).Set(idx++,Napi::String::New(env, name));
+        arr.Set(idx++, name);
     }
-    return arr;
-    return;
+    return scope.Escape(arr);
 }
 
 /**
@@ -1460,16 +1281,16 @@ Napi::Value VectorTile::emptyLayers(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::paintedLayers(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    std::set<std::string> const& names = d->tile_->get_painted_layers();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::set<std::string> const& names = tile_->get_painted_layers();
     Napi::Array arr = Napi::Array::New(env, names.size());
-    unsigned idx = 0;
+    std::size_t idx = 0;
     for (std::string const& name : names)
     {
-        (arr).Set(idx++,Napi::String::New(env, name));
+        arr.Set(idx++, name);
     }
-    return arr;
-    return;
+    return scope.Escape(arr);
 }
 
 /**
@@ -1487,8 +1308,7 @@ Napi::Value VectorTile::paintedLayers(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::empty(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Boolean::New(env, d->tile_->is_empty());
+    return Napi::Boolean::New(info.Env(), tile_->is_empty());
 }
 
 /**
@@ -1506,695 +1326,9 @@ Napi::Value VectorTile::empty(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::painted(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::New(env, d->tile_->is_painted());
+    return Napi::Boolean::New(info.Env(), tile_->is_painted());
 }
 
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    double lon;
-    double lat;
-    double tolerance;
-    bool error;
-    std::vector<query_result> result;
-    std::string layer_name;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} vector_tile_query_baton_t;
-
-/**
- * Query a vector tile by longitude and latitude and get an array of
- * features in the vector tile that exist in relation to those coordinates.
- *
- * A note on `tolerance`: If you provide a positive value for tolerance you
- * are saying that you'd like features returned in the query results that might
- * not exactly intersect with a given lon/lat. The higher the tolerance the
- * slower the query will run because it will do more work by comparing your query
- * lon/lat against more potential features. However, this is an important parameter
- * because vector tile storage, by design, results in reduced precision of coordinates.
- * The amount of precision loss depends on the zoom level of a given vector tile
- * and how aggressively it was simplified during encoding. So if you want at
- * least one match - say the closest single feature to your query lon/lat - is is
- * not possible to know the smallest tolerance that will work without experimentation.
- * In general be prepared to provide a high tolerance (1-100) for low zoom levels
- * while you should be okay with a low tolerance (1-10) at higher zoom levels and
- * with vector tiles that are storing less simplified geometries. The units tolerance
- * should be expressed in depend on the coordinate system of the underlying data.
- * In the case of vector tiles this is spherical mercator so the units are meters.
- * For points any features will be returned that contain a point which is, by distance
- * in meters, not greater than the tolerance value. For lines any features will be
- * returned that have a segment which is, by distance in meters, not greater than
- * the tolerance value. For polygons tolerance is not supported which means that
- * your lon/lat must fall inside a feature's polygon otherwise that feature will
- * not be matched.
- *
- * @memberof VectorTile
- * @instance
- * @name query
- * @param {number} longitude - longitude
- * @param {number} latitude - latitude
- * @param {Object} [options]
- * @param {number} [options.tolerance=0] include features a specific distance from the
- * lon/lat query in the response
- * @param {string} [options.layer] layer - Pass a layer name to restrict
- * the query results to a single layer in the vector tile. Get all possible
- * layer names in the vector tile with {@link VectorTile#names}
- * @param {Function} callback(err, features)
- * @returns {Array<mapnik.Feature>} an array of {@link mapnik.Feature} objects
- * @example
- * vt.query(139.61, 37.17, {tolerance: 0}, function(err, features) {
- *   if (err) throw err;
- *   console.log(features); // array of objects
- *   console.log(features.length) // 1
- *   console.log(features[0].id()) // 89
- *   console.log(features[0].geometry().type()); // 'Polygon'
- *   console.log(features[0].distance); // 0
- *   console.log(features[0].layer); // 'layer name'
- * });
- */
-Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
-{
-    if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber())
-    {
-        Napi::Error::New(env, "expects lon,lat info").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-    double tolerance = 0.0; // meters
-    std::string layer_name("");
-    if (info.Length() > 2)
-    {
-        Napi::Object options = Napi::Object::New(env);
-        if (!info[2].IsObject())
-        {
-            Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        options = info[2].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "tolerance")).FromMaybe(false))
-        {
-            Napi::Value tol = (options).Get(Napi::String::New(env, "tolerance"));
-            if (!tol.IsNumber())
-            {
-                Napi::TypeError::New(env, "tolerance value must be a number").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            tolerance = tol.As<Napi::Number>().DoubleValue();
-        }
-        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
-        {
-            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
-            if (!layer_id.IsString())
-            {
-                Napi::TypeError::New(env, "layer value must be a string").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            layer_name = TOSTR(layer_id);
-        }
-    }
-
-    double lon = info[0].As<Napi::Number>().DoubleValue();
-    double lat = info[1].As<Napi::Number>().DoubleValue();
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-
-    // If last argument is not a function go with sync call.
-    if (!info[info.Length()-1]->IsFunction())
-    {
-        try
-        {
-            std::vector<query_result> result = _query(d, lon, lat, tolerance, layer_name);
-            Napi::Array arr = _queryResultToV8(result);
-            return arr;
-            return;
-        }
-        catch (std::exception const& ex)
-        {
-            Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-    }
-    else
-    {
-        Napi::Value callback = info[info.Length()-1];
-        vector_tile_query_baton_t *closure = new vector_tile_query_baton_t();
-        closure->request.data = closure;
-        closure->lon = lon;
-        closure->lat = lat;
-        closure->tolerance = tolerance;
-        closure->layer_name = layer_name;
-        closure->d = d;
-        closure->error = false;
-        closure->cb.Reset(callback.As<Napi::Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_Query, (uv_after_work_cb)EIO_AfterQuery);
-        d->Ref();
-        return;
-    }
-}
-
-void VectorTile::EIO_Query(uv_work_t* req)
-{
-    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
-    try
-    {
-        closure->result = _query(closure->d, closure->lon, closure->lat, closure->tolerance, closure->layer_name);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void VectorTile::EIO_AfterQuery(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        std::vector<query_result> const& result = closure->result;
-        Napi::Array arr = _queryResultToV8(result);
-        Napi::Value argv[2] = { env.Null(), arr };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->d->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-
-std::vector<query_result> VectorTile::_query(VectorTile* d, double lon, double lat, double tolerance, std::string const& layer_name)
-{
-    std::vector<query_result> arr;
-    if (d->tile_->is_empty())
-    {
-        return arr;
-    }
-
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(wgs84,merc);
-    double x = lon;
-    double y = lat;
-    double z = 0;
-    if (!tr.forward(x,y,z))
-    {
-        // THIS CAN NEVER BE REACHED CURRENTLY
-        // internally lonlat2merc in mapnik can never return false.
-        /* LCOV_EXCL_START */
-        throw std::runtime_error("could not reproject lon/lat to mercator");
-        /* LCOV_EXCL_STOP */
-    }
-
-    mapnik::coord2d pt(x,y);
-    if (!layer_name.empty())
-    {
-        protozero::pbf_reader layer_msg;
-        if (d->tile_->layer_reader(layer_name, layer_msg))
-        {
-            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                            layer_msg,
-                                            d->tile_->x(),
-                                            d->tile_->y(),
-                                            d->tile_->z());
-            mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
-            if (fs && mapnik::is_valid(fs))
-            {
-                mapnik::feature_ptr feature;
-                while ((feature = fs->next()))
-                {
-                    auto const& geom = feature->get_geometry();
-                    auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
-                    {
-                        /* LCOV_EXCL_START */
-                        throw std::runtime_error("could not reproject lon/lat to mercator");
-                        /* LCOV_EXCL_STOP */
-                    }
-                    if (p2p.distance >= 0 && p2p.distance <= tolerance)
-                    {
-                        query_result res;
-                        res.x_hit = p2p.x_hit;
-                        res.y_hit = p2p.y_hit;
-                        res.distance = p2p.distance;
-                        res.layer = layer_name;
-                        res.feature = feature;
-                        arr.push_back(std::move(res));
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        protozero::pbf_reader item(d->tile_->get_reader());
-        while (item.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
-        {
-            protozero::pbf_reader layer_msg = item.get_message();
-            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                            layer_msg,
-                                            d->tile_->x(),
-                                            d->tile_->y(),
-                                            d->tile_->z());
-            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
-            if (fs && mapnik::is_valid(fs))
-            {
-                mapnik::feature_ptr feature;
-                while ((feature = fs->next()))
-                {
-                    auto const& geom = feature->get_geometry();
-                    auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
-                    {
-                        /* LCOV_EXCL_START */
-                        throw std::runtime_error("could not reproject lon/lat to mercator");
-                        /* LCOV_EXCL_STOP */
-                    }
-                    if (p2p.distance >= 0 && p2p.distance <= tolerance)
-                    {
-                        query_result res;
-                        res.x_hit = p2p.x_hit;
-                        res.y_hit = p2p.y_hit;
-                        res.distance = p2p.distance;
-                        res.layer = ds->get_name();
-                        res.feature = feature;
-                        arr.push_back(std::move(res));
-                    }
-                }
-            }
-        }
-    }
-    std::sort(arr.begin(), arr.end(),[](query_result a, query_result b) {
-                                         return a > b;
-                                     });
-    return arr;
-}
-
-
-Napi::Array VectorTile::_queryResultToV8(std::vector<query_result> const& result)
-{
-    Napi::Array arr = Napi::Array::New(env, result.size());
-    std::size_t i = 0;
-    for (auto const& item : result)
-    {
-        Napi::Value feat = Feature::NewInstance(item.feature);
-        Napi::Object feat_obj = feat->ToObject(Napi::GetCurrentContext());
-        (feat_obj).Set(Napi::String::New(env, "layer"),Napi::String::New(env, item.layer));
-        (feat_obj).Set(Napi::String::New(env, "distance"),Napi::Number::New(env, item.distance));
-        (feat_obj).Set(Napi::String::New(env, "x_hit"),Napi::Number::New(env, item.x_hit));
-        (feat_obj).Set(Napi::String::New(env, "y_hit"),Napi::Number::New(env, item.y_hit));
-        (arr).Set(i++,feat);
-    }
-    return arr;
-}
-
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    std::vector<query_lonlat> query;
-    double tolerance;
-    std::string layer_name;
-    std::vector<std::string> fields;
-    queryMany_result result;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} vector_tile_queryMany_baton_t;
-
-/**
- * Query a vector tile by multiple sets of latitude/longitude pairs.
- * Just like <mapnik.VectorTile.query> but with more points to search.
- *
- * @memberof VectorTile
- * @instance
- * @name queryMany
- * @param {array<number>} array - `longitude` and `latitude` array pairs [[lon1,lat1], [lon2,lat2]]
- * @param {Object} options
- * @param {number} [options.tolerance=0] include features a specific distance from the
- * lon/lat query in the response. Read more about tolerance at {@link VectorTile#query}.
- * @param {string} options.layer - layer name
- * @param {Array<string>} [options.fields] - array of field names
- * @param {Function} [callback] - `function(err, results)`
- * @returns {Object} The response has contains two main objects: `hits` and `features`.
- * The number of hits returned will correspond to the number of lon/lats queried and will
- * be returned in the order of the query. Each hit returns 1) a `distance` and a 2) `feature_id`.
- * The `distance` is number of meters the queried lon/lat is from the object in the vector tile.
- * The `feature_id` is the corresponding object in features object.
- *
- * The values for the query is contained in the features object. Use attributes() to extract a value.
- * @example
- * vt.queryMany([[139.61, 37.17], [140.64, 38.1]], {tolerance: 0}, function(err, results) {
- *   if (err) throw err;
- *   console.log(results.hits); //
- *   console.log(results.features); // array of feature objects
- *   if (features.length) {
- *     console.log(results.features[0].layer); // 'layer-name'
- *     console.log(results.features[0].distance, features[0].x_hit, features[0].y_hit); // 0, 0, 0
- *   }
- * });
- */
-Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
-{
-    if (info.Length() < 2 || !info[0].IsArray())
-    {
-        Napi::Error::New(env, "expects lon,lat info + object with layer property referring to a layer name").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    double tolerance = 0.0; // meters
-    std::string layer_name("");
-    std::vector<std::string> fields;
-    std::vector<query_lonlat> query;
-
-    // Convert v8 queryArray to a std vector
-    Napi::Array queryArray = info[0].As<Napi::Array>();
-    query.reserve(queryArray->Length());
-    for (uint32_t p = 0; p < queryArray->Length(); ++p)
-    {
-        Napi::Value item = (queryArray).Get(p);
-        if (!item->IsArray())
-        {
-            Napi::Error::New(env, "non-array item encountered").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        Napi::Array pair = item.As<Napi::Array>();
-        Napi::Value lon = (pair).Get(0);
-        Napi::Value lat = (pair).Get(1);
-        if (!lon.IsNumber() || !lat.IsNumber())
-        {
-            Napi::Error::New(env, "lng lat must be numbers").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        query_lonlat lonlat;
-        lonlat.lon = lon.As<Napi::Number>().DoubleValue();
-        lonlat.lat = lat.As<Napi::Number>().DoubleValue();
-        query.push_back(std::move(lonlat));
-    }
-
-    // Convert v8 options object to std params
-    if (info.Length() > 1)
-    {
-        Napi::Object options = Napi::Object::New(env);
-        if (!info[1].IsObject())
-        {
-            Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        options = info[1].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "tolerance")).FromMaybe(false))
-        {
-            Napi::Value tol = (options).Get(Napi::String::New(env, "tolerance"));
-            if (!tol.IsNumber())
-            {
-                Napi::TypeError::New(env, "tolerance value must be a number").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            tolerance = tol.As<Napi::Number>().DoubleValue();
-        }
-        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
-        {
-            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
-            if (!layer_id.IsString())
-            {
-                Napi::TypeError::New(env, "layer value must be a string").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            layer_name = TOSTR(layer_id);
-        }
-        if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
-            if (!param_val->IsArray())
-            {
-                Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            Napi::Array a = param_val.As<Napi::Array>();
-            unsigned int i = 0;
-            unsigned int num_fields = a->Length();
-            fields.reserve(num_fields);
-            while (i < num_fields)
-            {
-                Napi::Value name = (a).Get(i);
-                if (name.IsString())
-                {
-                    fields.emplace_back(TOSTR(name));
-                }
-                ++i;
-            }
-        }
-    }
-
-    if (layer_name.empty())
-    {
-        Napi::TypeError::New(env, "options.layer is required").ThrowAsJavaScriptException();
-        return env.Null();
-    }
-
-    VectorTile* d = this;
-
-    // If last argument is not a function go with sync call.
-    if (!info[info.Length()-1]->IsFunction())
-    {
-        try
-        {
-            queryMany_result result;
-            _queryMany(result, d, query, tolerance, layer_name, fields);
-            Napi::Object result_obj = _queryManyResultToV8(result);
-            return result_obj;
-            return;
-        }
-        catch (std::exception const& ex)
-        {
-            Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-    }
-    else
-    {
-        Napi::Value callback = info[info.Length()-1];
-        vector_tile_queryMany_baton_t *closure = new vector_tile_queryMany_baton_t();
-        closure->d = d;
-        closure->query = query;
-        closure->tolerance = tolerance;
-        closure->layer_name = layer_name;
-        closure->fields = fields;
-        closure->error = false;
-        closure->request.data = closure;
-        closure->cb.Reset(callback.As<Napi::Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMany, (uv_after_work_cb)EIO_AfterQueryMany);
-        d->Ref();
-        return;
-    }
-}
-
-void VectorTile::_queryMany(queryMany_result & result,
-                            VectorTile* d,
-                            std::vector<query_lonlat> const& query,
-                            double tolerance,
-                            std::string const& layer_name,
-                            std::vector<std::string> const& fields)
-{
-    protozero::pbf_reader layer_msg;
-    if (!d->tile_->layer_reader(layer_name,layer_msg))
-    {
-        throw std::runtime_error("Could not find layer in vector tile");
-    }
-
-    std::map<unsigned,query_result> features;
-    std::map<unsigned,std::vector<query_hit> > hits;
-
-    // Reproject query => mercator points
-    mapnik::box2d<double> bbox;
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(wgs84,merc);
-    std::vector<mapnik::coord2d> points;
-    points.reserve(query.size());
-    for (std::size_t p = 0; p < query.size(); ++p)
-    {
-        double x = query[p].lon;
-        double y = query[p].lat;
-        double z = 0;
-        if (!tr.forward(x,y,z))
-        {
-            /* LCOV_EXCL_START */
-            throw std::runtime_error("could not reproject lon/lat to mercator");
-            /* LCOV_EXCL_STOP */
-        }
-        mapnik::coord2d pt(x,y);
-        bbox.expand_to_include(pt);
-        points.emplace_back(std::move(pt));
-    }
-    bbox.pad(tolerance);
-
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                                mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                    layer_msg,
-                                    d->tile_->x(),
-                                    d->tile_->y(),
-                                    d->tile_->z());
-    mapnik::query q(bbox);
-    if (fields.empty())
-    {
-        // request all data attributes
-        auto fields2 = ds->get_descriptor().get_descriptors();
-        for (auto const& field : fields2)
-        {
-            q.add_property_name(field.get_name());
-        }
-    }
-    else
-    {
-        for (std::string const& name : fields)
-        {
-            q.add_property_name(name);
-        }
-    }
-    mapnik::featureset_ptr fs = ds->features(q);
-
-    if (fs && mapnik::is_valid(fs))
-    {
-        mapnik::feature_ptr feature;
-        unsigned idx = 0;
-        while ((feature = fs->next()))
-        {
-            unsigned has_hit = 0;
-            for (std::size_t p = 0; p < points.size(); ++p)
-            {
-                mapnik::coord2d const& pt = points[p];
-                auto const& geom = feature->get_geometry();
-                auto p2p = path_to_point_distance(geom,pt.x,pt.y);
-                if (p2p.distance >= 0 && p2p.distance <= tolerance)
-                {
-                    has_hit = 1;
-                    query_result res;
-                    res.feature = feature;
-                    res.distance = 0;
-                    res.layer = ds->get_name();
-
-                    query_hit hit;
-                    hit.distance = p2p.distance;
-                    hit.feature_id = idx;
-
-                    features.insert(std::make_pair(idx, res));
-
-                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
-                    hits_it = hits.find(p);
-                    if (hits_it == hits.end())
-                    {
-                        std::vector<query_hit> pointHits;
-                        pointHits.reserve(1);
-                        pointHits.push_back(std::move(hit));
-                        hits.insert(std::make_pair(p, pointHits));
-                    }
-                    else
-                    {
-                        hits_it->second.push_back(std::move(hit));
-                    }
-                }
-            }
-            if (has_hit > 0)
-            {
-                idx++;
-            }
-        }
-    }
-
-    // Sort each group of hits by distance.
-    for (auto & hit : hits)
-    {
-        std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
-    }
-
-    result.hits = std::move(hits);
-    result.features = std::move(features);
-    return;
-}
-
-bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b)
-{
-    return a.distance < b.distance;
-}
-
-Napi::Object VectorTile::_queryManyResultToV8(queryMany_result const& result)
-{
-    Napi::Object results = Napi::Object::New(env);
-    Napi::Array features = Napi::Array::New(env, result.features.size());
-    Napi::Array hits = Napi::Array::New(env, result.hits.size());
-    (results).Set(Napi::String::New(env, "hits"), hits);
-    (results).Set(Napi::String::New(env, "features"), features);
-
-    // result.features => features
-    for (auto const& item : result.features)
-    {
-        Napi::Value feat = Feature::NewInstance(item.second.feature);
-        Napi::Object feat_obj = feat->ToObject(Napi::GetCurrentContext());
-        (feat_obj).Set(Napi::String::New(env, "layer"),Napi::String::New(env, item.second.layer));
-        (features).Set(item.first, feat_obj);
-    }
-
-    // result.hits => hits
-    for (auto const& hit : result.hits)
-    {
-        Napi::Array point_hits = Napi::Array::New(env, hit.second.size());
-        std::size_t i = 0;
-        for (auto const& h : hit.second)
-        {
-            Napi::Object hit_obj = Napi::Object::New(env);
-            (hit_obj).Set(Napi::String::New(env, "distance"), Napi::Number::New(env, h.distance));
-            (hit_obj).Set(Napi::String::New(env, "feature_id"), Napi::Number::New(env, h.feature_id));
-            (point_hits).Set(i++, hit_obj);
-        }
-        (hits).Set(hit.first, point_hits);
-    }
-
-    return results;
-}
-
-void VectorTile::EIO_QueryMany(uv_work_t* req)
-{
-    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
-    try
-    {
-        _queryMany(closure->result, closure->d, closure->query, closure->tolerance, closure->layer_name, closure->fields);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        queryMany_result result = closure->result;
-        Napi::Object obj = _queryManyResultToV8(result);
-        Napi::Value argv[2] = { env.Null(), obj };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->d->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
 
 struct geometry_type_name
 {
@@ -2261,7 +1395,7 @@ static inline std::string geometry_type_as_string(T const& geom)
 {
     return geometry_type_name()(geom);
 }
-
+/*
 struct geometry_array_visitor
 {
     Napi::Array operator() (mapnik::geometry::geometry_empty const &)
@@ -2485,7 +1619,7 @@ struct json_value_visitor
         (att_obj_).Set(Napi::New(env, name_), Napi::Number::New(env, val));
     }
 };
-
+*/
 /**
  * Get a JSON representation of this tile
  *
@@ -2512,13 +1646,17 @@ struct json_value_visitor
  */
 Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+        //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     bool decode_geometry = false;
     if (info.Length() >= 1)
     {
         if (!info[0].IsObject())
         {
             Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
 
@@ -2528,7 +1666,7 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::Error::New(env, "option 'decode_geometry' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             decode_geometry = param_val.As<Napi::Boolean>().Value();
         }
@@ -2721,11 +1859,12 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
     {
         // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
+    */
 }
-
+/*
 bool layer_to_geojson(protozero::pbf_reader const& layer,
                       std::string & result,
                       unsigned x,
@@ -2779,7 +1918,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
     }
     return !first;
 }
-
+*/
 /**
  * Syncronous version of {@link VectorTile}
  *
@@ -2798,9 +1937,11 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
  */
 Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
 {
-    return _toGeoJSONSync(info);
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
 }
-
+/*
 void write_geojson_array(std::string & result,
                          VectorTile * v)
 {
@@ -2916,7 +2057,8 @@ bool write_geojson_layer_name(std::string & result,
     }
     return false;
 }
-
+*/
+/*
 Napi::Value VectorTile::_toGeoJSONSync(Napi::CallbackInfo const& info)
 {
     Napi::EscapableHandleScope scope(env);
@@ -2995,7 +2137,7 @@ Napi::Value VectorTile::_toGeoJSONSync(Napi::CallbackInfo const& info)
     }
     return scope.Escape(Napi::String::New(env, result));
 }
-
+*/
 enum geojson_write_type : std::uint8_t
 {
     geojson_write_all = 0,
@@ -3003,7 +2145,7 @@ enum geojson_write_type : std::uint8_t
     geojson_write_layer_name,
     geojson_write_layer_index
 };
-
+/*
 struct to_geojson_baton
 {
     uv_work_t request;
@@ -3015,7 +2157,7 @@ struct to_geojson_baton
     std::string layer_name;
     Napi::FunctionReference cb;
 };
-
+*/
 /**
  * Get a [GeoJSON](http://geojson.org/) representation of this tile
  *
@@ -3037,6 +2179,10 @@ struct to_geojson_baton
  */
 Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+/*
     if ((info.Length() < 1) || !info[info.Length()-1]->IsFunction())
     {
         return _toGeoJSONSync(info);
@@ -3054,7 +2200,7 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
     {
         delete closure;
         Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (layer_id.IsString())
@@ -3075,7 +2221,7 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
                 delete closure;
                 std::string error_msg("The layer does not contain the name: " + layer_name);
                 Napi::TypeError::New(env, error_msg.c_str()).ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->layer_name = layer_name;
             closure->type = geojson_write_layer_name;
@@ -3088,13 +2234,13 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
         {
             delete closure;
             Napi::TypeError::New(env, "A layer index can not be negative").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         else if (closure->layer_idx >= static_cast<int>(closure->v->get_tile()->get_layers().size()))
         {
             delete closure;
             Napi::TypeError::New(env, "Layer index exceeds the number of layers in the vector tile.").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         closure->type = geojson_write_layer_index;
     }
@@ -3104,8 +2250,9 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, to_geojson, (uv_after_work_cb)after_to_geojson);
     closure->v->Ref();
     return;
+*/
 }
-
+/*
 void VectorTile::to_geojson(uv_work_t* req)
 {
     to_geojson_baton *closure = static_cast<to_geojson_baton *>(req->data);
@@ -3155,13 +2302,14 @@ void VectorTile::after_to_geojson(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[2] = { env.Null(), Napi::String::New(env, closure->result) };
+        Napi::Value argv[2] = { env.Undefined(), Napi::String::New(env, closure->result) };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
     delete closure;
 }
+*/
 
 /**
  * Add features to this tile from a GeoJSON string. GeoJSON coordinates must be in the WGS84 longitude & latitude CRS
@@ -3197,16 +2345,21 @@ void VectorTile::after_to_geojson(uv_work_t* req)
  */
 Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+/*
+
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::Error::New(env, "first argument must be a GeoJSON string").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     if (info.Length() < 2 || !info[1].IsString())
     {
         Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     std::string geojson_string = TOSTR(info[0]);
     std::string geojson_name = TOSTR(info[1]);
@@ -3225,7 +2378,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
         if (!info[2].IsObject())
         {
             Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         options = info[2].ToObject(Napi::GetCurrentContext());
@@ -3235,13 +2388,13 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::Error::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             area_threshold = param_val.As<Napi::Number>().Int32Value();
             if (area_threshold < 0.0)
             {
                 Napi::Error::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
@@ -3250,7 +2403,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::Error::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             strictly_simple = param_val.As<Napi::Boolean>().Value();
         }
@@ -3260,7 +2413,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!mpu->IsBoolean())
             {
                 Napi::TypeError::New(env, "multi_polygon_union value must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             multi_polygon_union = mpu.As<Napi::Boolean>().Value();
         }
@@ -3270,13 +2423,13 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!ft.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
@@ -3285,13 +2438,13 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' must be a positive number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
@@ -3300,7 +2453,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             process_all_rings = param_val.As<Napi::Boolean>().Value();
         }
@@ -3330,8 +2483,9 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
+*/
 }
 
 /**
@@ -3358,12 +2512,10 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
  */
 Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
 {
-    return _addImageSync(info);
-}
-
-Napi::Value VectorTile::_addImageSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
     {
@@ -3471,8 +2623,9 @@ Napi::Value VectorTile::_addImageSync(Napi::CallbackInfo const& info)
         return scope.Escape(env.Undefined());
     }
     return scope.Escape(env.Undefined());
+    */
 }
-
+/*
 typedef struct
 {
     uv_work_t request;
@@ -3485,7 +2638,7 @@ typedef struct
     std::string error_name;
     Napi::FunctionReference cb;
 } vector_tile_add_image_baton_t;
-
+*/
 /**
  * Add a <mapnik.Image> as a tile layer (asynchronous)
  *
@@ -3513,11 +2666,15 @@ typedef struct
  */
 Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    return env.Undefined();
+/*
+
     // If last param is not a function assume sync
     if (info.Length() < 2)
     {
         Napi::Error::New(env, "addImage requires at least two parameters: an Image and a layer name").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
@@ -3529,12 +2686,12 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
     if (!info[0].IsObject())
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     if (!info[1].IsString())
     {
         Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     std::string layer_name = TOSTR(info[1]);
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
@@ -3543,13 +2700,13 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
         !Napi::New(env, Image::constructor)->HasInstance(obj))
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Image *im = obj.Unwrap<Image>();
     if (im->get()->width() <= 0 || im->get()->height() <= 0)
     {
         Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     std::string image_format = "webp";
@@ -3561,7 +2718,7 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
         if (!info[2].IsObject())
         {
             Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         Napi::Object options = info[2].ToObject(Napi::GetCurrentContext());
@@ -3571,14 +2728,14 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             std::string image_scaling = TOSTR(param_val);
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             scaling_method = *method;
         }
@@ -3589,7 +2746,7 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             image_format = TOSTR(param_val);
         }
@@ -3607,8 +2764,9 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
     d->Ref();
     im->Ref();
     return;
+*/
 }
-
+/*
 void VectorTile::EIO_AddImage(uv_work_t* req)
 {
     vector_tile_add_image_baton_t *closure = static_cast<vector_tile_add_image_baton_t *>(req->data);
@@ -3654,7 +2812,7 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[1] = { env.Null() };
+        Napi::Value argv[1] = { env.Undefined() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
@@ -3663,6 +2821,7 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+*/
 
 /**
  * Add raw image buffer as a new tile layer (synchronous)
@@ -3681,12 +2840,10 @@ void VectorTile::EIO_AfterAddImage(uv_work_t* req)
  */
 Napi::Value VectorTile::addImageBufferSync(Napi::CallbackInfo const& info)
 {
-    return _addImageBufferSync(info);
-}
-
-Napi::Value VectorTile::_addImageBufferSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+/*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
     {
@@ -3730,8 +2887,9 @@ Napi::Value VectorTile::_addImageBufferSync(Napi::CallbackInfo const& info)
         // LCOV_EXCL_STOP
     }
     return scope.Escape(env.Undefined());
+*/
 }
-
+/*
 typedef struct
 {
     uv_work_t request;
@@ -3744,7 +2902,7 @@ typedef struct
     Napi::FunctionReference cb;
     Napi::Persistent<v8::Object> buffer;
 } vector_tile_addimagebuffer_baton_t;
-
+*/
 
 /**
  * Add an encoded image buffer as a layer
@@ -3767,6 +2925,10 @@ typedef struct
  */
 Napi::Value VectorTile::addImageBuffer(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+     //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     if (info.Length() < 3)
     {
         return _addImageBufferSync(info);
@@ -3778,25 +2940,25 @@ Napi::Value VectorTile::addImageBuffer(Napi::CallbackInfo const& info)
     if (!info[info.Length() - 1]->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     if (info.Length() < 2 || !info[1].IsString())
     {
         Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     std::string layer_name = TOSTR(info[1]);
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
@@ -3813,8 +2975,9 @@ Napi::Value VectorTile::addImageBuffer(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddImageBuffer, (uv_after_work_cb)EIO_AfterAddImageBuffer);
     d->Ref();
     return;
+    */
 }
-
+/*
 void VectorTile::EIO_AddImageBuffer(uv_work_t* req)
 {
     vector_tile_addimagebuffer_baton_t *closure = static_cast<vector_tile_addimagebuffer_baton_t *>(req->data);
@@ -3846,7 +3009,7 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[1] = { env.Null() };
+        Napi::Value argv[1] = { env.Undefined() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
@@ -3855,7 +3018,7 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
     closure->buffer.Reset();
     delete closure;
 }
-
+*/
 /**
  * Add raw data to this tile as a Buffer
  *
@@ -3875,12 +3038,9 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
  */
 Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
 {
-    return _addDataSync(info);
-}
-
-Napi::Value VectorTile::_addDataSync(Napi::CallbackInfo const& info)
-{
-    Napi::EscapableHandleScope scope(env);
+    Napi::Env env = info.Env();
+    return env.Undefined();
+    /*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
     {
@@ -3948,8 +3108,9 @@ Napi::Value VectorTile::_addDataSync(Napi::CallbackInfo const& info)
         return scope.Escape(env.Undefined());
     }
     return scope.Escape(env.Undefined());
+    */
 }
-
+/*
 typedef struct
 {
     uv_work_t request;
@@ -3963,7 +3124,7 @@ typedef struct
     Napi::FunctionReference cb;
     Napi::Persistent<v8::Object> buffer;
 } vector_tile_adddata_baton_t;
-
+*/
 
 /**
  * Add new vector tile data to an existing vector tile
@@ -3987,7 +3148,12 @@ typedef struct
  */
 Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+
     // ensure callback is a function
+/*
     Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
@@ -3998,13 +3164,13 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     bool upgrade = false;
@@ -4015,7 +3181,7 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         options = info[1].ToObject(Napi::GetCurrentContext());
         if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
@@ -4024,7 +3190,7 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             validate = param_val.As<Napi::Boolean>().Value();
         }
@@ -4034,7 +3200,7 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             upgrade = param_val.As<Napi::Boolean>().Value();
         }
@@ -4055,8 +3221,9 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_AddData, (uv_after_work_cb)EIO_AfterAddData);
     d->Ref();
     return;
+*/
 }
-
+/*
 void VectorTile::EIO_AddData(uv_work_t* req)
 {
     vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
@@ -4090,7 +3257,7 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[1] = { env.Null() };
+        Napi::Value argv[1] = { env.Undefined() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
@@ -4099,7 +3266,7 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
     closure->buffer.Reset();
     delete closure;
 }
-
+*/
 /**
  * Replace the data in this vector tile with new raw data (synchronous). This function validates
  * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
@@ -4119,12 +3286,10 @@ void VectorTile::EIO_AfterAddData(uv_work_t* req)
  */
 Napi::Value VectorTile::setDataSync(Napi::CallbackInfo const& info)
 {
-    return _setDataSync(info);
-}
-
-Napi::Value VectorTile::_setDataSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
     {
@@ -4193,8 +3358,9 @@ Napi::Value VectorTile::_setDataSync(Napi::CallbackInfo const& info)
         return scope.Escape(env.Undefined());
     }
     return scope.Escape(env.Undefined());
+    */
 }
-
+/*
 typedef struct
 {
     uv_work_t request;
@@ -4208,7 +3374,7 @@ typedef struct
     Napi::FunctionReference cb;
     Napi::Persistent<v8::Object> buffer;
 } vector_tile_setdata_baton_t;
-
+*/
 
 /**
  * Replace the data in this vector tile with new raw data
@@ -4231,7 +3397,11 @@ typedef struct
  */
 Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    return env.Undefined();
+
     // ensure callback is a function
+/*
     Napi::Value callback = info[info.Length() - 1];
     if (!info[info.Length() - 1]->IsFunction())
     {
@@ -4242,13 +3412,13 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     bool upgrade = false;
@@ -4259,7 +3429,7 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         options = info[1].ToObject(Napi::GetCurrentContext());
         if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
@@ -4268,7 +3438,7 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             validate = param_val.As<Napi::Boolean>().Value();
         }
@@ -4278,7 +3448,7 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             upgrade = param_val.As<Napi::Boolean>().Value();
         }
@@ -4299,8 +3469,9 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_SetData, (uv_after_work_cb)EIO_AfterSetData);
     d->Ref();
     return;
+*/
 }
-
+/*
 void VectorTile::EIO_SetData(uv_work_t* req)
 {
     vector_tile_setdata_baton_t *closure = static_cast<vector_tile_setdata_baton_t *>(req->data);
@@ -4336,7 +3507,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[1] = { env.Null() };
+        Napi::Value argv[1] = { env.Undefined() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
 
@@ -4345,7 +3516,7 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
     closure->buffer.Reset();
     delete closure;
 }
-
+*/
 /**
  * Get the data in this vector tile as a buffer (synchronous)
  *
@@ -4367,12 +3538,10 @@ void VectorTile::EIO_AfterSetData(uv_work_t* req)
  */
 Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
 {
-    return _getDataSync(info);
-}
-
-Napi::Value VectorTile::_getDataSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     bool compress = false;
@@ -4527,8 +3696,9 @@ Napi::Value VectorTile::_getDataSync(Napi::CallbackInfo const& info)
         // LCOV_EXCL_STOP
     }
     return scope.Escape(env.Undefined());
+    */
 }
-
+/*
 typedef struct
 {
     uv_work_t request;
@@ -4542,6 +3712,7 @@ typedef struct
     std::string error_name;
     Napi::FunctionReference cb;
 } vector_tile_get_data_baton_t;
+*/
 
 /**
  * Get the data in this vector tile as a buffer (asynchronous)
@@ -4566,6 +3737,10 @@ typedef struct
  */
 Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    ///Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     if (info.Length() == 0 || !info[info.Length()-1]->IsFunction())
     {
         return _getDataSync(info);
@@ -4585,7 +3760,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
         if (!info[0].IsObject())
         {
             Napi::TypeError::New(env, "first arg must be a options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
 
         options = info[0].ToObject(Napi::GetCurrentContext());
@@ -4596,7 +3771,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'compression' must be a string, either 'gzip', or 'none' (default)").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             compress = std::string("gzip") == (TOSTR(param_val->ToString(Napi::GetCurrentContext())));
         }
@@ -4606,7 +3781,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'release' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             release = param_val.As<Napi::Boolean>().Value();
         }
@@ -4616,13 +3791,13 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             level = param_val.As<Napi::Number>().Int32Value();
             if (level < 0 || level > 9)
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "strategy")).FromMaybe(false))
@@ -4631,7 +3806,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             else if (std::string("FILTERED") == TOSTR(param_val->ToString(Napi::GetCurrentContext())))
             {
@@ -4656,7 +3831,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
             else
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
     }
@@ -4675,8 +3850,9 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, get_data, (uv_after_work_cb)after_get_data);
     d->Ref();
     return;
+    */
 }
-
+/*
 void VectorTile::get_data(uv_work_t* req)
 {
     vector_tile_get_data_baton_t *closure = static_cast<vector_tile_get_data_baton_t *>(req->data);
@@ -4722,7 +3898,7 @@ void VectorTile::after_get_data(uv_work_t* req)
             // To keep the same behaviour as a non compression release, we want to clear the VT buffer
             closure->d->tile_->clear();
         }
-        Napi::Value argv[2] = { env.Null(),
+        Napi::Value argv[2] = { env.Undefined(),
                                          node_mapnik::NewBufferFrom(std::move(closure->data)) };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
@@ -4731,7 +3907,7 @@ void VectorTile::after_get_data(uv_work_t* req)
         std::size_t raw_size = closure->d->tile_->size();
         if (raw_size <= 0)
         {
-            Napi::Value argv[2] = { env.Null(), Napi::Buffer<char>::New(env, 0) };
+            Napi::Value argv[2] = { env.Undefined(), Napi::Buffer<char>::New(env, 0) };
             async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
         else if (raw_size >= node::Buffer::kMaxLength)
@@ -4750,13 +3926,13 @@ void VectorTile::after_get_data(uv_work_t* req)
         {
             if (closure->release)
             {
-                Napi::Value argv[2] = { env.Null(),
+                Napi::Value argv[2] = { env.Undefined(),
                                                  node_mapnik::NewBufferFrom(closure->d->tile_->release_buffer()) };
                 async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
             }
             else
             {
-                Napi::Value argv[2] = { env.Null(), Napi::Buffer::Copy(env, (char*)closure->d->tile_->data(),raw_size) };
+                Napi::Value argv[2] = { env.Undefined(), Napi::Buffer::Copy(env, (char*)closure->d->tile_->data(),raw_size) };
                 async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
             }
         }
@@ -4766,6 +3942,7 @@ void VectorTile::after_get_data(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+*/
 
 struct dummy_surface {};
 
@@ -4804,7 +3981,7 @@ struct deref_visitor
         }
     }
 };
-
+/*
 struct vector_tile_render_baton_t
 {
     uv_work_t request;
@@ -4850,7 +4027,8 @@ struct vector_tile_render_baton_t
         error(false)
         {}
 };
-
+*/
+/*
 struct baton_guard
 {
     baton_guard(vector_tile_render_baton_t * baton) :
@@ -4870,7 +4048,7 @@ struct baton_guard
     vector_tile_render_baton_t * baton_;
     bool released_;
 };
-
+*/
 /**
  * Render/write this vector tile to a surface/image, like a {@link Image}
  *
@@ -4915,24 +4093,27 @@ struct baton_guard
  */
 Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    return env.Undefined();
+    /*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "mapnik.Map expected as first arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (!Napi::New(env, Map::constructor)->HasInstance(obj))
     {
         Napi::TypeError::New(env, "mapnik.Map expected as first arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Map *m = obj.Unwrap<Map>();
     if (info.Length() < 2 || !info[1].IsObject())
     {
         Napi::TypeError::New(env, "a renderable mapnik object is expected as second arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     Napi::Object im_obj = info[1].ToObject(Napi::GetCurrentContext());
 
@@ -4941,7 +4122,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     if (!info[info.Length()-1]->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     vector_tile_render_baton_t *closure = new vector_tile_render_baton_t();
@@ -4956,7 +4137,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
         if (!info[2].IsObject())
         {
             Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         options = info[2].ToObject(Napi::GetCurrentContext());
         if ((options).Has(Napi::String::New(env, "z")).FromMaybe(false))
@@ -4965,7 +4146,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'z' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->z = bind_opt.As<Napi::Number>().Int32Value();
             set_z = true;
@@ -4977,7 +4158,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'x' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->x = bind_opt.As<Napi::Number>().Int32Value();
             set_x = true;
@@ -4989,7 +4170,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'y' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->y = bind_opt.As<Napi::Number>().Int32Value();
             set_y = true;
@@ -5001,23 +4182,23 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!set_z || !set_x || !set_y)
             {
                 Napi::TypeError::New(env, "original args 'z', 'x', and 'y' must all be used together").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             if (closure->x < 0 || closure->y < 0 || closure->z < 0)
             {
                 Napi::TypeError::New(env, "original args 'z', 'x', and 'y' can not be negative").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             std::int64_t max_at_zoom = pow(2,closure->z);
             if (closure->x >= max_at_zoom)
             {
                 Napi::TypeError::New(env, "required parameter x is out of range of possible values based on z value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             if (closure->y >= max_at_zoom)
             {
                 Napi::TypeError::New(env, "required parameter y is out of range of possible values based on z value").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
 
@@ -5027,7 +4208,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'buffer_size' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->buffer_size = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -5037,7 +4218,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
         }
@@ -5047,7 +4228,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             closure->scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
         }
@@ -5057,7 +4238,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!bind_opt.IsObject())
             {
                 Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
         }
@@ -5083,7 +4264,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!renderer.IsString() )
             {
                 Napi::Error::New(env, "'renderer' option must be a string of either 'svg' or 'cairo'").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             std::string renderer_name = TOSTR(renderer);
             if (renderer_name == "cairo")
@@ -5097,7 +4278,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             else
             {
                 Napi::Error::New(env, "'renderer' option must be a string of either 'svg' or 'cairo'").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
     }
@@ -5115,7 +4296,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
         if (!(options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
         {
             Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         else
         {
@@ -5141,7 +4322,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
                     std::ostringstream s;
                     s << "Layer name '" << layer_name << "' not found";
                     Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
             else if (layer_id.IsNumber())
@@ -5161,13 +4342,13 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
                         s << "no layers found in map";
                     }
                     Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
             else
             {
                 Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
         }
         if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false))
@@ -5176,7 +4357,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (!param_val->IsArray())
             {
                 Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             Napi::Array a = param_val.As<Napi::Array>();
             unsigned int i = 0;
@@ -5197,7 +4378,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     else
     {
         Napi::TypeError::New(env, "renderable mapnik object expected as second arg").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     closure->request.data = closure;
     closure->d = d;
@@ -5210,8 +4391,9 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     d->Ref();
     guard.release();
     return;
+    */
 }
-
+/*
 template <typename Renderer> void process_layers(Renderer & ren,
                                             mapnik::request const& m_req,
                                             mapnik::projection const& map_proj,
@@ -5252,7 +4434,8 @@ template <typename Renderer> void process_layers(Renderer & ren,
         }
     }
 }
-
+*/
+/*
 void VectorTile::EIO_RenderTile(uv_work_t* req)
 {
     vector_tile_render_baton_t *closure = static_cast<vector_tile_render_baton_t *>(req->data);
@@ -5426,19 +4609,19 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     {
         if (closure->surface.is<Image *>())
         {
-            Napi::Value argv[2] = { env.Null(), mapnik::util::get<Image *>(closure->surface)->handle() };
+            Napi::Value argv[2] = { env.Undefined(), mapnik::util::get<Image *>(closure->surface)->handle() };
             async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
 #if defined(GRID_RENDERER)
         else if (closure->surface.is<Grid *>())
         {
-            Napi::Value argv[2] = { env.Null(), mapnik::util::get<Grid *>(closure->surface)->handle() };
+            Napi::Value argv[2] = { env.Undefined(), mapnik::util::get<Grid *>(closure->surface)->handle() };
             async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
 #endif
         else if (closure->surface.is<CairoSurface *>())
         {
-            Napi::Value argv[2] = { env.Null(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
+            Napi::Value argv[2] = { env.Undefined(), mapnik::util::get<CairoSurface *>(closure->surface)->handle() };
             async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
         }
     }
@@ -5449,6 +4632,7 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
+*/
 
 /**
  * Remove all data from this vector tile (synchronously)
@@ -5461,17 +4645,15 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
  */
 Napi::Value VectorTile::clearSync(Napi::CallbackInfo const& info)
 {
-    return _clearSync(info);
-}
-
-Napi::Value VectorTile::_clearSync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    d->clear();
-    return scope.Escape(env.Undefined());
-}
+    return env.Undefined();
 
+    //VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    //d->clear();
+    //return scope.Escape(env.Undefined());
+}
+/*
 typedef struct
 {
     uv_work_t request;
@@ -5481,6 +4663,7 @@ typedef struct
     std::string error_name;
     Napi::FunctionReference cb;
 } clear_vector_tile_baton_t;
+*/
 
 /**
  * Remove all data from this vector tile
@@ -5495,8 +4678,13 @@ typedef struct
  *   console.log(vt.getData().length); // 0
  * });
  */
+
 Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+/*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
 
     if (info.Length() == 0)
@@ -5509,7 +4697,7 @@ Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
     if (!callback->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
     clear_vector_tile_baton_t *closure = new clear_vector_tile_baton_t();
     closure->request.data = closure;
@@ -5519,8 +4707,9 @@ Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
     d->Ref();
     return;
+*/
 }
-
+/*
 void VectorTile::EIO_Clear(uv_work_t* req)
 {
     clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
@@ -5553,14 +4742,14 @@ void VectorTile::EIO_AfterClear(uv_work_t* req)
     }
     else
     {
-        Napi::Value argv[1] = { env.Null() };
+        Napi::Value argv[1] = { env.Undefined() };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
     }
     closure->d->Unref();
     closure->cb.Reset();
     delete closure;
 }
-
+*/
 #if BOOST_VERSION >= 105800
 
 // LCOV_EXCL_START
@@ -5590,7 +4779,7 @@ struct not_valid_feature
     std::int64_t const feature_id;
     std::string const geojson;
 };
-
+/*
 void layer_not_simple(protozero::pbf_reader const& layer_msg,
                unsigned x,
                unsigned y,
@@ -6020,6 +5209,7 @@ void vector_tile_not_simple(VectorTile * v,
 
 Napi::Array make_not_simple_array(std::vector<not_simple_feature> & errors)
 {
+
     Napi::EscapableHandleScope scope(env);
     Napi::Array array = Napi::Array::New(env, errors.size());
     Napi::String layer_key = Napi::String::New(env, "layer");
@@ -6078,8 +5268,8 @@ Napi::Array make_not_valid_array(std::vector<not_valid_feature> & errors)
     }
     return scope.Escape(array);
 }
-
-
+*/
+/*
 struct not_simple_baton
 {
     uv_work_t request;
@@ -6102,7 +5292,7 @@ struct not_valid_baton
     std::string err_msg;
     Napi::FunctionReference cb;
 };
-
+*/
 /**
  * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
  *
@@ -6117,12 +5307,10 @@ struct not_valid_baton
  */
 Napi::Value VectorTile::reportGeometrySimplicitySync(Napi::CallbackInfo const& info)
 {
-    return _reportGeometrySimplicitySync(info);
-}
-
-Napi::Value VectorTile::_reportGeometrySimplicitySync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+/*
     VectorTile* d = info.Holder().Unwrap<VectorTile>();
     try
     {
@@ -6140,6 +5328,7 @@ Napi::Value VectorTile::_reportGeometrySimplicitySync(Napi::CallbackInfo const& 
     // LCOV_EXCL_START
     return scope.Escape(env.Undefined());
     // LCOV_EXCL_STOP
+    */
 }
 
 /**
@@ -6163,12 +5352,10 @@ Napi::Value VectorTile::_reportGeometrySimplicitySync(Napi::CallbackInfo const& 
  */
 Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& info)
 {
-    return _reportGeometryValiditySync(info);
-}
-
-Napi::Value VectorTile::_reportGeometryValiditySync(Napi::CallbackInfo const& info)
-{
+    Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     bool split_multi_features = false;
     bool lat_lon = false;
     bool web_merc = false;
@@ -6235,6 +5422,7 @@ Napi::Value VectorTile::_reportGeometryValiditySync(Napi::CallbackInfo const& in
     // LCOV_EXCL_START
     return scope.Escape(env.Undefined());
     // LCOV_EXCL_STOP
+    */
 }
 
 /**
@@ -6253,6 +5441,10 @@ Napi::Value VectorTile::_reportGeometryValiditySync(Napi::CallbackInfo const& in
  */
 Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    //Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     if (info.Length() == 0)
     {
         return _reportGeometrySimplicitySync(info);
@@ -6263,7 +5455,7 @@ Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
     if (!callback->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     not_simple_baton *closure = new not_simple_baton();
@@ -6274,8 +5466,9 @@ Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometrySimplicity, (uv_after_work_cb)EIO_AfterReportGeometrySimplicity);
     closure->v->Ref();
     return;
+    */
 }
-
+/*
 void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
 {
     not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
@@ -6307,14 +5500,14 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
     else
     {
         Napi::Array array = make_not_simple_array(closure->result);
-        Napi::Value argv[2] = { env.Null(), array };
+        Napi::Value argv[2] = { env.Undefined(), array };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
     delete closure;
 }
-
+*/
 /**
  * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
  *
@@ -6337,6 +5530,10 @@ void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
  */
 Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+    /*
     if (info.Length() == 0 || (info.Length() == 1 && !info[0].IsFunction()))
     {
         return _reportGeometryValiditySync(info);
@@ -6350,7 +5547,7 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
         if (!info[0].IsObject())
         {
             Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
-            return env.Null();
+            return env.Undefined();
         }
         Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
 
@@ -6360,7 +5557,7 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             split_multi_features = param_val.As<Napi::Boolean>().Value();
         }
@@ -6371,7 +5568,7 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             lat_lon = param_val.As<Napi::Boolean>().Value();
         }
@@ -6382,7 +5579,7 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
             if (!param_val->IsBoolean())
             {
                 Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
             web_merc = param_val.As<Napi::Boolean>().Value();
         }
@@ -6392,7 +5589,7 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
     if (!callback->IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     not_valid_baton *closure = new not_valid_baton();
@@ -6406,8 +5603,9 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
     closure->v->Ref();
     return;
+    */
 }
-
+/*
 void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
 {
     not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
@@ -6439,53 +5637,47 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
     else
     {
         Napi::Array array = make_not_valid_array(closure->result);
-        Napi::Value argv[2] = { env.Null(), array };
+        Napi::Value argv[2] = { env.Undefined(), array };
         async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
     }
     closure->v->Unref();
     closure->cb.Reset();
     delete closure;
 }
-
+*/
 #endif // BOOST_VERSION >= 1.58
 
 Napi::Value VectorTile::get_tile_x(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Number::New(env, d->tile_->x());
+    return Napi::Number::New(info.Env(), tile_->x());
 }
 
 Napi::Value VectorTile::get_tile_y(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Number::New(env, d->tile_->y());
+    return Napi::Number::New(info.Env(), tile_->y());
 }
 
 Napi::Value VectorTile::get_tile_z(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Number::New(env, d->tile_->z());
+    return Napi::Number::New(info.Env(), tile_->z());
 }
 
 Napi::Value VectorTile::get_tile_size(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Number::New(env, d->tile_->tile_size());
+    return Napi::Number::New(info.Env(), tile_->tile_size());
 }
 
 Napi::Value VectorTile::get_buffer_size(Napi::CallbackInfo const& info)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    return Napi::Number::New(env, d->tile_->buffer_size());
+    return Napi::Number::New(info.Env(), tile_->buffer_size());
 }
 
 void VectorTile::set_tile_x(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
-
     }
     else
     {
@@ -6493,15 +5685,15 @@ void VectorTile::set_tile_x(Napi::CallbackInfo const& info, const Napi::Value& v
         if (val < 0)
         {
             Napi::Error::New(env, "tile x coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        d->tile_->x(val);
+        tile_->x(val);
     }
 }
 
 void VectorTile::set_tile_y(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
@@ -6513,15 +5705,15 @@ void VectorTile::set_tile_y(Napi::CallbackInfo const& info, const Napi::Value& v
         if (val < 0)
         {
             Napi::Error::New(env, "tile y coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        d->tile_->y(val);
+        tile_->y(val);
     }
 }
 
 void VectorTile::set_tile_z(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
@@ -6533,15 +5725,16 @@ void VectorTile::set_tile_z(Napi::CallbackInfo const& info, const Napi::Value& v
         if (val < 0)
         {
             Napi::Error::New(env, "tile z coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        d->tile_->z(val);
+        tile_->z(val);
     }
 }
 
 void VectorTile::set_tile_size(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    //VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
@@ -6553,15 +5746,16 @@ void VectorTile::set_tile_size(Napi::CallbackInfo const& info, const Napi::Value
         if (val <= 0)
         {
             Napi::Error::New(env, "tile size must be greater then zero").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        d->tile_->tile_size(val);
+        tile_->tile_size(val);
     }
 }
 
 void VectorTile::set_buffer_size(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::Env env = info.Env();
+    //VectorTile* d = info.Holder().Unwrap<VectorTile>();
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
@@ -6570,15 +5764,15 @@ void VectorTile::set_buffer_size(Napi::CallbackInfo const& info, const Napi::Val
     else
     {
         int val = value.As<Napi::Number>().Int32Value();
-        if (static_cast<int>(d->tile_size()) + (2 * val) <= 0)
+        if (static_cast<int>(tile_size()) + (2 * val) <= 0)
         {
             Napi::Error::New(env, "too large of a negative buffer for tilesize").ThrowAsJavaScriptException();
-            return env.Null();
+            return;
         }
-        d->tile_->buffer_size(val);
+        tile_->buffer_size(val);
     }
 }
-
+/*
 typedef struct {
     uv_work_t request;
     const char *data;
@@ -6589,7 +5783,7 @@ typedef struct {
     Napi::Persistent<v8::Object> buffer;
     Napi::FunctionReference cb;
 } vector_tile_info_baton_t;
-
+*/
 /**
  * Return an object containing information about a vector tile buffer. Useful for
  * debugging `.mvt` files with errors.
@@ -6625,17 +5819,22 @@ typedef struct {
  */
 Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
 {
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    return env.Undefined();
+
+    /*
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-        return env.Null();
+        return env.Undefined();
     }
 
     Napi::Object out = Napi::Object::New(env);
@@ -6763,4 +5962,5 @@ Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
     }
     return out;
     return;
+    */
 }

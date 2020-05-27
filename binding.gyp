@@ -44,7 +44,8 @@
         "src/mapnik_featureset.cpp",
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
-        #"src/mapnik_vector_tile.cpp"
+        "src/mapnik_vector_tile.cpp",
+        "src/mapnik_vector_tile_query.cpp"
       ],
       'include_dirs': [
         './mason_packages/.link/include/',

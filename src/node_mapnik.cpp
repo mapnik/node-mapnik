@@ -1,8 +1,8 @@
 // Vector Tile
-//#include "vector_tile_config.hpp"
+#include "vector_tile_config.hpp"
 
 // node-mapnik
-//#include "mapnik_vector_tile.hpp"
+#include "mapnik_vector_tile.hpp"
 #include "mapnik_map.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_geometry.hpp"
@@ -15,7 +15,6 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
-//#include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_cairo_surface.hpp"
@@ -24,7 +23,6 @@
 #include "mapnik_grid_view.hpp"
 #endif
 #include "mapnik_expression.hpp"
-//#include "utils.hpp"
 #include "blend.hpp"
 
 // mapnik
@@ -326,6 +324,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     Grid::Initialize(env, exports);
     GridView::Initialize(env, exports);
 #endif
+    VectorTile::Initialize(env, exports);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);

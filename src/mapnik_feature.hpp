@@ -10,8 +10,9 @@
 
 class Feature : public Napi::ObjectWrap<Feature>
 {
-    friend class Featureset;
-    friend class Expression;
+    //friend class Featureset;
+    //friend class Expression;
+    //friend class VectorTile;
 public:
     // initialiser
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -25,8 +26,8 @@ public:
     Napi::Value geometry(Napi::CallbackInfo const& info);
     Napi::Value toJSON(Napi::CallbackInfo const& info);
     inline mapnik::feature_ptr impl() const {return feature_;}
-private:
     static Napi::FunctionReference constructor;
+private:
     mapnik::feature_ptr feature_;
     mapnik::context_ptr ctx_;
 };
