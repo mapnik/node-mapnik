@@ -5,12 +5,15 @@
 // mapnik
 #include <mapnik/geom_util.hpp>
 #include <mapnik/hit_test_filter.hpp>
+#include <mapnik/projection.hpp>
+#include <mapnik/proj_transform.hpp>
 // mapnik-vector-tile
 #include "mapnik_vector_tile.hpp"
 //#include "vector_tile_compression.hpp"
 //#include "vector_tile_composite.hpp"
 //#include "vector_tile_processor.hpp"
-//#include "vector_tile_projection.hpp"
+#include "vector_tile_projection.hpp"
+//#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "vector_tile_datasource_pbf.hpp"
 //#include "vector_tile_geometry_decoder.hpp"
 //#include "vector_tile_load_tile.hpp"
@@ -21,14 +24,9 @@ namespace detail
 
 struct p2p_result
 {
-    explicit p2p_result() :
-      distance(-1),
-      x_hit(0),
-      y_hit(0) {}
-
-    double distance;
-    double x_hit;
-    double y_hit;
+    double distance = -1;
+    double x_hit = 0;
+    double y_hit = 0;
 };
 
 struct p2p_distance
@@ -307,6 +305,7 @@ struct AsyncQuery : Napi::AsyncWorker
     AsyncQuery(mapnik::vector_tile_impl::merc_tile_ptr const& tile, double lon, double lat, double tolerance,
                std::string layer_name, Napi::Function const& callback)
         : Base(callback),
+          tile_(tile),
           lon_(lon),
           lat_(lat),
           tolerance_(tolerance),
@@ -339,23 +338,6 @@ private:
 };
 
 } // ns
-
-
-/*
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    double lon;
-    double lat;
-    double tolerance;
-    bool error;
-    std::vector<query_result> result;
-    std::string layer_name;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} vector_tile_query_baton_t;
-*/
 
  /**
  * Query a vector tile by longitude and latitude and get an array of
@@ -410,7 +392,7 @@ typedef struct
 Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
+    Napi::HandleScope scope(env);
     if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber())
     {
         Napi::Error::New(env, "expects lon,lat info").ThrowAsJavaScriptException();
@@ -459,7 +441,7 @@ Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
         {
             std::vector<query_result> result = detail::_query(tile_, lon, lat, tolerance, layer_name);
             Napi::Array arr = detail::_queryResultToV8(env, result);
-            return scope.Escape(arr);
+            return arr; // Escape ? FIXME
         }
         catch (std::exception const& ex)
         {
@@ -475,46 +457,6 @@ Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
     }
     return env.Undefined();
 }
-
-/*
-void VectorTile::EIO_Query(uv_work_t* req)
-{
-    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
-    try
-    {
-        closure->result = _query(closure->d, closure->lon, closure->lat, closure->tolerance, closure->layer_name);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void VectorTile::EIO_AfterQuery(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    vector_tile_query_baton_t *closure = static_cast<vector_tile_query_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        std::vector<query_result> const& result = closure->result;
-        Napi::Array arr = _queryResultToV8(result);
-        Napi::Value argv[2] = { env.Undefined(), arr };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->d->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
-
 
 /*
 typedef struct

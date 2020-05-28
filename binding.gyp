@@ -45,7 +45,18 @@
         "src/mapnik_expression.cpp",
         "src/mapnik_cairo_surface.cpp",
         "src/mapnik_vector_tile.cpp",
-        "src/mapnik_vector_tile_query.cpp"
+        "src/mapnik_vector_tile_data.cpp",
+        "src/mapnik_vector_tile_query.cpp",
+        "src/mapnik_vector_tile_json.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_compression.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_geometry_decoder.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_geometry_encoder_pbf.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_layer.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_processor.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_raster_clipper.cpp",
+        "node_modules/mapnik-vector-tile/src/vector_tile_tile.cpp"
       ],
       'include_dirs': [
         './mason_packages/.link/include/',
@@ -62,6 +73,7 @@
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
+          'MAPNIK_VECTOR_TILE_LIBRARY=1',
       ],
       'conditions': [
         ['ENABLE_GLIBC_WORKAROUND != "false"', {

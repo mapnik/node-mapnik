@@ -382,7 +382,6 @@ private:
     unsigned offset_x_;
     unsigned offset_y_;
     std::size_t layer_idx_;
-    //mapnik::attributes variables_;
 };
 
 struct AsyncRenderFile : Napi::AsyncWorker
