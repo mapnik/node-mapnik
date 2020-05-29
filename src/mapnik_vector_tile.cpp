@@ -10,14 +10,13 @@
 #include <mapnik/svg/output/svg_renderer.hpp>
 #endif
 
-//#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "mapnik_vector_tile.hpp"
-//#include "vector_tile_compression.hpp"
-//#include "vector_tile_composite.hpp"
-//#include "vector_tile_processor.hpp"
-//#include "vector_tile_projection.hpp"
-//#include "vector_tile_datasource_pbf.hpp"
-//#include "vector_tile_geometry_decoder.hpp"
+#include "vector_tile_compression.hpp"
+#include "vector_tile_composite.hpp"
+#include "vector_tile_processor.hpp"
+#include "vector_tile_projection.hpp"
+#include "vector_tile_datasource_pbf.hpp"
+#include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_load_tile.hpp"
 #include "object_to_container.hpp"
 
@@ -31,7 +30,7 @@
 #include <mapnik/geometry/is_simple.hpp>
 #include <mapnik/geometry/is_valid.hpp>
 #include <mapnik/geometry/reprojection.hpp>
-//#include <mapnik/geom_util.hpp>
+#include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/hit_test_filter.hpp>
 #include <mapnik/image_any.hpp>
 #include <mapnik/layer.hpp>
@@ -1860,254 +1859,6 @@ void VectorTile::EIO_AfterAddImageBuffer(uv_work_t* req)
     delete closure;
 }
 */
-/**
- * Add raw data to this tile as a Buffer
- *
- * @memberof VectorTile
- * @instance
- * @name addDataSync
- * @param {Buffer} buffer - raw data
- * @param {object} [options]
- * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
- * Will throw if anything invalid or unexpected is encountered in the data
- * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
- * @example
- * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
- * // assumes you have created a vector tile object already
- * vt.addDataSync(data_buffer);
- * // your custom code
- */
-Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    return env.Undefined();
-    /*
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    if (info.Length() < 1 || !info[0].IsObject())
-    {
-        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (!obj.IsBuffer())
-    {
-        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-    std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
-    if (buffer_size <= 0)
-    {
-        Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-    bool upgrade = false;
-    bool validate = false;
-    Napi::Object options = Napi::Object::New(env);
-    if (info.Length() > 1)
-    {
-        if (!info[1].IsObject())
-        {
-            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
-
-            return scope.Escape(env.Undefined());
-        }
-        options = info[1].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
-            }
-            validate = param_val.As<Napi::Boolean>().Value();
-        }
-        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
-            }
-            upgrade = param_val.As<Napi::Boolean>().Value();
-        }
-    }
-    try
-    {
-        merge_from_compressed_buffer(*d->get_tile(), obj.As<Napi::Buffer<char>>().Data(), buffer_size, validate, upgrade);
-    }
-    catch (std::exception const& ex)
-    {
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
-        return scope.Escape(env.Undefined());
-    }
-    return scope.Escape(env.Undefined());
-    */
-}
-/*
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    const char *data;
-    bool validate;
-    bool upgrade;
-    size_t dataLength;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-    Napi::Persistent<v8::Object> buffer;
-} vector_tile_adddata_baton_t;
-*/
-
-/**
- * Add new vector tile data to an existing vector tile
- *
- * @memberof VectorTile
- * @instance
- * @name addData
- * @param {Buffer} buffer - raw vector data
- * @param {object} [options]
- * @param {boolean} [options.validate=false] - If true does validity checks mvt schema (not geometries)
- * Will throw if anything invalid or unexpected is encountered in the data
- * @param {boolean} [options.upgrade=false] - If true will upgrade v1 tiles to adhere to the v2 specification
- * @param {Object} callback
- * @example
- * var data_buffer = fs.readFileSync('./path/to/data.mvt'); // returns a buffer
- * var vt = new mapnik.VectorTile(9,112,195);
- * vt.addData(data_buffer, function(err) {
- *   if (err) throw err;
- *   // your custom code
- * });
- */
-Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-
-    // ensure callback is a function
-/*
-    Napi::Value callback = info[info.Length() - 1];
-    if (!info[info.Length() - 1]->IsFunction())
-    {
-        return _addDataSync(info);
-        return;
-    }
-
-    if (info.Length() < 1 || !info[0].IsObject())
-    {
-        Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    Napi::Object obj = info[0].ToObject(Napi::GetCurrentContext());
-    if (!obj.IsBuffer())
-    {
-        Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-
-    bool upgrade = false;
-    bool validate = false;
-    Napi::Object options = Napi::Object::New(env);
-    if (info.Length() > 1)
-    {
-        if (!info[1].IsObject())
-        {
-            Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-        options = info[1].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "validate")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "validate"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            validate = param_val.As<Napi::Boolean>().Value();
-        }
-        if ((options).Has(Napi::String::New(env, "upgrade")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "upgrade"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            upgrade = param_val.As<Napi::Boolean>().Value();
-        }
-    }
-
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-
-    vector_tile_adddata_baton_t *closure = new vector_tile_adddata_baton_t();
-    closure->request.data = closure;
-    closure->d = d;
-    closure->validate = validate;
-    closure->upgrade = upgrade;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    closure->buffer.Reset(obj.As<Napi::Object>());
-    closure->data = obj.As<Napi::Buffer<char>>().Data();
-    closure->dataLength = obj.As<Napi::Buffer<char>>().Length();
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_AddData, (uv_after_work_cb)EIO_AfterAddData);
-    d->Ref();
-    return;
-*/
-}
-/*
-void VectorTile::EIO_AddData(uv_work_t* req)
-{
-    vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
-
-    if (closure->dataLength <= 0)
-    {
-        closure->error = true;
-        closure->error_name = "cannot accept empty buffer as protobuf";
-        return;
-    }
-    try
-    {
-        merge_from_compressed_buffer(*closure->d->get_tile(), closure->data, closure->dataLength, closure->validate, closure->upgrade);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void VectorTile::EIO_AfterAddData(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    vector_tile_adddata_baton_t *closure = static_cast<vector_tile_adddata_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        Napi::Value argv[1] = { env.Undefined() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-
-    closure->d->Unref();
-    closure->cb.Reset();
-    closure->buffer.Reset();
-    delete closure;
-}
-*/
 
 struct dummy_surface {};
 
@@ -2944,7 +2695,7 @@ struct not_valid_feature
     std::int64_t const feature_id;
     std::string const geojson;
 };
-/*
+
 void layer_not_simple(protozero::pbf_reader const& layer_msg,
                unsigned x,
                unsigned y,
@@ -3357,25 +3108,23 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
     }
 }
 
-void vector_tile_not_simple(VectorTile * v,
+void vector_tile_not_simple(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                             std::vector<not_simple_feature> & errors)
 {
-    protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
+    protozero::pbf_reader tile_msg(tile->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         protozero::pbf_reader layer_msg(tile_msg.get_message());
         layer_not_simple(layer_msg,
-                         v->get_tile()->x(),
-                         v->get_tile()->y(),
-                         v->get_tile()->z(),
+                         tile->x(),
+                         tile->y(),
+                         tile->z(),
                          errors);
     }
 }
 
-Napi::Array make_not_simple_array(std::vector<not_simple_feature> & errors)
+Napi::Array make_not_simple_array(Napi::Env env, std::vector<not_simple_feature> & errors)
 {
-
-    Napi::EscapableHandleScope scope(env);
     Napi::Array array = Napi::Array::New(env, errors.size());
     Napi::String layer_key = Napi::String::New(env, "layer");
     Napi::String feature_id_key = Napi::String::New(env, "featureId");
@@ -3384,28 +3133,28 @@ Napi::Array make_not_simple_array(std::vector<not_simple_feature> & errors)
     {
         // LCOV_EXCL_START
         Napi::Object obj = Napi::Object::New(env);
-        (obj).Set(layer_key, Napi::String::New(env, error.layer));
-        (obj).Set(feature_id_key, Napi::Number::New(env, error.feature_id));
-        (array).Set(idx++, obj);
+        obj.Set(layer_key, Napi::String::New(env, error.layer));
+        obj.Set(feature_id_key, Napi::Number::New(env, error.feature_id));
+        array.Set(idx++, obj);
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(array);
+    return array;
 }
 
-void vector_tile_not_valid(VectorTile * v,
+void vector_tile_not_valid(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                            std::vector<not_valid_feature> & errors,
                            bool split_multi_features = false,
                            bool lat_lon = false,
                            bool web_merc = false)
 {
-    protozero::pbf_reader tile_msg(v->get_tile()->get_reader());
+    protozero::pbf_reader tile_msg(tile->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         protozero::pbf_reader layer_msg(tile_msg.get_message());
         layer_not_valid(layer_msg,
-                        v->get_tile()->x(),
-                        v->get_tile()->y(),
-                        v->get_tile()->z(),
+                        tile->x(),
+                        tile->y(),
+                        tile->z(),
                         errors,
                         split_multi_features,
                         lat_lon,
@@ -3413,27 +3162,26 @@ void vector_tile_not_valid(VectorTile * v,
     }
 }
 
-Napi::Array make_not_valid_array(std::vector<not_valid_feature> & errors)
+Napi::Array make_not_valid_array(Napi::Env env, std::vector<not_valid_feature> & errors)
 {
-    Napi::EscapableHandleScope scope(env);
     Napi::Array array = Napi::Array::New(env, errors.size());
     Napi::String layer_key = Napi::String::New(env, "layer");
     Napi::String feature_id_key = Napi::String::New(env, "featureId");
     Napi::String message_key = Napi::String::New(env, "message");
     Napi::String geojson_key = Napi::String::New(env, "geojson");
-    std::uint32_t idx = 0;
+    std::size_t idx = 0;
     for (auto const& error : errors)
     {
         Napi::Object obj = Napi::Object::New(env);
-        (obj).Set(layer_key, Napi::String::New(env, error.layer));
-        (obj).Set(message_key, Napi::String::New(env, error.message));
-        (obj).Set(feature_id_key, Napi::Number::New(env, error.feature_id));
-        (obj).Set(geojson_key, Napi::String::New(env, error.geojson));
-        (array).Set(idx++, obj);
+        obj.Set(layer_key, Napi::String::New(env, error.layer));
+        obj.Set(message_key, Napi::String::New(env, error.message));
+        obj.Set(feature_id_key, Napi::Number::New(env, error.feature_id));
+        obj.Set(geojson_key, Napi::String::New(env, error.geojson));
+        array.Set(idx++, obj);
     }
-    return scope.Escape(array);
+    return array;
 }
-*/
+
 /*
 struct not_simple_baton
 {
@@ -3474,14 +3222,11 @@ Napi::Value VectorTile::reportGeometrySimplicitySync(Napi::CallbackInfo const& i
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-/*
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
     try
     {
         std::vector<not_simple_feature> errors;
-        vector_tile_not_simple(d, errors);
-        return scope.Escape(make_not_simple_array(errors));
+        vector_tile_not_simple(tile_, errors);
+        return scope.Escape(make_not_simple_array(env, errors));
     }
     catch (std::exception const& ex)
     {
@@ -3491,9 +3236,8 @@ Napi::Value VectorTile::reportGeometrySimplicitySync(Napi::CallbackInfo const& i
         // LCOV_EXCL_STOP
     }
     // LCOV_EXCL_START
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
     // LCOV_EXCL_STOP
-    */
 }
 
 /**
@@ -3519,8 +3263,6 @@ Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& inf
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-    /*
     bool split_multi_features = false;
     bool lat_lon = false;
     bool web_merc = false;
@@ -3530,64 +3272,55 @@ Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& inf
         {
             Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
-        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
+        Napi::Object options = info[0].As<Napi::Object>();
 
-        if ((options).Has(Napi::String::New(env, "split_multi_features")).FromMaybe(false))
+        if (options.Has("split_multi_features"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "split_multi_features"));
-            if (!param_val->IsBoolean())
+            Napi::Value param_val = options.Get("split_multi_features");
+            if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            split_multi_features = param_val.As<Napi::Boolean>().Value();
+            split_multi_features = param_val.As<Napi::Boolean>();
         }
 
-        if ((options).Has(Napi::String::New(env, "lat_lon")).FromMaybe(false))
+        if (options.Has("lat_lon"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "lat_lon"));
-            if (!param_val->IsBoolean())
+            Napi::Value param_val = options.Get("lat_lon");
+            if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            lat_lon = param_val.As<Napi::Boolean>().Value();
+            lat_lon = param_val.As<Napi::Boolean>();
         }
 
-        if ((options).Has(Napi::String::New(env, "web_merc")).FromMaybe(false))
+        if (options.Has("web_merc"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "web_merc"));
-            if (!param_val->IsBoolean())
+            Napi::Value param_val = options.Get("web_merc");
+            if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
-
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            web_merc = param_val.As<Napi::Boolean>().Value();
+            web_merc = param_val.As<Napi::Boolean>();
         }
     }
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+
     try
     {
         std::vector<not_valid_feature> errors;
-        vector_tile_not_valid(d, errors, split_multi_features, lat_lon, web_merc);
-        return scope.Escape(make_not_valid_array(errors));
+        vector_tile_not_valid(tile_, errors, split_multi_features, lat_lon, web_merc);
+        return scope.Escape(make_not_valid_array(env, errors));
     }
     catch (std::exception const& ex)
     {
-        // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
-        // LCOV_EXCL_STOP
     }
-    // LCOV_EXCL_START
     return scope.Escape(env.Undefined());
-    // LCOV_EXCL_STOP
-    */
 }
 
 /**
@@ -3608,12 +3341,10 @@ Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     //Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
     /*
     if (info.Length() == 0)
     {
-        return _reportGeometrySimplicitySync(info);
-        return;
+        return reportGeometrySimplicitySync(info);
     }
     // ensure callback is a function
     Napi::Value callback = info[info.Length() - 1];
@@ -3630,8 +3361,9 @@ Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
     closure->cb.Reset(callback.As<Napi::Function>());
     uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometrySimplicity, (uv_after_work_cb)EIO_AfterReportGeometrySimplicity);
     closure->v->Ref();
-    return;
     */
+    return env.Undefined();
+
 }
 /*
 void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
@@ -3812,6 +3544,7 @@ void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
 */
 #endif // BOOST_VERSION >= 1.58
 
+// accessors
 Napi::Value VectorTile::get_tile_x(Napi::CallbackInfo const& info)
 {
     return Napi::Number::New(info.Env(), tile_->x());

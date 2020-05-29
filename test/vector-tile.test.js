@@ -1,8 +1,8 @@
 "use strict";
-console.log('FIXME');
-/*
+
+var test = require('tape');
 var mapnik = require('../');
-var assert = require('assert');
+
 var fs = require('fs');
 var path = require('path');
 var mercator = new(require('@mapbox/sphericalmercator'))();
@@ -30,86 +30,89 @@ function deepEqualTrunc(json1,json2) {
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
-describe('mapnik.VectorTile ', function() {
-    // generate test data
-    var _vtile;
-    var _data;
-    var _length;
-    before(function(done) {
-        if (overwrite_expected_data) {
-            var map = new mapnik.Map(256, 256);
-            map.loadSync('./test/data/vector_tile/layers.xml');
-            var vtile = new mapnik.VectorTile(9,112,195);
-            _vtile = vtile;
-            map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
-            map.render(vtile,{},function(err,vtile) {
-                if (err) throw err;
-                fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf',vtile.getData());
-                fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf.gz',vtile.getData({compress:"gzip"}));
-                _data = vtile.getData().toString("hex");
-                _length = vtile.getData().length;
-                var map2 = new mapnik.Map(256,256);
-                map2.loadSync('./test/data/vector_tile/layers.xml');
-                var vtile2 = new mapnik.VectorTile(5,28,12);
-                var bbox = mercator.bbox(28, 12, 5, false, '900913');
-                map2.extent = bbox;
-                map2.render(vtile2,{}, function(err,vtile2) {
-                    if (err) throw err;
-                    fs.writeFileSync("./test/data/vector_tile/tile3.mvt",vtile2.getData());
-                    done();
-                });
-            });
-        } else {
-            _vtile = new mapnik.VectorTile(9,112,195);
-            _vtile.setData(fs.readFileSync('./test/data/vector_tile/tile1.vector.pbf'));
-            _data = _vtile.getData().toString("hex");
-            _length = _vtile.getData().length;
-            done();
-        }
+//describe('mapnik.VectorTile ', function() {
+// generate test data
+var _vtile;
+var _data;
+var _length;
+
+test( 'before', (assert) => {
+  if (overwrite_expected_data) {
+    var map = new mapnik.Map(256, 256);
+    map.loadSync('./test/data/vector_tile/layers.xml');
+    var vtile = new mapnik.VectorTile(9,112,195);
+    _vtile = vtile;
+    map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
+    map.render(vtile,{},function(err,vtile) {
+      if (err) throw err;
+      fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf',vtile.getData());
+      fs.writeFileSync('./test/data/vector_tile/tile1.vector.pbf.gz',vtile.getData({compress:"gzip"}));
+      _data = vtile.getData().toString("hex");
+      _length = vtile.getData().length;
+      var map2 = new mapnik.Map(256,256);
+      map2.loadSync('./test/data/vector_tile/layers.xml');
+      var vtile2 = new mapnik.VectorTile(5,28,12);
+      var bbox = mercator.bbox(28, 12, 5, false, '900913');
+      map2.extent = bbox;
+      map2.render(vtile2,{}, function(err,vtile2) {
+        if (err) throw err;
+        fs.writeFileSync("./test/data/vector_tile/tile3.mvt",vtile2.getData());
+        assert.end();
+      });
     });
+  } else {
+    _vtile = new mapnik.VectorTile(9,112,195);
+    _vtile.setData(fs.readFileSync('./test/data/vector_tile/tile1.vector.pbf'));
+    _data = _vtile.getData().toString("hex");
+    _length = _vtile.getData().length;
+    assert.end();
+  }
+});
 
-    if (hasBoostSimple) {
-        it('should fail when bad parameters are passed to reportGeometrySimplicity', function() {
-            var vtile = new mapnik.VectorTile(0,0,0);
-            assert.throws(function() { vtile.reportGeometrySimplicity(null); });
-        });
-
-        // this is not recommend, doing this purely to ensure we have test coverage
-        // it('successfully creates a not_simple_feature with a non-simple geometry', function(done) {
-        //     var vtile = new mapnik.VectorTile(0,0,0);
-        //     var gj_str = fs.readFileSync('./test/data/bowtie.geojson').toString('utf8');
+if (hasBoostSimple) {
+  test('should fail when bad parameters are passed to reportGeometrySimplicity', (assert) => {
+    var vtile = new mapnik.VectorTile(0,0,0);
+    assert.throws(function() { vtile.reportGeometrySimplicity(null); });
+    assert.end();
+  });
+}
+/*
+  // this is not recommend, doing this purely to ensure we have test coverage
+  // test('successfully creates a not_simple_feature with a non-simple geometry', function(done) {
+  //     var vtile = new mapnik.VectorTile(0,0,0);
+  //     var gj_str = fs.readFileSync('./test/data/bowtie.geojson').toString('utf8');
         //     vtile.addGeoJSON(gj_str, 'not-simple', {strictly_simple: false, fill_type: mapnik.polygonFillType.evenOdd});
         //     var simple = vtile.reportGeometrySimplicity();
         //     // some sort of assert
-        //     done();
+        //     assert.end();
         // });
     } else {
-        it('should fail when bad parameters are passed to reportGeometrySimplicity', function() {});
+        test('should fail when bad parameters are passed to reportGeometrySimplicity', function() {});
     }
 
     if (hasBoostSimple) {
-        it('empty tile should be simple', function (done) {
+        test('empty tile should be simple', function (done) {
             var vtile = new mapnik.VectorTile(0,0,0);
             assert.equal(vtile.reportGeometrySimplicitySync(), 0);
             assert.equal(vtile.reportGeometrySimplicity(), 0);
             vtile.reportGeometrySimplicity(function(err, simple) {
                 if (err) throw err;
                 assert.equal(simple, 0);
-                done();
+                assert.end();
             });
         });
     } else {
-        it.skip('empty tile should be simple', function () {});
+        assert.skip('empty tile should be simple', function () {});
     }
 
-    if (hasBoostSimple) {
-        it('should fail when bad parameters are passed to reportGeometryValidity', function() {
-            var vtile = new mapnik.VectorTile(0,0,0);
-            assert.throws(function() { vtile.reportGeometryValidity(null); });
-            assert.throws(function() { vtile.reportGeometryValidity(1); });
-            assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}); });
-            assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}); });
-            assert.throws(function() { vtile.reportGeometryValidity({web_merc:null}); });
+if (hasBoostSimple) {
+  test('should fail when bad parameters are passed to reportGeometryValidity', function() {
+    var vtile = new mapnik.VectorTile(0,0,0);
+    assert.throws(function() { vtile.reportGeometryValidity(null); });
+    assert.throws(function() { vtile.reportGeometryValidity(1); });
+    assert.throws(function() { vtile.reportGeometryValidity({split_multi_features:null}); });
+    assert.throws(function() { vtile.reportGeometryValidity({lat_lon:null}); });
+    assert.throws(function() { vtile.reportGeometryValidity({web_merc:null}); });
             assert.throws(function() { vtile.reportGeometryValidity({}, null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(null); });
             assert.throws(function() { vtile.reportGeometryValiditySync(1); });
@@ -127,21 +130,21 @@ describe('mapnik.VectorTile ', function() {
     }
 
     if (hasBoostSimple) {
-        it('empty tile should be valid', function (done) {
+        test('empty tile should be valid', function (done) {
             var vtile = new mapnik.VectorTile(0,0,0);
             assert.equal(vtile.reportGeometryValiditySync(), 0);
             assert.equal(vtile.reportGeometryValidity(), 0);
             vtile.reportGeometryValidity(function(err, valid) {
                 if (err) throw err;
                 assert.equal(valid, 0);
-                done();
+                assert.end();
             });
         });
     } else {
         it.skip('empty tile should be valid', function (done) {});
     }
 
-    it('should fail when adding bad parameters to add geoJSON', function() {
+    test('should fail when adding bad parameters to add geoJSON', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -179,7 +182,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addGeoJSON(geo_str, "layer", {simplify_distance:-0.5}); });
     });
 
-    it('should be able to create a vector tile from geojson', function(done) {
+    test('should be able to create a vector tile from geojson', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -217,11 +220,11 @@ describe('mapnik.VectorTile ', function() {
             assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
             assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to create a vector tile from geojson - with simplification', function(done) {
+    test('should be able to create a vector tile from geojson - with simplification', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -259,11 +262,11 @@ describe('mapnik.VectorTile ', function() {
             assert.ok(Math.abs(coords[0] - geojson.features[0].geometry.coordinates[0]) < 0.3);
             assert.ok(Math.abs(coords[1] - geojson.features[0].geometry.coordinates[1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to export point with toJSON decode_geometry', function(done) {
+    test('should be able to export point with toJSON decode_geometry', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -300,10 +303,10 @@ describe('mapnik.VectorTile ', function() {
               }]
         } ];
         assert.deepEqual(actual, expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to export multipoint with toJSON decode_geometry', function(done) {
+    test('should be able to export multipoint with toJSON decode_geometry', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -344,10 +347,10 @@ describe('mapnik.VectorTile ', function() {
               }]
         } ];
         assert.deepEqual(actual, expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to export line-string with toJSON decode_geometry', function(done) {
+    test('should be able to export line-string with toJSON decode_geometry', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -388,10 +391,10 @@ describe('mapnik.VectorTile ', function() {
               }]
         } ];
         assert.deepEqual(actual, expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to export multi-line-string with toJSON decode_geometry', function(done) {
+    test('should be able to export multi-line-string with toJSON decode_geometry', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -442,17 +445,17 @@ describe('mapnik.VectorTile ', function() {
               }]
         } ];
         assert.deepEqual(actual, expected);
-        done();
+        assert.end();
     });
 
-    it('should throw when x, y, or z are negative', function(done) {
+    test('should throw when x, y, or z are negative', function(done) {
       assert.throws(function() { new mapnik.VectorTile(0,0,-1); });
       assert.throws(function() { new mapnik.VectorTile(0,-1,0); });
       assert.throws(function() { new mapnik.VectorTile(-1,0,0); });
-      done();
+      assert.end();
     });
 
-    it('should be able to create a vector tile from geojson - multipoint', function(done) {
+    test('should be able to create a vector tile from geojson - multipoint', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -498,11 +501,11 @@ describe('mapnik.VectorTile ', function() {
             assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
             assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to create a vector tile from geojson - multipoint - with simplification', function(done) {
+    test('should be able to create a vector tile from geojson - multipoint - with simplification', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -548,11 +551,11 @@ describe('mapnik.VectorTile ', function() {
             assert.ok(Math.abs(coords[1][0] - geojson.features[0].geometry.coordinates[1][0]) < 0.3);
             assert.ok(Math.abs(coords[1][1] - geojson.features[0].geometry.coordinates[1][1]) < 0.3);
             assert.equal(out2.features[0].properties.name,'geojson data');
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to create a vector tile from multiple geojson files', function(done) {
+    test('should be able to create a vector tile from multiple geojson files', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var geojson = {
           "type": "FeatureCollection",
@@ -625,20 +628,20 @@ describe('mapnik.VectorTile ', function() {
         // not passing callback trigger sync method
         assert.equal(vtile.toGeoJSON('__array__'),json_array);
         // ensure async method has same result, but chain together callbacks
-        // since we need to call done() at the end
+        // since we need to call assert.end() at the end
         vtile.toGeoJSON('__all__',function(err,json_string) {
             assert.deepEqual(json_string,json_out);
             vtile.toGeoJSON('__array__',function(err,json_string) {
                 assert.deepEqual(json_string,json_array);
                 vtile.toGeoJSON('layer-name', function(err, json_string) {
                   assert(json_string.length > 0);
-                  done();
+                  assert.end();
                 });
             });
         });
     });
 
-    it('toGeoJSON should fail with invalid useage', function(done) {
+    test('toGeoJSON should fail with invalid useage', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.throws(function() { vtile.toGeoJSONSync(); });
         assert.throws(function() { vtile.toGeoJSONSync(0); });
@@ -684,10 +687,10 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.toGeoJSON('foo', function(err, jstr) {}) });
         assert.throws(function() { vtile.toGeoJSON(null, function(err, jstr) {}) });
 
-        done();
+        assert.end();
     });
 
-    it('should throw with invalid usage', function() {
+    test('should throw with invalid usage', function() {
         // no 'new' keyword
         assert.throws(function() { mapnik.VectorTile(); });
 
@@ -711,13 +714,13 @@ describe('mapnik.VectorTile ', function() {
 
     });
 
-    it('should not throw when using higher zoom levels', function() {
+    test('should not throw when using higher zoom levels', function() {
         assert.doesNotThrow(function() { new mapnik.VectorTile(28,0,0); });
         assert.doesNotThrow(function() { new mapnik.VectorTile(35,0,0); });
         assert.doesNotThrow(function() { new mapnik.VectorTile(45,0,0); });
     });
 
-    it('should be initialized properly', function() {
+    test('should be initialized properly', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.ok(vtile instanceof mapnik.VectorTile);
         assert.equal(vtile.tileSize, 4096);
@@ -731,7 +734,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.empty(), true);
     });
 
-    it('should accept optional tileSize', function(done) {
+    test('should accept optional tileSize', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0,{tile_size:512});
         assert.equal(vtile.tileSize, 512);
         assert.throws(function() { new mapnik.VectorTile(0,0,0,{tile_size:null});});
@@ -743,10 +746,10 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.tileSize, 512);
         vtile.tileSize = 256;
         assert.equal(vtile.tileSize, 256);
-        done();
+        assert.end();
     });
 
-    it('should accept optional bufferSize', function(done) {
+    test('should accept optional bufferSize', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0,{buffer_size:18});
         assert.equal(vtile.bufferSize, 18);
         assert.throws(function() { new mapnik.VectorTile(0,0,0,{buffer_size:null});});
@@ -758,10 +761,10 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.bufferSize, 512);
         vtile.bufferSize = -2047;
         assert.equal(vtile.bufferSize, -2047);
-        done();
+        assert.end();
     });
 
-    it('should be able to addData in reasonable time', function(done) {
+    test('should be able to addData in reasonable time', function(done) {
         var vtile = new mapnik.VectorTile(3,2,3);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
@@ -772,11 +775,11 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
             assert.equal(vtile.empty(), false);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to setData/parse (sync)', function() {
+    test('should be able to setData/parse (sync)', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         // tile1 represents a "solid" vector tile with one layer
         // that only encodes a single feature with a single path with
@@ -793,7 +796,7 @@ describe('mapnik.VectorTile ', function() {
         }
     });
 
-    it('should fail to getData due to bad input', function() {
+    test('should fail to getData due to bad input', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -863,17 +866,17 @@ describe('mapnik.VectorTile ', function() {
         );
     });
 
-    it('should create empty buffer with getData with no data provided.', function(done) {
+    test('should create empty buffer with getData with no data provided.', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var uncompressed = vtile.getData();
         assert.equal(uncompressed.length, 0);
         vtile.getData(function(err, uncompressed2) {
             assert.equal(uncompressed2.length, 0);
-            done();
+            assert.end();
         });
     });
 
-    it('should return the correct bufferedExtent', function(done) {
+    test('should return the correct bufferedExtent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.bufferedExtent();
         var expected = [-11273544.427724076, 4693845.032936104, -11190380.940949803, 4777008.519710373];
@@ -883,10 +886,10 @@ describe('mapnik.VectorTile ', function() {
         assert(Math.abs(extent[1] - expected[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected[2]) < 1e-8);
         assert(Math.abs(extent[3] - expected[3]) < 1e-8);
-        done();
+        assert.end();
     });
 
-    it('should return the correct extent', function(done) {
+    test('should return the correct extent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.extent();
         var expected = [-11271098.44281895, 4696291.017841229, -11192826.925854929, 4774562.534805248];
@@ -896,10 +899,10 @@ describe('mapnik.VectorTile ', function() {
         assert(Math.abs(extent[1] - expected[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected[2]) < 1e-8);
         assert(Math.abs(extent[3] - expected[3]) < 1e-8);
-        done();
+        assert.end();
     });
 
-    it('only should throw if you try to set x, y, and z with bad input', function() {
+    test('only should throw if you try to set x, y, and z with bad input', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.throws(function() { vtile.x = null; });
         assert.throws(function() { vtile.x = '1'; });
@@ -912,7 +915,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.z = -1; });
     });
 
-    it('should be able to change tile coordinates and it change the extent', function(done) {
+    test('should be able to change tile coordinates and it change the extent', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var extent = vtile.extent();
         var expected = [-11271098.442818949, 4696291.017841229, -11192826.925854929, 4774562.534805249];
@@ -949,10 +952,10 @@ describe('mapnik.VectorTile ', function() {
         assert(Math.abs(extent[1] - expected_z[1]) < 1e-8);
         assert(Math.abs(extent[2] - expected_z[2]) < 1e-8);
         assert(Math.abs(extent[3] - expected_z[3]) < 1e-8);
-        done();
+        assert.end();
     });
 
-    it('should be able to getData with a RLE', function(done) {
+    test('should be able to getData with a RLE', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -999,7 +1002,7 @@ describe('mapnik.VectorTile ', function() {
             vtile.getData({compression:'gzip', strategy:'RLE'}, function (err, compressed) {
                 // Substring used to remove gzip header
                 assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
-                done();
+                assert.end();
             });
         });
 
@@ -1007,7 +1010,7 @@ describe('mapnik.VectorTile ', function() {
         gzip.end();
     });
 
-    it('should be able to getData with a FILTERED', function(done) {
+    test('should be able to getData with a FILTERED', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -1054,7 +1057,7 @@ describe('mapnik.VectorTile ', function() {
             vtile.getData({compression:'gzip', strategy:'FILTERED'}, function (err, compressed) {
                 // Substring used to remove gzip header
                 assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
-                done();
+                assert.end();
             });
         });
 
@@ -1062,7 +1065,7 @@ describe('mapnik.VectorTile ', function() {
         gzip.end();
     });
 
-    it('should be able to getData with a HUFFMAN_ONLY', function(done) {
+    test('should be able to getData with a HUFFMAN_ONLY', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -1109,7 +1112,7 @@ describe('mapnik.VectorTile ', function() {
             vtile.getData({compression:'gzip', strategy:'HUFFMAN_ONLY'}, function (err, compressed) {
                 // Substring used to remove gzip header
                 assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
-                done();
+                assert.end();
             });
         });
 
@@ -1117,7 +1120,7 @@ describe('mapnik.VectorTile ', function() {
         gzip.end();
     });
 
-    it('should be able to getData with a FIXED', function(done) {
+    test('should be able to getData with a FIXED', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -1164,7 +1167,7 @@ describe('mapnik.VectorTile ', function() {
             vtile.getData({compression:'gzip', strategy:'FIXED'}, function (err, compressed) {
                 // Substring is used to remove gzip header
                 assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
-                done();
+                assert.end();
             });
         });
 
@@ -1172,7 +1175,7 @@ describe('mapnik.VectorTile ', function() {
         gzip.end();
     });
 
-    it('should be able to getData with a DEFAULT_STRATEGY', function(done) {
+    test('should be able to getData with a DEFAULT_STRATEGY', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data);
@@ -1219,7 +1222,7 @@ describe('mapnik.VectorTile ', function() {
             vtile.getData({compression:'gzip', strategy:'DEFAULT'}, function (err, compressed) {
                 // Substring used to remove gzip header
                 assert.equal(buffer.toString('hex').substring(20), compressed.toString('hex').substring(20));
-                done();
+                assert.end();
             });
         });
 
@@ -1227,7 +1230,7 @@ describe('mapnik.VectorTile ', function() {
         gzip.end();
     });
 
-    it('should be able to getData with release', function(done) {
+    test('should be able to getData with release', function(done) {
         var vtile1 = new mapnik.VectorTile(9,112,195);
         var vtile2 = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1243,11 +1246,11 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(data, buffer.toString());
             assert.equal(vtile2.empty(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to getData with release and compression', function(done) {
+    test('should be able to getData with release and compression', function(done) {
         var vtile1 = new mapnik.VectorTile(9,112,195);
         var vtile2 = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1263,11 +1266,11 @@ describe('mapnik.VectorTile ', function() {
             if (err) throw err;
             assert.equal(data_c, buffer.toString());
             assert.equal(vtile2.empty(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to setData/parse gzip compressed (sync)', function(done) {
+    test('should be able to setData/parse gzip compressed (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
         vtile.setData(data);
@@ -1292,11 +1295,11 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.empty(), false);
             assert.equal(vtile2.painted(), true);
             assert.equal(vtile2.empty(), false);
-            done();
+            assert.end();
         });
     });
 
-    it('setData should error on bogus gzip data', function(done) {
+    test('setData should error on bogus gzip data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_gzip = new Buffer(30);
         fake_gzip.fill(0);
@@ -1305,11 +1308,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(fake_gzip); });
         vtile.setData(fake_gzip,function(err) {
             assert.ok(err);
-            done();
+            assert.end();
         });
     });
 
-    it('setData should error on bogus zlib data', function(done) {
+    test('setData should error on bogus zlib data', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var fake_zlib = new Buffer(30);
         fake_zlib.fill(0);
@@ -1318,17 +1321,17 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(fake_zlib); });
         vtile.setData(fake_zlib,function(err) {
             assert.ok(err);
-            done();
+            assert.end();
         });
     });
 
-    it('info should throw with invalid use', function() {
+    test('info should throw with invalid use', function() {
         assert.throws(function() { mapnik.VetorTile.info(); });
         assert.throws(function() { mapnik.VetorTile.info(null); });
         assert.throws(function() { mapnik.VetorTile.info({}); });
     });
 
-    it('info should show error on bogus gzip data', function() {
+    test('info should show error on bogus gzip data', function() {
         var fake_gzip = new Buffer(30);
         fake_gzip.fill(0);
         fake_gzip[0] = 0x1F;
@@ -1340,7 +1343,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(out.tile_errors[0], 'Buffer is not encoded as a valid PBF');
     });
 
-    it('info should show error on bogus zlib data', function() {
+    test('info should show error on bogus zlib data', function() {
         var fake_zlib = new Buffer(30);
         fake_zlib.fill(0);
         fake_zlib[0] = 0x78;
@@ -1352,7 +1355,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(out.tile_errors[0], 'Buffer is not encoded as a valid PBF');
     });
 
-    it('info should show problems with invalid v2 tile', function() {
+    test('info should show problems with invalid v2 tile', function() {
         var badTile = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
         var out = mapnik.VectorTile.info(badTile);
         assert(out.errors);
@@ -1379,14 +1382,14 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(out.layers[4].errors[0], 'Vector Tile Layer message has no features');
     });
 
-    it('should not have errors if we pass a valid vector tile to info', function() {
+    test('should not have errors if we pass a valid vector tile to info', function() {
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf.gz");
         var out = mapnik.VectorTile.info(data);
         assert.equal(out.errors, false);
         assert.equal(out.layers.length, 2);
     });
 
-    it('should error out if we pass invalid data to setData - 1', function(done) {
+    test('should error out if we pass invalid data to setData - 1', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.setData('foo'); }); // first arg must be a buffer object
@@ -1398,11 +1401,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
         vtile.setData(new Buffer('foo'),function(err) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should error out if we validate tile with empty layers and features to setData - 1', function(done) {
+    test('should error out if we validate tile with empty layers and features to setData - 1', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         var tile_with_emptyness = fs.readFileSync(path.resolve(__dirname + '/data/vector_tile/invalid_v2_tile.mvt'));
         assert.throws(function() { vtile.setData(tile_with_emptyness,{validate:true}); });
@@ -1413,28 +1416,28 @@ describe('mapnik.VectorTile ', function() {
         var vtile3 = new mapnik.VectorTile(0,0,0);
         vtile3.setData(tile_with_emptyness,{validate:false});
         assert.equal(vtile3.names().length,23);
-        done();
+        assert.end();
     });
 
-    it('should error out if we pass invalid data to setData - 2', function(done) {
+    test('should error out if we pass invalid data to setData - 2', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         vtile.setData(new Buffer('0'),function(err) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should error out if we pass invalid data to setData - 3', function(done) {
+    test('should error out if we pass invalid data to setData - 3', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         vtile.setData(new Buffer('0B1234', 'hex'),function(err) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should error out if we pass invalid data to setData - 4', function() {
+    test('should error out if we pass invalid data to setData - 4', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         // fails due to invalid tag
@@ -1463,7 +1466,7 @@ describe('mapnik.VectorTile ', function() {
         });
     });
 
-    it('should be empty if we pass empty buffer to setData', function(done) {
+    test('should be empty if we pass empty buffer to setData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.equal(vtile.empty(), true);
@@ -1471,18 +1474,18 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { if (err) throw err; });
             assert.deepEqual(vtile.names(), []);
             assert.equal(vtile.empty(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should not return empty and will have layer name', function() {
+    test('should not return empty and will have layer name', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
         assert.deepEqual(vtile.names(), ['layer-name']);
         assert.equal(vtile.empty(), false);
     });
 
-    it('should return empty and have no layer name when upgraded', function() {
+    test('should return empty and have no layer name when upgraded', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'),{upgrade:true});
         // a layer with only a name "layer-name" and no features
@@ -1492,7 +1495,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.empty(), true);
     });
 
-    it('should error out if we pass invalid data to addData', function(done) {
+    test('should error out if we pass invalid data to addData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.addData(null); }); // empty buffer is not valid
@@ -1511,12 +1514,12 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { if (err) throw err; });
             vtile.addData(new Buffer('foo'), function(err) {
                 assert.throws(function() { if (err) throw err; });
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should error out if we pass invalid data to setData', function(done) {
+    test('should error out if we pass invalid data to setData', function(done) {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.equal(vtile.empty(), true);
         assert.throws(function() { vtile.setData(null); }); // empty buffer is not valid
@@ -1533,23 +1536,23 @@ describe('mapnik.VectorTile ', function() {
             assert.throws(function() { if (err) throw err; });
             vtile.setData(new Buffer('foo'), function(err) {
                 assert.throws(function() { if (err) throw err; });
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should fail to do clear', function() {
+    test('should fail to do clear', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.throws(function() { vtile.clear(null); });
     });
 
-    it('should fail to addData/setData due to bad data', function() {
+    test('should fail to addData/setData due to bad data', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.throws(function() { vtile.addData(new Buffer('foo')); });
         assert.throws(function() { vtile.setData(new Buffer('foo')); });
     });
 
-    it('should be able to addData sync', function() {
+    test('should be able to addData sync', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1559,7 +1562,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), true);
     });
 
-    it('should be able to setData sync', function() {
+    test('should be able to setData sync', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1569,7 +1572,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(vtile.painted(), true);
     });
 
-    it('should be able to addData (async)', function(done) {
+    test('should be able to addData (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1578,11 +1581,11 @@ describe('mapnik.VectorTile ', function() {
             assert.deepEqual(vtile.names(), ["world", "world2"]);
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to setData (async)', function(done) {
+    test('should be able to setData (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1591,11 +1594,11 @@ describe('mapnik.VectorTile ', function() {
             assert.deepEqual(vtile.names(), ["world", "world2"]);
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to extract one layer', function() {
+    test('should be able to extract one layer', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1608,7 +1611,7 @@ describe('mapnik.VectorTile ', function() {
         assert.equal(first, second);
     });
 
-    it('should fail to extract one layer', function() {
+    test('should fail to extract one layer', function() {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
@@ -1619,7 +1622,7 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { var vtile2 = vtile.layer('fish'); });
     });
 
-    it('should be able to addData gzip compressed (async)', function(done) {
+    test('should be able to addData gzip compressed (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         assert.equal(vtile.painted(), false);
@@ -1629,11 +1632,11 @@ describe('mapnik.VectorTile ', function() {
             assert.deepEqual(vtile.names(), ["world", "world2"]);
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to setData gzip compressed (async)', function(done) {
+    test('should be able to setData gzip compressed (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         assert.equal(vtile.empty(), true);
         assert.equal(vtile.painted(), false);
@@ -1643,23 +1646,23 @@ describe('mapnik.VectorTile ', function() {
             assert.deepEqual(vtile.names(), ["world", "world2"]);
             assert.equal(vtile.empty(), false);
             assert.equal(vtile.painted(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to get layer names without parsing', function(done) {
+    test('should be able to get layer names without parsing', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var data = fs.readFileSync("./test/data/vector_tile/tile1.vector.pbf");
         vtile.setData(data, function(err) {
             if (err) throw err;
             assert.deepEqual(vtile.names(), ["world","world2"]);
             assert.equal(vtile.empty(), false);
-            done();
+            assert.end();
         });
     });
 
 
-    it('should be able to get tile info as JSON', function(done) {
+    test('should be able to get tile info as JSON', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.deepEqual(vtile.names(),['world','world2']);
@@ -1716,10 +1719,10 @@ describe('mapnik.VectorTile ', function() {
             }
         ];
         assert.deepEqual(vtile.toJSON(),expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to get tile info as JSON with decoded geometry', function(done) {
+    test('should be able to get tile info as JSON with decoded geometry', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.deepEqual(vtile.names(),['world','world2']);
@@ -1782,10 +1785,10 @@ describe('mapnik.VectorTile ', function() {
             }
         ];
         assert.deepEqual(vtile.toJSON({decode_geometry:true}),expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to get tile info as various flavors of GeoJSON', function(done) {
+    test('should be able to get tile info as various flavors of GeoJSON', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         var expected_geojson = {
@@ -1852,16 +1855,16 @@ describe('mapnik.VectorTile ', function() {
         deepEqualTrunc(actual.features[0].geometry,expected_geojson.features[0].geometry);
 
         //
-        done();
+        assert.end();
     });
 
-    it('should fail to parse toJSON due to bad input', function() {
+    test('should fail to parse toJSON due to bad input', function() {
         var vtile = new mapnik.VectorTile(0,0,0);
         assert.throws(function() { vtile.toJSON(null) });
         assert.throws(function() { vtile.toJSON({decode_geometry:null}) });
     });
 
-    it('should be able to get and set data (sync)', function(done) {
+    test('should be able to get and set data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         var vtile2 = new mapnik.VectorTile(9,112,195);
@@ -1869,10 +1872,10 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.names(),vtile2.names());
         assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
         assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
-        done();
+        assert.end();
     });
 
-    it('should be able to get and set data (async)', function(done) {
+    test('should be able to get and set data (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"),function(err) {
             if (err) throw err;
@@ -1883,12 +1886,12 @@ describe('mapnik.VectorTile ', function() {
                 assert.deepEqual(vtile.names(),vtile2.names());
                 assert.deepEqual(vtile.toJSON(),vtile2.toJSON());
                 assert.deepEqual(vtile2.toJSON(),_vtile.toJSON());
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should be able to get virtual datasource and features', function(done) {
+    test('should be able to get virtual datasource and features', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.getData().length,_length);
@@ -1930,10 +1933,10 @@ describe('mapnik.VectorTile ', function() {
                           SUBREGION: 21,
                           UN: 840 };
         assert.deepEqual(ds[1].features[0].properties,expected);
-        done();
+        assert.end();
     });
 
-    it('should be able to clear data (sync)', function(done) {
+    test('should be able to clear data (sync)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.getData().length,_length);
@@ -1958,10 +1961,10 @@ describe('mapnik.VectorTile ', function() {
         // Node 12 returns []
 //         assert.deepEqual(vtile2.toJSON(), {});
         assert.equal(vtile2.painted(), false);
-        done();
+        assert.end();
     });
 
-    it('should be able to clear data (async)', function(done) {
+    test('should be able to clear data (async)', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.empty(), false);
@@ -1980,11 +1983,11 @@ describe('mapnik.VectorTile ', function() {
             // Node 12 returns []
 //             assert.deepEqual(vtile.toJSON(), {});
             assert.equal(vtile.painted(), false);
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to add data', function(done) {
+    test('should be able to add data', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         vtile.setData(new Buffer(_data,"hex"));
         assert.equal(vtile.empty(), false);
@@ -2011,12 +2014,12 @@ describe('mapnik.VectorTile ', function() {
         // Node 12 returns []
 //         assert.deepEqual(vtile2.toJSON(), {});
             assert.equal(vtile.painted(), false);
-            done();
+            assert.end();
         });
     });
 
 
-    it('should detect as solid a tile with two "box" layers', function(done) {
+    test('should detect as solid a tile with two "box" layers', function(done) {
         var vtile = new mapnik.VectorTile(9,112,195);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/layers.xml');
@@ -2032,22 +2035,22 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.painted(), true);
             assert.deepEqual(vtile.paintedLayers(), ['world','world2']);
             assert.equal(vtile.getData().toString("hex"),raw_data.toString("hex"));
-            done();
+            assert.end();
         });
     });
 
-    it('should render an empty vector', function(done) {
+    test('should render an empty vector', function(done) {
         var vtile = new mapnik.VectorTile(9,9,9);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/layers.xml');
         map.render(vtile,{},function(err,vtile) {
             assert.deepEqual(vtile.emptyLayers(), ['world', 'world2']);
             assert.equal(vtile.empty(), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should fail to render due to bad arguments passed', function(done) {
+    test('should fail to render due to bad arguments passed', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
@@ -2098,11 +2101,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.render(function(e,i) {}); });
         vtile.render(map, im_g, function(err,output) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should render expected results', function(done) {
+    test('should render expected results', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
@@ -2127,11 +2130,11 @@ describe('mapnik.VectorTile ', function() {
             } else {
                 assert.equal(e.length,a.length);
             }
-            done();
+            assert.end();
         });
     });
 
-    it('should render an image with a large amount of overzooming', function(done) {
+    test('should render an image with a large amount of overzooming', function(done) {
         var data = fs.readFileSync("./test/data/images/14_2788_6533.webp");
         var vtile = new mapnik.VectorTile(14,2788,6533);
         vtile.addImageBufferSync(data, '_image');
@@ -2155,12 +2158,12 @@ describe('mapnik.VectorTile ', function() {
                 assert.equal(e.length,a.length);
             }
 
-            done();
+            assert.end();
         });
 
     });
 
-    it('should render expected results - with objectional arguments', function(done) {
+    test('should render expected results - with objectional arguments', function(done) {
         var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
         var vtile = new mapnik.VectorTile(5,28,12);
         vtile.setData(data);
@@ -2188,11 +2191,11 @@ describe('mapnik.VectorTile ', function() {
             } else {
                 assert.equal(e.length,a.length);
             }
-            done();
+            assert.end();
         });
     });
 
-    it('should fail to render due to bad parameters', function(done) {
+    test('should fail to render due to bad parameters', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.extent = [-20037508.34, -20037508.34, 20037508.34, 20037508.34];
@@ -2216,11 +2219,11 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { map.render(vtile, {threading_mode:null}, function(err, vtile) {}); });
         map.render(vtile, {}, function(err, vtile) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should fail to render two vector tiles at once', function() {
+    test('should fail to render two vector tiles at once', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2232,7 +2235,7 @@ describe('mapnik.VectorTile ', function() {
 
     });
 
-    it('should render a vector_tile of the whole world', function(done) {
+    test('should render a vector_tile of the whole world', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2258,11 +2261,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})) == JSON.stringify(vt2.toJSON({decode_geometry:true})), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world with threading auto', function(done) {
+    test('should render a vector_tile of the whole world with threading auto', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/map.xml');
@@ -2297,11 +2300,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})) == JSON.stringify(vt2.toJSON({decode_geometry:true})), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world with threading async', function(done) {
+    test('should render a vector_tile of the whole world with threading async', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/map.xml');
@@ -2336,11 +2339,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON({decode_geometry:true})) == JSON.stringify(vt2.toJSON({decode_geometry:true})), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - area threshold applied', function(done) {
+    test('should render a vector_tile of the whole world - area threshold applied', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2366,11 +2369,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - strictly simple applied', function(done) {
+    test('should render a vector_tile of the whole world - strictly simple applied', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2398,11 +2401,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - strictly simple false', function(done) {
+    test('should render a vector_tile of the whole world - strictly simple false', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2435,11 +2438,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - simplify_distance applied', function(done) {
+    test('should render a vector_tile of the whole world - simplify_distance applied', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2475,11 +2478,11 @@ describe('mapnik.VectorTile ', function() {
             vt3.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt3.toJSON()) ||
                          JSON.stringify(vt2.toJSON()) == JSON.stringify(vt3.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - strictly simple and simplify distance applied', function(done) {
+    test('should render a vector_tile of the whole world - strictly simple and simplify distance applied', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2515,11 +2518,11 @@ describe('mapnik.VectorTile ', function() {
             vt3.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt3.toJSON()) ||
                          JSON.stringify(vt2.toJSON()) == JSON.stringify(vt3.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - multi_polygon_union set to false', function(done) {
+    test('should render a vector_tile of the whole world - multi_polygon_union set to false', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2548,11 +2551,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - multi_polygon_union set to true', function(done) {
+    test('should render a vector_tile of the whole world - multi_polygon_union set to true', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2580,11 +2583,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - fill_type set to evenOdd', function(done) {
+    test('should render a vector_tile of the whole world - fill_type set to evenOdd', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2612,11 +2615,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - fill_type set to nonZero', function(done) {
+    test('should render a vector_tile of the whole world - fill_type set to nonZero', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2644,11 +2647,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should render a vector_tile of the whole world - process_all_rings', function(done) {
+    test('should render a vector_tile of the whole world - process_all_rings', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/stylesheet.xml');
@@ -2676,11 +2679,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('should read back the vector tile and render an image with it', function(done) {
+    test('should read back the vector tile and render an image with it', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
         var map = new mapnik.Map(256, 256);
@@ -2696,11 +2699,11 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            done();
+            assert.end();
         });
     });
 
-    it('should read back the vector tile and render a native svg with it', function(done) {
+    test('should read back the vector tile and render a native svg with it', function(done) {
         if (mapnik.supports.svg) {
             var vtile = new mapnik.VectorTile(0, 0, 0, {tile_size: 256});
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
@@ -2718,14 +2721,14 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(actual_svg2,surface2.getData());
                 var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length);
                 assert.ok(diff < 50,"svg diff "+diff+" not less that 50");
-                done();
+                assert.end();
             });
         } else {
-            done();
+            assert.end();
         }
     });
 
-    it('should read back the vector tile and render a cairo svg with it', function(done) {
+    test('should read back the vector tile and render a cairo svg with it', function(done) {
         if (mapnik.supports.cairo) {
             var vtile = new mapnik.VectorTile(0, 0, 0, {tile_size:256});
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
@@ -2744,14 +2747,14 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(actual_svg,surface.getData(),'utf-8');
                 var diff = Math.abs(fs.readFileSync(actual_svg,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg,'utf8').replace(/\r/g, '').length);
                 assert.ok(diff < 50,"svg diff "+diff+" not less that 50");
-                done();
+                assert.end();
             });
         } else {
-            done();
+            assert.end();
         }
     });
 
-    it('should read back the vector tile and render an image with it using negative buffer', function(done) {
+    test('should read back the vector tile and render an image with it using negative buffer', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
         var map = new mapnik.Map(256, 256);
@@ -2767,12 +2770,12 @@ describe('mapnik.VectorTile ', function() {
             }
             vtile_image.save(actual, 'png32');
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            done();
+            assert.end();
         });
     });
 
     if (mapnik.supports.grid) {
-        it('should read back the vector tile and render a grid with it', function(done) {
+        test('should read back the vector tile and render a grid with it', function(done) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
             var map = new mapnik.Map(256, 256);
@@ -2790,7 +2793,7 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
                 var expected = JSON.parse(fs.readFileSync(expected_file));
                 assert.deepEqual(utf,expected);
-                done();
+                assert.end();
             });
         });
     } else {
@@ -2798,7 +2801,7 @@ describe('mapnik.VectorTile ', function() {
     }
 
     if (mapnik.supports.grid) {
-        it('should read back the vector tile and render a grid with it - layer name and fields', function(done) {
+        test('should read back the vector tile and render a grid with it - layer name and fields', function(done) {
             var vtile = new mapnik.VectorTile(0, 0, 0);
             vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
             var map = new mapnik.Map(256, 256);
@@ -2816,14 +2819,14 @@ describe('mapnik.VectorTile ', function() {
                 fs.writeFileSync(actual_file,JSON.stringify(utf,null,1));
                 var expected = JSON.parse(fs.readFileSync(expected_file));
                 assert.deepEqual(utf,expected);
-                done();
+                assert.end();
             });
         });
     } else {
       it.skip('should read back the vector tile and render a grid with it - layer name and fields', function() { });
     }
 
-    it('should read back the vector tile and render an image with markers', function(done) {
+    test('should read back the vector tile and render an image with markers', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.setData(fs.readFileSync('./test/data/vector_tile/tile0.mvt'));
         var map = new mapnik.Map(256, 256);
@@ -2840,11 +2843,11 @@ describe('mapnik.VectorTile ', function() {
             vtile_image.save(actual, 'png32');
             // TODO - visual difference in master vs 2.3.x due to https://github.com/mapnik/mapnik/commit/ecc5acbdb953e172fcc652b55ed19b8b581e2146
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
+    test('should be able to resample and encode (render) a geotiff into vector tile', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0, {tile_size:256, buffer_size:0});
         // first we render a geotiff into an image tile
         var map = new mapnik.Map(256, 256);
@@ -2871,12 +2874,12 @@ describe('mapnik.VectorTile ', function() {
                     vtile_image.save(actual);
                 }
                 assert.equal(0,diff);
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should fail to addImage due to bad input', function(done) {
+    test('should fail to addImage due to bad input', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:64});
         var img = new mapnik.Image(64,64);
         assert.throws(function() { vtile.addImage(); });
@@ -2905,11 +2908,11 @@ describe('mapnik.VectorTile ', function() {
         // invalid image type captures error in try/catch
         vtile.addImage(img, 'waka', {image_format: 'asdf'}, function(err) {
             assert.throws(function() { if (err) throw err; });
-            done();
+            assert.end();
         });
     });
 
-    it('should fail with invalid options object for addImage & addImageSync', function(done) {
+    test('should fail with invalid options object for addImage & addImageSync', function(done) {
       var vtile = new mapnik.VectorTile(1, 0, 0);
       var im = new mapnik.Image(256,256);
       assert.throws(function() { vtile.addImage(im, 'waka', 'not an object', function(err) {}); });
@@ -2919,10 +2922,10 @@ describe('mapnik.VectorTile ', function() {
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 10}); });
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_scaling: 'wordsarehard'}); });
       assert.throws(function() { vtile.addImageSync(im, 'waka', {image_format: 45}); });
-      done();
+      assert.end();
     });
 
-    it('should fail to addImageBuffer due to bad input', function(done) {
+    test('should fail to addImageBuffer due to bad input', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0);
         assert.throws(function() { vtile.addImageBuffer(); });
         assert.throws(function() { vtile.addImageBuffer(null); });
@@ -2945,10 +2948,10 @@ describe('mapnik.VectorTile ', function() {
         assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo'), 12); });
         assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
         assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
-        done();
+        assert.end();
     });
 
-    it('should be able to put an Image object into a vector tile layer', function(done) {
+    test('should be able to put an Image object into a vector tile layer', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
@@ -2972,11 +2975,11 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            done();
+            assert.end();
         });
     });
 
-    it('should fail if image object x or y are zero pixels', function(done) {
+    test('should fail if image object x or y are zero pixels', function(done) {
       var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
       var im_empty = new mapnik.Image(0,0);
       var im_empty_y = new mapnik.Image(300,0);
@@ -2984,10 +2987,10 @@ describe('mapnik.VectorTile ', function() {
       assert.throws(function() { vtile.addImageSync(im_empty, 'nothing to see here'); });
       assert.throws(function() { vtile.addImageSync(im_empty_y, 'x is the best'); });
       assert.throws(function() { vtile.addImageSync(im_empty_y, 'y wins'); });
-      done();
+      assert.end();
     });
 
-    it('should be able to put an Image object into a vector tile layer async', function(done) {
+    test('should be able to put an Image object into a vector tile layer async', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
@@ -3011,12 +3014,12 @@ describe('mapnik.VectorTile ', function() {
                     vtile_image.save(expected, 'png32');
                 }
                 assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should be able to push an image tile directly into a vector tile layer without decoding', function(done) {
+    test('should be able to push an image tile directly into a vector tile layer without decoding', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         // push image into a named vtile layer
@@ -3039,11 +3042,11 @@ describe('mapnik.VectorTile ', function() {
                 vtile_image.save(expected, 'png32');
             }
             assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-            done();
+            assert.end();
         });
     });
 
-    it('should be able to push an image tile directly into a vector tile layer without decoding -- async', function(done) {
+    test('should be able to push an image tile directly into a vector tile layer without decoding -- async', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         // push image into a named vtile layer
@@ -3066,12 +3069,12 @@ describe('mapnik.VectorTile ', function() {
                     vtile_image.save(expected, 'png32');
                 }
                 assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected)));
-                done();
+                assert.end();
             });
         });
     });
 
-    it('should include image in getData pbf output', function(done) {
+    test('should include image in getData pbf output', function(done) {
         var vtile = new mapnik.VectorTile(1, 0, 0, {tile_size:256});
         var image_buffer = fs.readFileSync('./test/data/vector_tile/cloudless_1_0_0.jpg');
         var im = new mapnik.Image.fromBytesSync(image_buffer);
@@ -3089,10 +3092,10 @@ describe('mapnik.VectorTile ', function() {
         vtile2.setData(vtile_buf);
         var json_obj2 = vtile2.toJSON();
         assert.deepEqual(json_obj, json_obj2);
-        done();
+        assert.end();
     });
 
-    it('should be able to render data->vtile and vtile->image with roughtly the same results', function(done) {
+    test('should be able to render data->vtile and vtile->image with roughtly the same results', function(done) {
         var x=3;
         var y=2;
         var z=2;
@@ -3123,19 +3126,19 @@ describe('mapnik.VectorTile ', function() {
                         vtile_image.save(expected_2, 'png32');
                     }
                     assert.equal(0,vtile_image.compare(new mapnik.Image.open(expected_2)));
-                    done();
+                    assert.end();
                 });
             });
         });
     });
 
-    it('toGeoJSON should not drop geometries outside tile extent', function(done) {
+    test('toGeoJSON should not drop geometries outside tile extent', function(done) {
         var vt = new mapnik.VectorTile(10,131,242);
         vt.setData(fs.readFileSync('./test/data/v4-10_131_242.mvt'));
         vt.toJSON().forEach(function(layer) {
             assert.equal(layer.features.length, JSON.parse(vt.toGeoJSONSync(layer.name)).features.length);
         })
-        done();
+        assert.end();
     });
 
     var multi_polygon_with_degerate_exterior_ring = {
@@ -3185,7 +3188,7 @@ describe('mapnik.VectorTile ', function() {
         ]
     };
 
-    it('test that degenerate exterior ring causes all rings to be throw out', function() {
+    test('test that degenerate exterior ring causes all rings to be throw out', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson");
         var expected = [];
@@ -3193,7 +3196,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that degenerate exterior ring is skipped when `process_all_rings` is true and remaining polygons are processed', function() {
+    test('test that degenerate exterior ring is skipped when `process_all_rings` is true and remaining polygons are processed', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson", {process_all_rings:true, fill_type:mapnik.polygonFillType.evenOdd});
         var expected = [{
@@ -3214,7 +3217,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that polygon with invalid exterior ring results a polygon process_all_rings true', function() {
+    test('test that polygon with invalid exterior ring results a polygon process_all_rings true', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
@@ -3247,7 +3250,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that polygon with invalid exterior ring results in no vector tile with process_all_rings false', function() {
+    test('test that polygon with invalid exterior ring results in no vector tile with process_all_rings false', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
@@ -3267,7 +3270,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that overlapping multipolygon results in two polygons in round trip with multipolygon false', function() {
+    test('test that overlapping multipolygon results in two polygons in round trip with multipolygon false', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
@@ -3305,7 +3308,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that overlapping multipolygon results in one polygon in round trip with multipolygon true', function() {
+    test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
@@ -3338,7 +3341,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('test that overlapping multipolygon results in one polygon in round trip with multipolygon true and even odd', function() {
+    test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true and even odd', function() {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         vtile.addGeoJSON(JSON.stringify({
             "type": "FeatureCollection",
@@ -3371,7 +3374,7 @@ describe('mapnik.VectorTile ', function() {
         assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
     });
 
-    it('pasted test 1 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 1 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted1.xml');
@@ -3397,11 +3400,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 2 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 2 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted2.xml');
@@ -3427,11 +3430,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 3 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 3 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted3.xml');
@@ -3457,11 +3460,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 4 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 4 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted4.xml');
@@ -3487,11 +3490,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 5 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 5 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted5.xml');
@@ -3517,11 +3520,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 6 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 6 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted6.xml');
@@ -3547,11 +3550,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 7 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 7 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted7.xml');
@@ -3577,11 +3580,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 8 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 8 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(0, 0, 0);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted8.xml');
@@ -3607,11 +3610,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(0,0,0);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 9 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 9 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile1 = new mapnik.VectorTile(0, 0, 0);
         var vtile1_data = fs.readFileSync('./test/data/vector_tile/pasted/pasted9_tile0_0_0_0.mvt.mvt');
         vtile1.setData(vtile1_data);
@@ -3628,11 +3631,11 @@ describe('mapnik.VectorTile ', function() {
             assert.equal(vtile.reportGeometryValidity({split_multi_features:true}).length, 0);
             // commented since this is not stable across boost versions
             //assert.equal(vtile.reportGeometrySimplicity().length, 6);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 10 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 10 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(15,19589,17578, {buffer_size:8*16});
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted10.xml');
@@ -3658,11 +3661,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(15,19589,17578, {buffer_size:8*16});
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 11 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 11 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(13,4889,4395,{buffer_size:8*16});
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted11.xml');
@@ -3688,11 +3691,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(13,4889,4395, {buffer_size:8*16});
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 12 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 12 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(12,2433,2194,{buffer_size:8*16});
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted12.xml');
@@ -3718,11 +3721,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(12,2433,2194, {buffer_size:8*16});
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 13 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 13 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(15,19469,17477);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted13.xml');
@@ -3748,11 +3751,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(15,19469,17477);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 14 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 14 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(15,19470,17537);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted14.xml');
@@ -3778,11 +3781,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(15,19470,17537);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 15 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 15 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(8,154,136);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted15.xml');
@@ -3808,11 +3811,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(8,154,136);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 16 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 16 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(11,1216,1093);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted16.xml');
@@ -3838,11 +3841,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(11,1216,1093);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 17 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 17 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(15,19476,17611);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted17.xml');
@@ -3868,11 +3871,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(15,19476,17611);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 18 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 18 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(11,288,661);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted18.xml');
@@ -3898,11 +3901,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(11,288,661);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 19 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 19 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(13,1164,2678);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted19.xml');
@@ -3928,11 +3931,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(13,1164,2678);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 20 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 20 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(9,72,167);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted20.xml');
@@ -3958,11 +3961,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(9,72,167);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 21 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 21 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(8,37,82);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted21.xml');
@@ -3988,11 +3991,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(8,37,82);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 22 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 22 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(9,72,167);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted22.xml');
@@ -4018,11 +4021,11 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(9,72,167);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 
-    it('pasted test 23 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
+    test('pasted test 23 - testing clipper in mapnik vector tile corrects invalid geometry issues', function(done) {
         var vtile = new mapnik.VectorTile(9,72,165);
         var map = new mapnik.Map(256, 256);
         map.loadSync('./test/data/vector_tile/pasted/pasted23.xml');
@@ -4048,7 +4051,7 @@ describe('mapnik.VectorTile ', function() {
             var vt2 = new mapnik.VectorTile(9,72,165);
             vt2.setData(actual_data);
             assert.equal(JSON.stringify(vt1.toJSON()) == JSON.stringify(vt2.toJSON()), true);
-            done();
+            assert.end();
         });
     });
 });
