@@ -178,7 +178,10 @@ test('should not error on svg with unhandled elements in non-strict mode', (asse
   assert.equal(img.width(), 100);
   assert.equal(img.height(), 100);
   assert.equal(img.encodeSync("png").length, 1270);
-  assert.end();
+  img.encode('png', (err, img) => {
+    assert.equal(img.length, 1270);
+    assert.end();
+  });
 });
 
 
