@@ -1,5 +1,6 @@
 #include "mapnik_map.hpp"
 #include "mapnik_image.hpp"
+#include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
 // mapnik
 #include <mapnik/map.hpp>
@@ -12,6 +13,7 @@
 #include <mapnik/image.hpp>             // for image_rgba8
 #include <mapnik/image_any.hpp>
 #include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
+#include <mapnik/image_scaling.hpp>
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_io.hpp>
 #endif
@@ -20,36 +22,10 @@
 #include <mapnik/grid/grid.hpp>         // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
 #endif
+// stl
+#include <future>
 
 /*
-#if defined(GRID_RENDERER)
-struct grid_baton_t {
-    uv_work_t request;
-    Map *m;
-    Grid *g;
-    std::size_t layer_idx;
-    int buffer_size; // TODO - no effect until mapnik::request is used
-    double scale_factor;
-    double scale_denominator;
-    mapnik::attributes variables;
-    unsigned offset_x;
-    unsigned offset_y;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-    grid_baton_t() :
-      layer_idx(-1),
-      buffer_size(0),
-      scale_factor(1.0),
-      scale_denominator(0.0),
-      variables(),
-      offset_x(0),
-      offset_y(0),
-      error(false),
-      error_name() {}
-};
-#endif
-
 struct vector_tile_baton_t {
     uv_work_t request;
     Map *m;
@@ -144,73 +120,6 @@ void Map::EIO_AfterRenderVectorTile(uv_work_t* req)
     closure->cb.Reset();
     delete closure;
 }
-
-#if defined(GRID_RENDERER)
-void Map::EIO_RenderGrid(uv_work_t* req)
-{
-
-    grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
-
-    std::vector<mapnik::layer> const& layers = closure->m->map_->layers();
-
-    try
-    {
-        // copy property names
-        std::set<std::string> attributes = closure->g->get()->get_fields();
-
-        // todo - make this a static constant
-        std::string known_id_key = "__id__";
-        if (attributes.find(known_id_key) != attributes.end())
-        {
-            attributes.erase(known_id_key);
-        }
-
-        std::string join_field = closure->g->get()->get_key();
-        if (known_id_key != join_field &&
-            attributes.find(join_field) == attributes.end())
-        {
-            attributes.insert(join_field);
-        }
-
-        mapnik::grid_renderer<mapnik::grid> ren(*closure->m->map_,
-                                                *closure->g->get(),
-                                                closure->scale_factor,
-                                                closure->offset_x,
-                                                closure->offset_y);
-        mapnik::layer const& layer = layers[closure->layer_idx];
-        ren.apply(layer,attributes,closure->scale_denominator);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
-    }
-}
-
-void Map::EIO_AfterRenderGrid(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-
-    grid_baton_t *closure = static_cast<grid_baton_t *>(req->data);
-    closure->m->release();
-
-    if (closure->error) {
-        // TODO - add more attributes
-        // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    } else {
-        Napi::Value argv[2] = { env.Null(), closure->g->handle() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->m->Unref();
-    closure->g->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-#endif
 */
 
 namespace detail {
@@ -755,30 +664,17 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     i++;
                 }
             }
-
-            //grid_baton_t *closure = new grid_baton_t();
-
-            if (options.Has("variables"))
-            {
-                Napi::Value bind_opt = options.Get("variables");
-                if (!bind_opt.IsObject())
-                {
-                    Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                    return env.Undefined();
-                }
+            // FIXME ?????
+            //if (options.Has("variables"))
+            // {
+            //   Napi::Value bind_opt = options.Get("variables");
+            //   if (!bind_opt.IsObject())
+            //   {
+            //       Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
+            //       return env.Undefined();
+            //   }
                 //object_to_container(variables, bind_opt.As<Napi::Object>());
-            }
-
-            //closure->request.data = closure;
-            //closure->m = m;
-            //closure->g = g;
-            //closure->layer_idx = layer_idx;
-            //closure->buffer_size = buffer_size;
-            //closure->scale_factor = scale_factor;
-            //closure->scale_denominator = scale_denominator;
-            //closure->offset_x = offset_x;
-            //closure->offset_y = offset_y;
-            //closure->error = false;
+            //}
             if (!acquire())
             {
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
@@ -798,203 +694,189 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             return env.Undefined();
         }
 #endif
-
-/*
         // VT
-        else if (Napi::New(env, VectorTile::constructor)->HasInstance(obj))
+        else if (obj.InstanceOf(VectorTile::constructor.Value()))
         {
-
-            vector_tile_baton_t *closure = new vector_tile_baton_t();
-
-            if ((options).Has(Napi::String::New(env, "image_scaling")).FromMaybe(false))
+            mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
+            std::string image_format = "webp";
+            double area_threshold = 0.1;
+            bool strictly_simple = true;
+            bool multi_polygon_union = false;
+            mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
+            std::launch threading_mode = std::launch::deferred;
+            double simplify_distance = 0.0;
+            bool process_all_rings = false;
+            mapnik::attributes variables;
+            if (options.Has("image_scaling"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "image_scaling"));
+                Napi::Value param_val = options.Get("image_scaling");
                 if (!param_val.IsString())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                std::string image_scaling = TOSTR(param_val);
+                std::string image_scaling = param_val.As<Napi::String>();
                 boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
                 if (!method)
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->scaling_method = *method;
+                scaling_method = *method;
             }
 
-            if ((options).Has(Napi::String::New(env, "image_format")).FromMaybe(false))
+            if (options.Has("image_format"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "image_format"));
+                Napi::Value param_val = options.Get("image_format");
                 if (!param_val.IsString())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->image_format = TOSTR(param_val);
+                image_format = param_val.As<Napi::String>();
             }
 
-            if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
+            if (options.Has("area_threshold"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "area_threshold"));
+                Napi::Value param_val = options.Get("area_threshold");
                 if (!param_val.IsNumber())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->area_threshold = param_val.As<Napi::Number>().DoubleValue();
-                if (closure->area_threshold < 0.0)
+                area_threshold = param_val.As<Napi::Number>().DoubleValue();
+                if (area_threshold < 0.0)
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'area_threshold' must not be a negative number").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
 
-            if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
+            if (options.Has("strictly_simple"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "strictly_simple"));
-                if (!param_val->IsBoolean())
+                Napi::Value param_val = options.Get("strictly_simple");
+                if (!param_val.IsBoolean())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->strictly_simple = param_val.As<Napi::Boolean>().Value();
+                strictly_simple = param_val.As<Napi::Boolean>();
             }
 
-            if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
+            if (options.Has("multi_polygon_union"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "multi_polygon_union"));
-                if (!param_val->IsBoolean())
+                Napi::Value param_val = options.Get("multi_polygon_union");
+                if (!param_val.IsBoolean())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'multi_polygon_union' must be a boolean").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->multi_polygon_union = param_val.As<Napi::Boolean>().Value();
+                multi_polygon_union = param_val.As<Napi::Boolean>();
             }
 
-            if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
+            if (options.Has("fill_type"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "fill_type"));
+                Napi::Value param_val = options.Get("fill_type");
                 if (!param_val.IsNumber())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'fill_type' must be an unsigned integer").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val.As<Napi::Number>().Int32Value());
-                if (closure->fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
+                fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(param_val.As<Napi::Number>().Int32Value());
+                if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
 
-            if ((options).Has(Napi::String::New(env, "threading_mode")).FromMaybe(false))
+            if (options.Has("threading_mode"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "threading_mode"));
+                Napi::Value param_val = options.Get("threading_mode");
                 if (!param_val.IsNumber())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
-                if (closure->threading_mode != std::launch::async &&
-                    closure->threading_mode != std::launch::deferred &&
-                    closure->threading_mode != (std::launch::async | std::launch::deferred))
+                threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
+
+                if (threading_mode != std::launch::async &&
+                    threading_mode != std::launch::deferred &&
+                    threading_mode != (std::launch::async | std::launch::deferred))
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "optional arg 'threading_mode' value passed is invalid").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
 
-            if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
+            if (options.Has("simplify_distance"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+                Napi::Value param_val = options.Get("simplify_distance");
                 if (!param_val.IsNumber())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->simplify_distance = param_val.As<Napi::Number>().DoubleValue();
-                if (closure->simplify_distance < 0)
+                simplify_distance = param_val.As<Napi::Number>().DoubleValue();
+                if (simplify_distance < 0)
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
             }
 
-            if ((options).Has(Napi::String::New(env, "variables")).FromMaybe(false))
+            if (options.Has("variables"))
             {
-                Napi::Value bind_opt = (options).Get(Napi::String::New(env, "variables"));
+                Napi::Value bind_opt = options.Get("variables");
                 if (!bind_opt.IsObject())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                object_to_container(closure->variables,bind_opt->ToObject(Napi::GetCurrentContext()));
+                object_to_container(variables, bind_opt.As<Napi::Object>());
             }
 
-            if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
+            if (options.Has("process_all_rings"))
             {
-                Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
-                if (!param_val->IsBoolean())
+                Napi::Value param_val = options.Get("process_all_rings");
+                if (!param_val.IsBoolean())
                 {
-                    delete closure;
                     Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
-                closure->process_all_rings = param_val.As<Napi::Boolean>().Value();
+                process_all_rings = param_val.As<Napi::Boolean>();
             }
 
-            closure->request.data = closure;
-            closure->m = m;
-            closure->d = obj.Unwrap<VectorTile>();
-            closure->scale_factor = scale_factor;
-            closure->scale_denominator = scale_denominator;
-            closure->offset_x = offset_x;
-            closure->offset_y = offset_y;
-            closure->error = false;
-            if (!m->acquire())
+            //closure->request.data = closure;
+            //closure->m = m;
+            //closure->d = obj.Unwrap<VectorTile>();
+            //closure->scale_factor = scale_factor;
+            //closure->scale_denominator = scale_denominator;
+            //closure->offset_x = offset_x;
+            //closure->offset_y = offset_y;
+            //closure->error = false;
+            if (!acquire())
             {
-                delete closure;
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
-                return env.Null();
+                return env.Undefined();
             }
-            closure->cb.Reset(info[info.Length() - 1].As<Napi::Function>());
-            uv_queue_work(uv_default_loop(), &closure->request, EIO_RenderVectorTile, (uv_after_work_cb)EIO_AfterRenderVectorTile);
-            closure->d->Ref();
+            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
+            //auto * worker = new AsyncRenderVectorTile(callback);
+            //worker->Queue();
         }
-#endif
-*/
         else
         {
             Napi::TypeError::New(env, "renderable mapnik object expected").ThrowAsJavaScriptException();
-            return env.Undefined();
         }
-        return env.Undefined();
     }
     catch (std::exception const& ex)
     {
         // I am not quite sure it is possible to put a test in to cover an exception here
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
-        return env.Undefined();
         // LCOV_EXCL_STOP
     }
+    return env.Undefined();
 }
 
 // TODO - add support for grids

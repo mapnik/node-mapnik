@@ -6,9 +6,6 @@
 #include <mapnik/image_copy.hpp>
 #include "mapnik_image.hpp"
 #include "mapnik_palette.hpp"
-// std
-#include <exception>
-
 
 void Image::encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette)
 {

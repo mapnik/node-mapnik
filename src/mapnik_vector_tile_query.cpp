@@ -337,6 +337,208 @@ private:
     std::vector<query_result> result_;
 };
 
+
+// Query many
+
+Napi::Object _queryManyResultToV8(Napi::Env env, queryMany_result & result)
+{
+    Napi::Object results = Napi::Object::New(env);
+    Napi::Array features = Napi::Array::New(env, result.features.size());
+    Napi::Array hits = Napi::Array::New(env, result.hits.size());
+    results.Set("hits", hits);
+    results.Set("features", features);
+
+    // result.features => features
+    for (auto& item : result.features)
+    {
+        Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &item.second.feature);
+        Napi::Object feat_obj = Feature::constructor.New({arg});
+        feat_obj.Set("layer", item.second.layer);
+        features.Set(item.first, feat_obj);
+    }
+
+    // result.hits => hits
+    for (auto const& hit : result.hits)
+    {
+        Napi::Array point_hits = Napi::Array::New(env, hit.second.size());
+        std::size_t i = 0;
+        for (auto const& h : hit.second)
+        {
+            Napi::Object hit_obj = Napi::Object::New(env);
+            hit_obj.Set("distance", Napi::Number::New(env, h.distance));
+            hit_obj.Set("feature_id", Napi::Number::New(env, h.feature_id));
+            point_hits.Set(i++, hit_obj);
+        }
+        hits.Set(hit.first, point_hits);
+    }
+    return results;
+}
+
+void _queryMany(queryMany_result & result,
+                mapnik::vector_tile_impl::merc_tile_ptr const& tile,
+                std::vector<query_lonlat> const& query,
+                double tolerance,
+                std::string const& layer_name,
+                std::vector<std::string> const& fields)
+{
+    protozero::pbf_reader layer_msg;
+    if (!tile->layer_reader(layer_name,layer_msg))
+    {
+        throw std::runtime_error("Could not find layer in vector tile");
+    }
+
+    std::map<unsigned,query_result> features;
+    std::map<unsigned,std::vector<query_hit> > hits;
+
+    // Reproject query => mercator points
+    mapnik::box2d<double> bbox;
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform tr(wgs84,merc);
+    std::vector<mapnik::coord2d> points;
+    points.reserve(query.size());
+    for (std::size_t p = 0; p < query.size(); ++p)
+    {
+        double x = query[p].lon;
+        double y = query[p].lat;
+        double z = 0;
+        if (!tr.forward(x,y,z))
+        {
+            // LCOV_EXCL_START
+            throw std::runtime_error("could not reproject lon/lat to mercator");
+// LCOV_EXCL_STOP
+        }
+        mapnik::coord2d pt(x,y);
+        bbox.expand_to_include(pt);
+        points.emplace_back(std::move(pt));
+    }
+    bbox.pad(tolerance);
+
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                    layer_msg,
+                                    tile->x(),
+                                    tile->y(),
+                                    tile->z());
+    mapnik::query q(bbox);
+    if (fields.empty())
+    {
+        // request all data attributes
+        auto fields2 = ds->get_descriptor().get_descriptors();
+        for (auto const& field : fields2)
+        {
+            q.add_property_name(field.get_name());
+        }
+    }
+    else
+    {
+        for (std::string const& name : fields)
+        {
+            q.add_property_name(name);
+        }
+    }
+    mapnik::featureset_ptr fs = ds->features(q);
+
+    if (fs && mapnik::is_valid(fs))
+    {
+        mapnik::feature_ptr feature;
+        unsigned idx = 0;
+        while ((feature = fs->next()))
+        {
+            unsigned has_hit = 0;
+            for (std::size_t p = 0; p < points.size(); ++p)
+            {
+                mapnik::coord2d const& pt = points[p];
+                auto const& geom = feature->get_geometry();
+                auto p2p = path_to_point_distance(geom,pt.x,pt.y);
+                if (p2p.distance >= 0 && p2p.distance <= tolerance)
+                {
+                    has_hit = 1;
+                    query_result res;
+                    res.feature = feature;
+                    res.distance = 0;
+                    res.layer = ds->get_name();
+
+                    query_hit hit;
+                    hit.distance = p2p.distance;
+                    hit.feature_id = idx;
+
+                    features.insert(std::make_pair(idx, res));
+
+                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                    hits_it = hits.find(p);
+                    if (hits_it == hits.end())
+                    {
+                        std::vector<query_hit> pointHits;
+                        pointHits.reserve(1);
+                        pointHits.push_back(std::move(hit));
+                        hits.insert(std::make_pair(p, pointHits));
+                    }
+                    else
+                    {
+                        hits_it->second.push_back(std::move(hit));
+                    }
+                }
+            }
+            if (has_hit > 0)
+            {
+                idx++;
+            }
+        }
+    }
+
+    // Sort each group of hits by distance.
+    for (auto & hit : hits)
+    {
+        std::sort(hit.second.begin(), hit.second.end(), [](auto const& a, auto const& b) {
+                                                            return a.distance < b.distance;
+                                                        });
+    }
+
+    result.hits = std::move(hits);
+    result.features = std::move(features);
+}
+
+struct AsyncQueryMany : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncQueryMany(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
+                   std::vector<query_lonlat> const& query, double tolerance,
+                   std::string layer_name, std::vector<std::string> const& fields, Napi::Function const& callback)
+        : Base(callback),
+          tile_(tile),
+          query_(query),
+          tolerance_(tolerance),
+          layer_name_(layer_name),
+          fields_(fields)
+    {}
+
+    void Execute() override
+    {
+        try
+        {
+            _queryMany(result_, tile_, query_, tolerance_, layer_name_, fields_);
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        Napi::Object obj = _queryManyResultToV8(env, result_);
+        return {env.Undefined(), obj};
+    }
+private:
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
+    std::vector<query_lonlat> query_;
+    double tolerance_;
+    std::string layer_name_;
+    std::vector<std::string> fields_;
+    queryMany_result result_;
+};
+
+
 } // ns
 
  /**
@@ -458,21 +660,6 @@ Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
     return env.Undefined();
 }
 
-/*
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    std::vector<query_lonlat> query;
-    double tolerance;
-    std::string layer_name;
-    std::vector<std::string> fields;
-    queryMany_result result;
-    bool error;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} vector_tile_queryMany_baton_t;
- */
 /**
  * Query a vector tile by multiple sets of latitude/longitude pairs.
  * Just like <mapnik.VectorTile.query> but with more points to search.
@@ -509,11 +696,10 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-    /*
     if (info.Length() < 2 || !info[0].IsArray())
     {
-        Napi::Error::New(env, "expects lon,lat info + object with layer property referring to a layer name").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "expects lon,lat info + object with layer property referring to a layer name")
+            .ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
@@ -524,18 +710,19 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
 
     // Convert v8 queryArray to a std vector
     Napi::Array queryArray = info[0].As<Napi::Array>();
-    query.reserve(queryArray->Length());
-    for (uint32_t p = 0; p < queryArray->Length(); ++p)
+    std::size_t length = queryArray.Length();
+    query.reserve(length);
+    for (std::size_t p = 0; p < length; ++p)
     {
-        Napi::Value item = (queryArray).Get(p);
-        if (!item->IsArray())
+        Napi::Value item = queryArray.Get(p);
+        if (!item.IsArray())
         {
             Napi::Error::New(env, "non-array item encountered").ThrowAsJavaScriptException();
             return env.Undefined();
         }
         Napi::Array pair = item.As<Napi::Array>();
-        Napi::Value lon = (pair).Get(0);
-        Napi::Value lat = (pair).Get(1);
+        Napi::Value lon = pair.Get(0u);
+        Napi::Value lat = pair.Get(1u);
         if (!lon.IsNumber() || !lat.IsNumber())
         {
             Napi::Error::New(env, "lng lat must be numbers").ThrowAsJavaScriptException();
@@ -556,10 +743,10 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
             return env.Undefined();
         }
-        options = info[1].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "tolerance")).FromMaybe(false))
+        options = info[1].As<Napi::Object>();
+        if (options.Has("tolerance"))
         {
-            Napi::Value tol = (options).Get(Napi::String::New(env, "tolerance"));
+            Napi::Value tol = options.Get("tolerance");
             if (!tol.IsNumber())
             {
                 Napi::TypeError::New(env, "tolerance value must be a number").ThrowAsJavaScriptException();
@@ -567,34 +754,34 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
             }
             tolerance = tol.As<Napi::Number>().DoubleValue();
         }
-        if ((options).Has(Napi::String::New(env, "layer")).FromMaybe(false))
+        if (options.Has("layer"))
         {
-            Napi::Value layer_id = (options).Get(Napi::String::New(env, "layer"));
+            Napi::Value layer_id = options.Get("layer");
             if (!layer_id.IsString())
             {
                 Napi::TypeError::New(env, "layer value must be a string").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            layer_name = TOSTR(layer_id);
+            layer_name = layer_id.As<Napi::String>();
         }
-        if ((options).Has(Napi::String::New(env, "fields")).FromMaybe(false))
+        if (options.Has("fields"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "fields"));
-            if (!param_val->IsArray())
+            Napi::Value param_val = options.Get("fields");
+            if (!param_val.IsArray())
             {
                 Napi::TypeError::New(env, "option 'fields' must be an array of strings").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             Napi::Array a = param_val.As<Napi::Array>();
-            unsigned int i = 0;
-            unsigned int num_fields = a->Length();
+            std::size_t i = 0;
+            std::size_t num_fields = a.Length();
             fields.reserve(num_fields);
             while (i < num_fields)
             {
-                Napi::Value name = (a).Get(i);
+                Napi::Value name = a.Get(i);
                 if (name.IsString())
                 {
-                    fields.emplace_back(TOSTR(name));
+                    fields.emplace_back(name.As<Napi::String>().Utf8Value());
                 }
                 ++i;
             }
@@ -607,18 +794,15 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    VectorTile* d = this;
-
     // If last argument is not a function go with sync call.
-    if (!info[info.Length()-1]->IsFunction())
+    if (!info[info.Length()-1].IsFunction())
     {
         try
         {
             queryMany_result result;
-            _queryMany(result, d, query, tolerance, layer_name, fields);
-            Napi::Object result_obj = _queryManyResultToV8(result);
-            return result_obj;
-            return;
+            detail::_queryMany(result, tile_, query, tolerance, layer_name, fields);
+            Napi::Object result_obj = detail::_queryManyResultToV8(env, result);
+            return scope.Escape(result_obj);
         }
         catch (std::exception const& ex)
         {
@@ -628,223 +812,10 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
     }
     else
     {
-        Napi::Value callback = info[info.Length()-1];
-        vector_tile_queryMany_baton_t *closure = new vector_tile_queryMany_baton_t();
-        closure->d = d;
-        closure->query = query;
-        closure->tolerance = tolerance;
-        closure->layer_name = layer_name;
-        closure->fields = fields;
-        closure->error = false;
-        closure->request.data = closure;
-        closure->cb.Reset(callback.As<Napi::Function>());
-        uv_queue_work(uv_default_loop(), &closure->request, EIO_QueryMany, (uv_after_work_cb)EIO_AfterQueryMany);
-        d->Ref();
-        return;
-    }
-    */
-}
-
-/*
-void VectorTile::_queryMany(queryMany_result & result,
-                            VectorTile* d,
-                            std::vector<query_lonlat> const& query,
-                            double tolerance,
-                            std::string const& layer_name,
-                            std::vector<std::string> const& fields)
-{
-    protozero::pbf_reader layer_msg;
-    if (!d->tile_->layer_reader(layer_name,layer_msg))
-    {
-        throw std::runtime_error("Could not find layer in vector tile");
-    }
-
-    std::map<unsigned,query_result> features;
-    std::map<unsigned,std::vector<query_hit> > hits;
-
-    // Reproject query => mercator points
-    mapnik::box2d<double> bbox;
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(wgs84,merc);
-    std::vector<mapnik::coord2d> points;
-    points.reserve(query.size());
-    for (std::size_t p = 0; p < query.size(); ++p)
-    {
-        double x = query[p].lon;
-        double y = query[p].lat;
-        double z = 0;
-        if (!tr.forward(x,y,z))
-        {
-            // LCOV_EXCL_START
-            throw std::runtime_error("could not reproject lon/lat to mercator");
-// LCOV_EXCL_STOP
-        }
-        mapnik::coord2d pt(x,y);
-        bbox.expand_to_include(pt);
-        points.emplace_back(std::move(pt));
-    }
-    bbox.pad(tolerance);
-
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                                mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                    layer_msg,
-                                    d->tile_->x(),
-                                    d->tile_->y(),
-                                    d->tile_->z());
-    mapnik::query q(bbox);
-    if (fields.empty())
-    {
-        // request all data attributes
-        auto fields2 = ds->get_descriptor().get_descriptors();
-        for (auto const& field : fields2)
-        {
-            q.add_property_name(field.get_name());
-        }
-    }
-    else
-    {
-        for (std::string const& name : fields)
-        {
-            q.add_property_name(name);
-        }
-    }
-    mapnik::featureset_ptr fs = ds->features(q);
-
-    if (fs && mapnik::is_valid(fs))
-    {
-        mapnik::feature_ptr feature;
-        unsigned idx = 0;
-        while ((feature = fs->next()))
-        {
-            unsigned has_hit = 0;
-            for (std::size_t p = 0; p < points.size(); ++p)
-            {
-                mapnik::coord2d const& pt = points[p];
-                auto const& geom = feature->get_geometry();
-                auto p2p = path_to_point_distance(geom,pt.x,pt.y);
-                if (p2p.distance >= 0 && p2p.distance <= tolerance)
-                {
-                    has_hit = 1;
-                    query_result res;
-                    res.feature = feature;
-                    res.distance = 0;
-                    res.layer = ds->get_name();
-
-                    query_hit hit;
-                    hit.distance = p2p.distance;
-                    hit.feature_id = idx;
-
-                    features.insert(std::make_pair(idx, res));
-
-                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
-                    hits_it = hits.find(p);
-                    if (hits_it == hits.end())
-                    {
-                        std::vector<query_hit> pointHits;
-                        pointHits.reserve(1);
-                        pointHits.push_back(std::move(hit));
-                        hits.insert(std::make_pair(p, pointHits));
-                    }
-                    else
-                    {
-                        hits_it->second.push_back(std::move(hit));
-                    }
-                }
-            }
-            if (has_hit > 0)
-            {
-                idx++;
-            }
-        }
-    }
-
-    // Sort each group of hits by distance.
-    for (auto & hit : hits)
-    {
-        std::sort(hit.second.begin(), hit.second.end(), _queryManySort);
-    }
-
-    result.hits = std::move(hits);
-    result.features = std::move(features);
-    return;
-}
-*/
-/*
-bool VectorTile::_queryManySort(query_hit const& a, query_hit const& b)
-{
-    return a.distance < b.distance;
-}
-
-Napi::Object VectorTile::_queryManyResultToV8(queryMany_result const& result)
-{
-    Napi::Object results = Napi::Object::New(env);
-    Napi::Array features = Napi::Array::New(env, result.features.size());
-    Napi::Array hits = Napi::Array::New(env, result.hits.size());
-    (results).Set(Napi::String::New(env, "hits"), hits);
-    (results).Set(Napi::String::New(env, "features"), features);
-
-    // result.features => features
-    for (auto const& item : result.features)
-    {
-        Napi::Value feat = Feature::NewInstance(item.second.feature);
-        Napi::Object feat_obj = feat->ToObject(Napi::GetCurrentContext());
-        (feat_obj).Set(Napi::String::New(env, "layer"),Napi::String::New(env, item.second.layer));
-        (features).Set(item.first, feat_obj);
-    }
-
-    // result.hits => hits
-    for (auto const& hit : result.hits)
-    {
-        Napi::Array point_hits = Napi::Array::New(env, hit.second.size());
-        std::size_t i = 0;
-        for (auto const& h : hit.second)
-        {
-            Napi::Object hit_obj = Napi::Object::New(env);
-            (hit_obj).Set(Napi::String::New(env, "distance"), Napi::Number::New(env, h.distance));
-            (hit_obj).Set(Napi::String::New(env, "feature_id"), Napi::Number::New(env, h.feature_id));
-            (point_hits).Set(i++, hit_obj);
-        }
-        (hits).Set(hit.first, point_hits);
-    }
-
-    return results;
-}
-
-void VectorTile::EIO_QueryMany(uv_work_t* req)
-{
-    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
-    try
-    {
-        _queryMany(closure->result, closure->d, closure->query, closure->tolerance, closure->layer_name, closure->fields);
-    }
-    catch (std::exception const& ex)
-    {
-        closure->error = true;
-        closure->error_name = ex.what();
+        Napi::Value callback = info[info.Length() - 1];
+        auto * worker = new detail::AsyncQueryMany(tile_, query, tolerance, layer_name,
+                                                   fields, callback.As<Napi::Function>());
+        worker->Queue();
+        return env.Undefined();
     }
 }
-
-void VectorTile::EIO_AfterQueryMany(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    vector_tile_queryMany_baton_t *closure = static_cast<vector_tile_queryMany_baton_t *>(req->data);
-    if (closure->error)
-    {
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    else
-    {
-        queryMany_result result = closure->result;
-        Napi::Object obj = _queryManyResultToV8(result);
-        Napi::Value argv[2] = { env.Undefined(), obj };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-
-    closure->d->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
