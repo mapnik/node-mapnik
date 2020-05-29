@@ -7,6 +7,7 @@
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/geometry/reprojection.hpp>
+#include <mapnik/datasource_cache.hpp>
 // mapnik-vector-tile
 #include "vector_tile_compression.hpp"
 #include "vector_tile_composite.hpp"
@@ -989,11 +990,7 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
 Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    //Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-/*
-
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
+    Napi::HandleScope scope(env);
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::Error::New(env, "first argument must be a GeoJSON string").ThrowAsJavaScriptException();
@@ -1004,8 +1001,8 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
         Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    std::string geojson_string = TOSTR(info[0]);
-    std::string geojson_name = TOSTR(info[1]);
+    std::string geojson_string = info[0].As<Napi::String>();
+    std::string geojson_name = info[1].As<Napi::String>();
 
     Napi::Object options = Napi::Object::New(env);
     double area_threshold = 0.1;
@@ -1024,10 +1021,10 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             return env.Undefined();
         }
 
-        options = info[2].ToObject(Napi::GetCurrentContext());
-        if ((options).Has(Napi::String::New(env, "area_threshold")).FromMaybe(false))
+        options = info[2].As<Napi::Object>();
+        if (options.Has("area_threshold"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "area_threshold"));
+            Napi::Value param_val = options.Get("area_threshold");
             if (!param_val.IsNumber())
             {
                 Napi::Error::New(env, "option 'area_threshold' must be a number").ThrowAsJavaScriptException();
@@ -1040,29 +1037,29 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
         }
-        if ((options).Has(Napi::String::New(env, "strictly_simple")).FromMaybe(false))
+        if (options.Has("strictly_simple"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "strictly_simple"));
-            if (!param_val->IsBoolean())
+            Napi::Value param_val = options.Get("strictly_simple");
+            if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            strictly_simple = param_val.As<Napi::Boolean>().Value();
+            strictly_simple = param_val.As<Napi::Boolean>();
         }
-        if ((options).Has(Napi::String::New(env, "multi_polygon_union")).FromMaybe(false))
+        if (options.Has("multi_polygon_union"))
         {
-            Napi::Value mpu = (options).Get(Napi::String::New(env, "multi_polygon_union"));
-            if (!mpu->IsBoolean())
+            Napi::Value mpu = options.Get("multi_polygon_union");
+            if (!mpu.IsBoolean())
             {
                 Napi::TypeError::New(env, "multi_polygon_union value must be a boolean").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            multi_polygon_union = mpu.As<Napi::Boolean>().Value();
+            multi_polygon_union = mpu.As<Napi::Boolean>();
         }
-        if ((options).Has(Napi::String::New(env, "fill_type")).FromMaybe(false))
+        if (options.Has("fill_type"))
         {
-            Napi::Value ft = (options).Get(Napi::String::New(env, "fill_type"));
+            Napi::Value ft = options.Get("fill_type");
             if (!ft.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
@@ -1075,9 +1072,9 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
         }
-        if ((options).Has(Napi::String::New(env, "simplify_distance")).FromMaybe(false))
+        if (options.Has("simplify_distance"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "simplify_distance"));
+            Napi::Value param_val = options.Get("simplify_distance");
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
@@ -1090,22 +1087,23 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
         }
-        if ((options).Has(Napi::String::New(env, "process_all_rings")).FromMaybe(false))
+        if (options.Has("process_all_rings"))
         {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "process_all_rings"));
-            if (!param_val->IsBoolean())
+            Napi::Value param_val = options.Get("process_all_rings");
+            if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            process_all_rings = param_val.As<Napi::Boolean>().Value();
+            process_all_rings = param_val.As<Napi::Boolean>();
         }
     }
 
     try
     {
         // create map object
-        mapnik::Map map(d->tile_size(),d->tile_size(),"+init=epsg:3857");
+        auto tile_size = tile_->tile_size();
+        mapnik::Map map(tile_size, tile_size, "+init=epsg:3857");
         mapnik::parameters p;
         p["type"]="geojson";
         p["inline"]=geojson_string;
@@ -1120,13 +1118,12 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
         ren.set_multi_polygon_union(multi_polygon_union);
         ren.set_fill_type(fill_type);
         ren.set_process_all_rings(process_all_rings);
-        ren.update_tile(*d->get_tile());
-        return env.True();
+        ren.update_tile(*tile_);
+        return Napi::Boolean::New(env, true);
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
-*/
 }

@@ -96,7 +96,7 @@ test('vtile.queryMany', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
   var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'});
-  check(manyResults);
+  check(assert, manyResults);
   assert.end();
 });
 
@@ -104,7 +104,7 @@ test('vtile.queryMany with out fields', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
   var manyResults = vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,layer:'layer-name'});
-  check(manyResults);
+  check(assert,manyResults);
   assert.end();
 });
 
@@ -114,7 +114,7 @@ test('vtile.queryMany async', (assert) => {
   vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
   vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
     assert.ifError(err);
-    check(manyResults);
+    check(assert, manyResults);
     assert.end();
   });
 });
@@ -126,7 +126,7 @@ test('vtile.queryMany concurrent x4', (assert) => {
     vtile.addGeoJSON(JSON.stringify(geojson),"layer-name");
     vtile.queryMany([[0,0],[0,0],[-40,-40]],{tolerance:1e9,fields:['name'],layer:'layer-name'}, function(err, manyResults) {
       assert.ifError(err);
-      check(manyResults);
+      check(assert, manyResults);
       if (!--remaining) assert.end();
     });
   }
@@ -191,7 +191,7 @@ test('vtile.queryMany profile x10 runs', (assert) => {
   run();
 });
 
-function check(manyResults) {
+function check(assert, manyResults) {
   assert.equal(Array.isArray(manyResults.hits), true);
   assert.equal(manyResults.hits.length, 3);
 
@@ -227,56 +227,54 @@ function check(manyResults) {
   assert.deepEqual(manyResults.features[1].attributes(), { name: 'B' });
 }
 
-/*
-  describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
-  test('LineString - no features', (assert) => {
-  var vtile = new mapnik.VectorTile(0,0,0);
-  vtile.addGeoJSON(JSON.stringify({
-  "type": "FeatureCollection",
-  "features": [{
-  "type": "Feature",
-  "geometry": {
-  "type": "LineString",
-  "coordinates": [ [-180,85], [180,-85] ]
-  },
-  "properties": { "name": "A" }
-  }]
-  }),"data");
-  assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
-  assert.end();
-  });
-  test('MultiPoint - no features', (assert) => {
-  var vtile = new mapnik.VectorTile(0,0,0);
-  vtile.addGeoJSON(JSON.stringify({
-  "type": "FeatureCollection",
-  "features": [{
-  "type": "Feature",
-  "geometry": {
-  "type": "MultiPoint",
-  "coordinates": [ [-180,85], [180,-85] ]
-  },
-  "properties": { "name": "A" }
-  }]
-  }),"data");
-  assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
-  assert.end();
-  });
 
-  test('Polygon - no features', (assert) => {
+//  describe('mapnik.VectorTile queryMany (distance <= tolerance)', function() {
+test('LineString - no features', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   vtile.addGeoJSON(JSON.stringify({
-  "type": "FeatureCollection",
-  "features": [{
-  "type": "Feature",
-  "geometry": {
-  "type": "Polygon",
-  "coordinates": [ [ [-180,85], [180,-85], [-180,-85], [-180,85] ] ]
-  },
-  "properties": { "name": "A" }
-  }]
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [ [-180,85], [180,-85] ]
+      },
+      "properties": { "name": "A" }
+    }]
   }),"data");
   assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
   assert.end();
-  });
-  });
-*/
+});
+test('MultiPoint - no features', (assert) => {
+  var vtile = new mapnik.VectorTile(0,0,0);
+  vtile.addGeoJSON(JSON.stringify({
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [ [-180,85], [180,-85] ]
+      },
+      "properties": { "name": "A" }
+    }]
+  }),"data");
+  assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
+  assert.end();
+});
+
+test('Polygon - no features', (assert) => {
+  var vtile = new mapnik.VectorTile(0,0,0);
+  vtile.addGeoJSON(JSON.stringify({
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [ [ [-180,85], [180,-85], [-180,-85], [-180,85] ] ]
+      },
+      "properties": { "name": "A" }
+    }]
+  }),"data");
+  assert.equal(vtile.queryMany([[175,80]],{tolerance:1,fields:['name'],layer:'data'}).hits.length,0);
+  assert.end();
+});
