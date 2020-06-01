@@ -49,6 +49,7 @@
         "src/mapnik_vector_tile_query.cpp",
         "src/mapnik_vector_tile_json.cpp",
         "src/mapnik_vector_tile_info.cpp",
+        "src/mapnik_vector_tile_simple_valid.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_compression.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp",

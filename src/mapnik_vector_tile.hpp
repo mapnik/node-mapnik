@@ -82,14 +82,16 @@ public:
     Napi::Value clearSync(Napi::CallbackInfo const& info);
     Napi::Value clear(Napi::CallbackInfo const& info);
     Napi::Value empty(Napi::CallbackInfo const& info);
-    Napi::Value info(Napi::CallbackInfo const& info);
+
 #if BOOST_VERSION >= 105800
      Napi::Value reportGeometrySimplicity(Napi::CallbackInfo const& info);
      Napi::Value reportGeometrySimplicitySync(Napi::CallbackInfo const& info);
      Napi::Value reportGeometryValidity(Napi::CallbackInfo const& info);
      Napi::Value reportGeometryValiditySync(Napi::CallbackInfo const& info);
 #endif // BOOST_VERSION >= 105800
-
+    // static methods
+    static Napi::Value info(Napi::CallbackInfo const& info);
+    // accessors
     Napi::Value get_tile_x(Napi::CallbackInfo const& info);
     void set_tile_x(Napi::CallbackInfo const& info, const Napi::Value& value);
     Napi::Value get_tile_y(Napi::CallbackInfo const& info);

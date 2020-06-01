@@ -152,7 +152,6 @@ struct geometry_array_visitor
     template <typename T>
     Napi::Array operator() (mapnik::geometry::multi_point<T> const & geom)
     {
-        Napi::EscapableHandleScope scope(env_);
         if (geom.empty())
         {
             // Removed as it should be a bug if a vector tile has reached this point

@@ -11,24 +11,24 @@
 #endif
 
 #include "mapnik_vector_tile.hpp"
-#include "vector_tile_compression.hpp"
-#include "vector_tile_composite.hpp"
-#include "vector_tile_processor.hpp"
-#include "vector_tile_projection.hpp"
-#include "vector_tile_datasource_pbf.hpp"
-#include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_load_tile.hpp"
-#include "object_to_container.hpp"
+//#include "vector_tile_compression.hpp"
+//#include "vector_tile_composite.hpp"
+//#include "vector_tile_processor.hpp"
+//#include "vector_tile_projection.hpp"
+//#include "vector_tile_datasource_pbf.hpp"
+//#include "vector_tile_geometry_decoder.hpp"
+//#include "vector_tile_load_tile.hpp"
+//#include "object_to_container.hpp"
 
 // mapnik
-#include <mapnik/agg_renderer.hpp>      // for agg_renderer
-#include <mapnik/datasource_cache.hpp>
-#include <mapnik/geometry/box2d.hpp>
-#include <mapnik/feature.hpp>
-#include <mapnik/featureset.hpp>
-#include <mapnik/feature_kv_iterator.hpp>
-#include <mapnik/geometry/is_simple.hpp>
-#include <mapnik/geometry/is_valid.hpp>
+//#include <mapnik/agg_renderer.hpp>      // for agg_renderer
+//#include <mapnik/datasource_cache.hpp>
+//#include <mapnik/geometry/box2d.hpp>
+//#include <mapnik/feature.hpp>
+//#include <mapnik/featureset.hpp>
+//#include <mapnik/feature_kv_iterator.hpp>
+//#include <mapnik/geometry/is_simple.hpp>
+//#include <mapnik/geometry/is_valid.hpp>
 #include <mapnik/geometry/reprojection.hpp>
 #include <mapnik/util/feature_to_geojson.hpp>
 #include <mapnik/hit_test_filter.hpp>
@@ -60,11 +60,10 @@
 #include <vector>                       // for vector
 
 // protozero
-#include <protozero/pbf_reader.hpp>
+//#include <protozero/pbf_reader.hpp>
+
 
 Napi::FunctionReference VectorTile::constructor;
-
-//
 
 Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports)
 {
@@ -110,7 +109,8 @@ Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&VectorTile::clear>("clear"),
             InstanceMethod<&VectorTile::clearSync>("clearSync"),
             InstanceMethod<&VectorTile::empty>("empty"),
-            InstanceMethod<&VectorTile::info>("info")
+            // static methods
+            StaticMethod<&VectorTile::info>("info")
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
@@ -1189,29 +1189,27 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
 
-    return env.Undefined();
-    /*
     if (info.Length() < 1)
     {
         Napi::Error::New(env, "first argument must be either a layer name").ThrowAsJavaScriptException();
         return env.Undefined();
     }
     Napi::Value layer_id = info[0];
-    std::string layer_name;
     if (!layer_id.IsString())
     {
         Napi::TypeError::New(env, "'layer' argument must be a layer name (string)").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    layer_name = TOSTR(layer_id);
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    if (!d->get_tile()->has_layer(layer_name))
+    std::string layer_name = layer_id.As<Napi::String>();
+    if (!tile_->has_layer(layer_name))
     {
         Napi::TypeError::New(env, "layer does not exist in vector tile").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
-    protozero::pbf_reader tile_message(d->get_tile()->get_reader());
+
+    //VectorTile* v = new VectorTile(d->get_tile()->z(), d->get_tile()->x(), d->get_tile()->y(), d->tile_size(), d->buffer_size());
+    auto new_tile = std::make_shared<mapnik::vector_tile_impl::merc_tile>(tile_->x(), tile_->y(), tile_->z(), tile_->size(), tile_->buffer_size());
+    protozero::pbf_reader tile_message(tile_->get_reader());
     while (tile_message.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
     {
         auto data_view = tile_message.get_view();
@@ -1223,17 +1221,14 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
         std::string name = layer_message.get_string();
         if (layer_name == name)
         {
-            v->get_tile()->append_layer_buffer(data_view.data(), data_view.size(), layer_name);
+            new_tile->append_layer_buffer(data_view.data(), data_view.size(), layer_name);
             break;
         }
     }
-    Napi::Value ext = Napi::External::New(env, v);
-    Napi::MaybeLocal<v8::Object> maybe_local = Napi::NewInstance(Napi::GetFunction(Napi::New(env, constructor)), 1, &ext);
-    if (maybe_local.IsEmpty()) Napi::Error::New(env, "Could not create new Layer instance").ThrowAsJavaScriptException();
+     Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &new_tile);
+     Napi::Object obj = VectorTile::constructor.New({arg});
+     return scope.Escape(napi_value(obj));
 
-    else return maybe_local;
-    return;
-    */
 }
 
 /**
@@ -2562,12 +2557,8 @@ void VectorTile::EIO_AfterRenderTile(uv_work_t* req)
 Napi::Value VectorTile::clearSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
+    tile_->clear();
     return env.Undefined();
-
-    //VectorTile* d = info.Holder().Unwrap<VectorTile>();
-    //d->clear();
-    //return scope.Escape(env.Undefined());
 }
 /*
 typedef struct
@@ -2580,6 +2571,33 @@ typedef struct
     Napi::FunctionReference cb;
 } clear_vector_tile_baton_t;
 */
+
+namespace {
+
+struct AsyncClear : Napi::AsyncWorker
+{
+    AsyncClear(mapnik::vector_tile_impl::merc_tile_ptr const& tile, Napi::Function const& callback)
+        : Napi::AsyncWorker(callback),
+          tile_(tile) {}
+
+    void Execute() override
+    {
+        try
+        {
+            tile_->clear();
+        }
+        catch(std::exception const& ex)
+        {
+            // No reason this should ever throw an exception, not currently testable.
+            // LCOV_EXCL_START
+            SetError(ex.what());
+            // LCOV_EXCL_STOP
+        }
+    }
+private:
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
+};
+} // namespace
 
 /**
  * Remove all data from this vector tile
@@ -2597,952 +2615,23 @@ typedef struct
 
 Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
 {
-    Napi::Env env = info.Env();
-    //Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-/*
-    VectorTile* d = info.Holder().Unwrap<VectorTile>();
-
     if (info.Length() == 0)
     {
-        return _clearSync(info);
-        return;
+        return clearSync(info);
     }
+    Napi::Env env = info.Env();
+
     // ensure callback is a function
     Napi::Value callback = info[info.Length() - 1];
-    if (!callback->IsFunction())
+    if (!callback.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    clear_vector_tile_baton_t *closure = new clear_vector_tile_baton_t();
-    closure->request.data = closure;
-    closure->d = d;
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
-    d->Ref();
-    return;
-*/
-}
-/*
-void VectorTile::EIO_Clear(uv_work_t* req)
-{
-    clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
-    try
-    {
-        closure->d->clear();
-    }
-    catch(std::exception const& ex)
-    {
-        // No reason this should ever throw an exception, not currently testable.
-        // LCOV_EXCL_START
-        closure->error = true;
-        closure->error_name = ex.what();
-        // LCOV_EXCL_STOP
-    }
-}
-
-void VectorTile::EIO_AfterClear(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    clear_vector_tile_baton_t *closure = static_cast<clear_vector_tile_baton_t *>(req->data);
-    if (closure->error)
-    {
-        // No reason this should ever throw an exception, not currently testable.
-        // LCOV_EXCL_START
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-        // LCOV_EXCL_STOP
-    }
-    else
-    {
-        Napi::Value argv[1] = { env.Undefined() };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-    }
-    closure->d->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
-#if BOOST_VERSION >= 105800
-
-// LCOV_EXCL_START
-struct not_simple_feature
-{
-    not_simple_feature(std::string const& layer_,
-                       std::int64_t feature_id_)
-        : layer(layer_),
-          feature_id(feature_id_) {}
-    std::string const layer;
-    std::int64_t const feature_id;
-};
-// LCOV_EXCL_STOP
-
-struct not_valid_feature
-{
-    not_valid_feature(std::string const& message_,
-                      std::string const& layer_,
-                      std::int64_t feature_id_,
-                      std::string const& geojson_)
-        : message(message_),
-          layer(layer_),
-          feature_id(feature_id_),
-          geojson(geojson_) {}
-    std::string const message;
-    std::string const layer;
-    std::int64_t const feature_id;
-    std::string const geojson;
-};
-
-void layer_not_simple(protozero::pbf_reader const& layer_msg,
-               unsigned x,
-               unsigned y,
-               unsigned z,
-               std::vector<not_simple_feature> & errors)
-{
-    mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
-    mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::lowest(),
-                                          std::numeric_limits<double>::max(),
-                                          std::numeric_limits<double>::max()));
-    mapnik::layer_descriptor ld = ds.get_descriptor();
-    for (auto const& item : ld.get_descriptors())
-    {
-        q.add_property_name(item.get_name());
-    }
-    mapnik::featureset_ptr fs = ds.features(q);
-    if (fs && mapnik::is_valid(fs))
-    {
-        mapnik::feature_ptr feature;
-        while ((feature = fs->next()))
-        {
-            if (!mapnik::geometry::is_simple(feature->get_geometry()))
-            {
-                // Right now we don't have an obvious way of bypassing our validation
-                // process in JS, so let's skip testing this line
-                // LCOV_EXCL_START
-                errors.emplace_back(ds.get_name(), feature->id());
-                // LCOV_EXCL_STOP
-            }
-        }
-    }
-}
-
-struct visitor_geom_valid
-{
-    std::vector<not_valid_feature> & errors;
-    mapnik::feature_ptr & feature;
-    std::string const& layer_name;
-    bool split_multi_features;
-
-    visitor_geom_valid(std::vector<not_valid_feature> & errors_,
-                       mapnik::feature_ptr & feature_,
-                       std::string const& layer_name_,
-                       bool split_multi_features_)
-        : errors(errors_),
-          feature(feature_),
-          layer_name(layer_name_),
-          split_multi_features(split_multi_features_) {}
-
-    void operator() (mapnik::geometry::geometry_empty const&) {}
-
-    template <typename T>
-    void operator() (mapnik::geometry::point<T> const& geom)
-    {
-        std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
-        {
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::multi_point<T> const& geom)
-    {
-        std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
-        {
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::line_string<T> const& geom)
-    {
-        std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
-        {
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::multi_line_string<T> const& geom)
-    {
-        if (split_multi_features)
-        {
-            for (auto const& ls : geom)
-            {
-                std::string message;
-                if (!mapnik::geometry::is_valid(ls, message))
-                {
-                    mapnik::feature_impl feature_new(feature->context(),feature->id());
-                    std::string result;
-                    std::string feature_str;
-                    result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                    feature_new.set_data(feature->get_data());
-                    feature_new.set_geometry(mapnik::geometry::geometry<T>(ls));
-                    if (!mapnik::util::to_geojson(feature_str, feature_new))
-                    {
-                        // LCOV_EXCL_START
-                        throw std::runtime_error("Failed to generate GeoJSON geometry");
-                        // LCOV_EXCL_STOP
-                    }
-                    result += feature_str;
-                    result += "]}";
-                    errors.emplace_back(message,
-                                        layer_name,
-                                        feature->id(),
-                                        result);
-                }
-            }
-        }
-        else
-        {
-            std::string message;
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::polygon<T> const& geom)
-    {
-        std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
-        {
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::multi_polygon<T> const& geom)
-    {
-        if (split_multi_features)
-        {
-            for (auto const& poly : geom)
-            {
-                std::string message;
-                if (!mapnik::geometry::is_valid(poly, message))
-                {
-                    mapnik::feature_impl feature_new(feature->context(),feature->id());
-                    std::string result;
-                    std::string feature_str;
-                    result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                    feature_new.set_data(feature->get_data());
-                    feature_new.set_geometry(mapnik::geometry::geometry<T>(poly));
-                    if (!mapnik::util::to_geojson(feature_str, feature_new))
-                    {
-                        // LCOV_EXCL_START
-                        throw std::runtime_error("Failed to generate GeoJSON geometry");
-                        // LCOV_EXCL_STOP
-                    }
-                    result += feature_str;
-                    result += "]}";
-                    errors.emplace_back(message,
-                                        layer_name,
-                                        feature->id(),
-                                        result);
-                }
-            }
-        }
-        else
-        {
-            std::string message;
-            if (!mapnik::geometry::is_valid(geom, message))
-            {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
-            }
-        }
-    }
-
-    template <typename T>
-    void operator() (mapnik::geometry::geometry_collection<T> const& geom)
-    {
-        // This should never be able to be reached.
-        // LCOV_EXCL_START
-        for (auto const& g : geom)
-        {
-            mapnik::util::apply_visitor((*this), g);
-        }
-        // LCOV_EXCL_STOP
-    }
-};
-
-void layer_not_valid(protozero::pbf_reader & layer_msg,
-               unsigned x,
-               unsigned y,
-               unsigned z,
-               std::vector<not_valid_feature> & errors,
-               bool split_multi_features = false,
-               bool lat_lon = false,
-               bool web_merc = false)
-{
-    if (web_merc || lat_lon)
-    {
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
-        mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
-                                              std::numeric_limits<double>::lowest(),
-                                              std::numeric_limits<double>::max(),
-                                              std::numeric_limits<double>::max()));
-        mapnik::layer_descriptor ld = ds.get_descriptor();
-        for (auto const& item : ld.get_descriptors())
-        {
-            q.add_property_name(item.get_name());
-        }
-        mapnik::featureset_ptr fs = ds.features(q);
-        if (fs && mapnik::is_valid(fs))
-        {
-            mapnik::feature_ptr feature;
-            while ((feature = fs->next()))
-            {
-                if (lat_lon)
-                {
-                    mapnik::projection wgs84("+init=epsg:4326",true);
-                    mapnik::projection merc("+init=epsg:3857",true);
-                    mapnik::proj_transform prj_trans(merc,wgs84);
-                    unsigned int n_err = 0;
-                    mapnik::util::apply_visitor(
-                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
-                            mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
-                }
-                else
-                {
-                    mapnik::util::apply_visitor(
-                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
-                            feature->get_geometry());
-                }
-            }
-        }
-    }
-    else
-    {
-        std::vector<protozero::pbf_reader> layer_features;
-        std::uint32_t version = 1;
-        std::string layer_name;
-        while (layer_msg.next())
-        {
-            switch (layer_msg.tag())
-            {
-                case mapnik::vector_tile_impl::Layer_Encoding::NAME:
-                    layer_name = layer_msg.get_string();
-                    break;
-                case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
-                    layer_features.push_back(layer_msg.get_message());
-                    break;
-                case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
-                    version = layer_msg.get_uint32();
-                    break;
-                default:
-                    layer_msg.skip();
-                    break;
-            }
-        }
-        for (auto feature_msg : layer_features)
-        {
-            mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
-            bool has_geom = false;
-            bool has_geom_type = false;
-            std::int32_t geom_type_enum = 0;
-            std::uint64_t feature_id = 0;
-            while (feature_msg.next())
-            {
-                switch (feature_msg.tag())
-                {
-                    case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                        feature_id = feature_msg.get_uint64();
-                        break;
-                    case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
-                        geom_type_enum = feature_msg.get_enum();
-                        has_geom_type = true;
-                        break;
-                    case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
-                        geom_itr = feature_msg.get_packed_uint32();
-                        has_geom = true;
-                        break;
-                    default:
-                        feature_msg.skip();
-                        break;
-                }
-            }
-            if (has_geom && has_geom_type)
-            {
-                // Decode the geometry first into an int64_t mapnik geometry
-                mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-                mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-                mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
-                feature->set_geometry(mapnik::vector_tile_impl::decode_geometry<double>(geoms, geom_type_enum, version, 0.0, 0.0, 1.0, 1.0));
-                mapnik::util::apply_visitor(
-                        visitor_geom_valid(errors, feature, layer_name, split_multi_features),
-                        feature->get_geometry());
-            }
-        }
-    }
-}
-
-void vector_tile_not_simple(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
-                            std::vector<not_simple_feature> & errors)
-{
-    protozero::pbf_reader tile_msg(tile->get_reader());
-    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
-    {
-        protozero::pbf_reader layer_msg(tile_msg.get_message());
-        layer_not_simple(layer_msg,
-                         tile->x(),
-                         tile->y(),
-                         tile->z(),
-                         errors);
-    }
-}
-
-Napi::Array make_not_simple_array(Napi::Env env, std::vector<not_simple_feature> & errors)
-{
-    Napi::Array array = Napi::Array::New(env, errors.size());
-    Napi::String layer_key = Napi::String::New(env, "layer");
-    Napi::String feature_id_key = Napi::String::New(env, "featureId");
-    std::uint32_t idx = 0;
-    for (auto const& error : errors)
-    {
-        // LCOV_EXCL_START
-        Napi::Object obj = Napi::Object::New(env);
-        obj.Set(layer_key, Napi::String::New(env, error.layer));
-        obj.Set(feature_id_key, Napi::Number::New(env, error.feature_id));
-        array.Set(idx++, obj);
-        // LCOV_EXCL_STOP
-    }
-    return array;
-}
-
-void vector_tile_not_valid(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
-                           std::vector<not_valid_feature> & errors,
-                           bool split_multi_features = false,
-                           bool lat_lon = false,
-                           bool web_merc = false)
-{
-    protozero::pbf_reader tile_msg(tile->get_reader());
-    while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
-    {
-        protozero::pbf_reader layer_msg(tile_msg.get_message());
-        layer_not_valid(layer_msg,
-                        tile->x(),
-                        tile->y(),
-                        tile->z(),
-                        errors,
-                        split_multi_features,
-                        lat_lon,
-                        web_merc);
-    }
-}
-
-Napi::Array make_not_valid_array(Napi::Env env, std::vector<not_valid_feature> & errors)
-{
-    Napi::Array array = Napi::Array::New(env, errors.size());
-    Napi::String layer_key = Napi::String::New(env, "layer");
-    Napi::String feature_id_key = Napi::String::New(env, "featureId");
-    Napi::String message_key = Napi::String::New(env, "message");
-    Napi::String geojson_key = Napi::String::New(env, "geojson");
-    std::size_t idx = 0;
-    for (auto const& error : errors)
-    {
-        Napi::Object obj = Napi::Object::New(env);
-        obj.Set(layer_key, Napi::String::New(env, error.layer));
-        obj.Set(message_key, Napi::String::New(env, error.message));
-        obj.Set(feature_id_key, Napi::Number::New(env, error.feature_id));
-        obj.Set(geojson_key, Napi::String::New(env, error.geojson));
-        array.Set(idx++, obj);
-    }
-    return array;
-}
-
-/*
-struct not_simple_baton
-{
-    uv_work_t request;
-    VectorTile* v;
-    bool error;
-    std::vector<not_simple_feature> result;
-    std::string err_msg;
-    Napi::FunctionReference cb;
-};
-
-struct not_valid_baton
-{
-    uv_work_t request;
-    VectorTile* v;
-    bool error;
-    bool split_multi_features;
-    bool lat_lon;
-    bool web_merc;
-    std::vector<not_valid_feature> result;
-    std::string err_msg;
-    Napi::FunctionReference cb;
-};
-*/
-/**
- * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
- *
- * @memberof VectorTile
- * @instance
- * @name reportGeometrySimplicitySync
- * @returns {number} number of features that are not simple
- * @example
- * var simple = vectorTile.reportGeometrySimplicitySync();
- * console.log(simple); // array of non-simple geometries and their layer info
- * console.log(simple.length); // number
- */
-Napi::Value VectorTile::reportGeometrySimplicitySync(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-    try
-    {
-        std::vector<not_simple_feature> errors;
-        vector_tile_not_simple(tile_, errors);
-        return scope.Escape(make_not_simple_array(env, errors));
-    }
-    catch (std::exception const& ex)
-    {
-        // LCOV_EXCL_START
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
-        // LCOV_EXCL_STOP
-    }
-    // LCOV_EXCL_START
+    auto * worker = new AsyncClear(tile_, callback.As<Napi::Function>());
+    worker->Queue();
     return env.Undefined();
-    // LCOV_EXCL_STOP
 }
-
-/**
- * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
- *
- * @memberof VectorTile
- * @instance
- * @name reportGeometryValiditySync
- * @param {object} [options]
- * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
- * Normally the validity of multipolygons and multilinestrings is done together against
- * all the parts of the geometries. Changing this to true checks the validity of multipolygons
- * and multilinestrings for each part they contain, rather then as a group.
- * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
- * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
- * @returns {number} number of features that are not valid
- * @example
- * var valid = vectorTile.reportGeometryValiditySync();
- * console.log(valid); // array of invalid geometries and their layer info
- * console.log(valid.length); // number
- */
-Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-    bool split_multi_features = false;
-    bool lat_lon = false;
-    bool web_merc = false;
-    if (info.Length() >= 1)
-    {
-        if (!info[0].IsObject())
-        {
-            Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
-
-            return env.Undefined();
-        }
-        Napi::Object options = info[0].As<Napi::Object>();
-
-        if (options.Has("split_multi_features"))
-        {
-            Napi::Value param_val = options.Get("split_multi_features");
-            if (!param_val.IsBoolean())
-            {
-                Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            split_multi_features = param_val.As<Napi::Boolean>();
-        }
-
-        if (options.Has("lat_lon"))
-        {
-            Napi::Value param_val = options.Get("lat_lon");
-            if (!param_val.IsBoolean())
-            {
-                Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            lat_lon = param_val.As<Napi::Boolean>();
-        }
-
-        if (options.Has("web_merc"))
-        {
-            Napi::Value param_val = options.Get("web_merc");
-            if (!param_val.IsBoolean())
-            {
-                Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            web_merc = param_val.As<Napi::Boolean>();
-        }
-    }
-
-    try
-    {
-        std::vector<not_valid_feature> errors;
-        vector_tile_not_valid(tile_, errors, split_multi_features, lat_lon, web_merc);
-        return scope.Escape(make_not_valid_array(env, errors));
-    }
-    catch (std::exception const& ex)
-    {
-        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-    }
-    return scope.Escape(env.Undefined());
-}
-
-/**
- * Count the number of geometries that are not [OGC simple]{@link http://www.iso.org/iso/catalogue_detail.htm?csnumber=40114}
- *
- * @memberof VectorTile
- * @instance
- * @name reportGeometrySimplicity
- * @param {Function} callback
- * @example
- * vectorTile.reportGeometrySimplicity(function(err, simple) {
- *   if (err) throw err;
- *   console.log(simple); // array of non-simple geometries and their layer info
- *   console.log(simple.length); // number
- * });
- */
-Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    //Napi::EscapableHandleScope scope(env);
-    /*
-    if (info.Length() == 0)
-    {
-        return reportGeometrySimplicitySync(info);
-    }
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length() - 1];
-    if (!callback->IsFunction())
-    {
-        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-
-    not_simple_baton *closure = new not_simple_baton();
-    closure->request.data = closure;
-    closure->v = info.Holder().Unwrap<VectorTile>();
-    closure->error = false;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometrySimplicity, (uv_after_work_cb)EIO_AfterReportGeometrySimplicity);
-    closure->v->Ref();
-    */
-    return env.Undefined();
-
-}
-/*
-void VectorTile::EIO_ReportGeometrySimplicity(uv_work_t* req)
-{
-    not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
-    try
-    {
-        vector_tile_not_simple(closure->v, closure->result);
-    }
-    catch (std::exception const& ex)
-    {
-        // LCOV_EXCL_START
-        closure->error = true;
-        closure->err_msg = ex.what();
-        // LCOV_EXCL_STOP
-    }
-}
-
-void VectorTile::EIO_AfterReportGeometrySimplicity(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    not_simple_baton *closure = static_cast<not_simple_baton *>(req->data);
-    if (closure->error)
-    {
-        // LCOV_EXCL_START
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->err_msg.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-        // LCOV_EXCL_STOP
-    }
-    else
-    {
-        Napi::Array array = make_not_simple_array(closure->result);
-        Napi::Value argv[2] = { env.Undefined(), array };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-    closure->v->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
-/**
- * Count the number of geometries that are not [OGC valid]{@link http://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity}
- *
- * @memberof VectorTile
- * @instance
- * @name reportGeometryValidity
- * @param {object} [options]
- * @param {boolean} [options.split_multi_features=false] - If true does validity checks on multi geometries part by part
- * Normally the validity of multipolygons and multilinestrings is done together against
- * all the parts of the geometries. Changing this to true checks the validity of multipolygons
- * and multilinestrings for each part they contain, rather then as a group.
- * @param {boolean} [options.lat_lon=false] - If true results in EPSG:4326
- * @param {boolean} [options.web_merc=false] - If true results in EPSG:3857
- * @param {Function} callback
- * @example
- * vectorTile.reportGeometryValidity(function(err, valid) {
- *   console.log(valid); // array of invalid geometries and their layer info
- *   console.log(valid.length); // number
- * });
- */
-Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
-{
-    Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-    return env.Undefined();
-    /*
-    if (info.Length() == 0 || (info.Length() == 1 && !info[0].IsFunction()))
-    {
-        return _reportGeometryValiditySync(info);
-        return;
-    }
-    bool split_multi_features = false;
-    bool lat_lon = false;
-    bool web_merc = false;
-    if (info.Length() >= 2)
-    {
-        if (!info[0].IsObject())
-        {
-            Napi::Error::New(env, "The first argument must be an object").ThrowAsJavaScriptException();
-            return env.Undefined();
-        }
-        Napi::Object options = info[0].ToObject(Napi::GetCurrentContext());
-
-        if ((options).Has(Napi::String::New(env, "split_multi_features")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "split_multi_features"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::Error::New(env, "option 'split_multi_features' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            split_multi_features = param_val.As<Napi::Boolean>().Value();
-        }
-
-        if ((options).Has(Napi::String::New(env, "lat_lon")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "lat_lon"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::Error::New(env, "option 'lat_lon' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            lat_lon = param_val.As<Napi::Boolean>().Value();
-        }
-
-        if ((options).Has(Napi::String::New(env, "web_merc")).FromMaybe(false))
-        {
-            Napi::Value param_val = (options).Get(Napi::String::New(env, "web_merc"));
-            if (!param_val->IsBoolean())
-            {
-                Napi::Error::New(env, "option 'web_merc' must be a boolean").ThrowAsJavaScriptException();
-                return env.Undefined();
-            }
-            web_merc = param_val.As<Napi::Boolean>().Value();
-        }
-    }
-    // ensure callback is a function
-    Napi::Value callback = info[info.Length() - 1];
-    if (!callback->IsFunction())
-    {
-        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-
-    not_valid_baton *closure = new not_valid_baton();
-    closure->request.data = closure;
-    closure->v = info.Holder().Unwrap<VectorTile>();
-    closure->error = false;
-    closure->split_multi_features = split_multi_features;
-    closure->lat_lon = lat_lon;
-    closure->web_merc = web_merc;
-    closure->cb.Reset(callback.As<Napi::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_ReportGeometryValidity, (uv_after_work_cb)EIO_AfterReportGeometryValidity);
-    closure->v->Ref();
-    return;
-    */
-}
-/*
-void VectorTile::EIO_ReportGeometryValidity(uv_work_t* req)
-{
-    not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
-    try
-    {
-        vector_tile_not_valid(closure->v, closure->result, closure->split_multi_features, closure->lat_lon, closure->web_merc);
-    }
-    catch (std::exception const& ex)
-    {
-        // LCOV_EXCL_START
-        closure->error = true;
-        closure->err_msg = ex.what();
-        // LCOV_EXCL_STOP
-    }
-}
-
-void VectorTile::EIO_AfterReportGeometryValidity(uv_work_t* req)
-{
-    Napi::HandleScope scope(env);
-    Napi::AsyncResource async_resource(__func__);
-    not_valid_baton *closure = static_cast<not_valid_baton *>(req->data);
-    if (closure->error)
-    {
-        // LCOV_EXCL_START
-        Napi::Value argv[1] = { Napi::Error::New(env, closure->err_msg.c_str()) };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 1, argv);
-        // LCOV_EXCL_STOP
-    }
-    else
-    {
-        Napi::Array array = make_not_valid_array(closure->result);
-        Napi::Value argv[2] = { env.Undefined(), array };
-        async_resource.runInAsyncScope(Napi::GetCurrentContext()->Global(), Napi::New(env, closure->cb), 2, argv);
-    }
-    closure->v->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-*/
-#endif // BOOST_VERSION >= 1.58
 
 // accessors
 Napi::Value VectorTile::get_tile_x(Napi::CallbackInfo const& info)
