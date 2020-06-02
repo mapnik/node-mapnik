@@ -2020,13 +2020,12 @@ test('should be able to add data', (assert) => {
 });
 
 
-test.only('should detect as solid a tile with two "box" layers', (assert) => {
+test('should detect as solid a tile with two "box" layers', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/data/vector_tile/layers.xml');
   //map.extent = [-11271098.442818949,4696291.017841229,-11192826.925854929,4774562.534805249];
-  map.render(vtile,{},function(err,vtile) {
-    console.log("=========================== FIXME");
+  map.render(vtile,{}, function(err,vtile) {
     // this tile duplicates the layer that is present in tile1.vector.pbf
     fs.writeFileSync('./test/data/vector_tile/tile2.mvt',vtile.getData());
     _data = vtile.getData().toString("hex");
@@ -2040,7 +2039,7 @@ test.only('should detect as solid a tile with two "box" layers', (assert) => {
     assert.end();
   });
 });
-/*
+
 test('should render an empty vector', (assert) => {
   var vtile = new mapnik.VectorTile(9,9,9);
   var map = new mapnik.Map(256, 256);
@@ -2107,6 +2106,7 @@ test('should fail to render due to bad arguments passed', (assert) => {
   });
 });
 
+/*
 test('should render expected results', (assert) => {
   var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
   var vtile = new mapnik.VectorTile(5,28,12);

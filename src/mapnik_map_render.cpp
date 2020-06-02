@@ -2,6 +2,8 @@
 #include "mapnik_image.hpp"
 #include "mapnik_vector_tile.hpp"
 #include "object_to_container.hpp"
+// mapnik-vector-tile
+#include "vector_tile_processor.hpp"
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -371,6 +373,96 @@ private:
     mapnik::attributes variables_;
 };
 
+
+struct AsyncRenderVectorTile : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+
+    AsyncRenderVectorTile(map_ptr const& map,
+                          mapnik::vector_tile_impl::merc_tile_ptr const& tile,
+                          double area_threshold,
+                          double scale_factor,
+                          double scale_denominator,
+                          unsigned offset_x,
+                          unsigned offset_y,
+                          std::string const& image_format,
+                          mapnik::scaling_method_e scaling_method,
+                          double simplify_distance,
+                          bool strictly_simple,
+                          bool multi_polygon_union,
+                          bool process_all_rings,
+                          mapnik::vector_tile_impl::polygon_fill_type fill_type,
+                          std::launch threading_mode,
+                          mapnik::attributes const& variables,
+                          Napi::Function const& callback)
+        :Base(callback),
+         map_(map),
+         tile_(tile),
+         area_threshold_(area_threshold),
+         scale_factor_(scale_factor),
+         scale_denominator_(scale_denominator),
+         offset_x_(offset_x),
+         offset_y_(offset_y),
+         image_format_(image_format),
+         scaling_method_(scaling_method),
+         simplify_distance_(simplify_distance),
+         strictly_simple_(strictly_simple),
+         multi_polygon_union_(multi_polygon_union),
+         process_all_rings_(process_all_rings),
+         fill_type_(fill_type),
+         threading_mode_(threading_mode),
+         variables_(variables) {}
+
+    void Execute() override
+    {
+         try
+         {
+             mapnik::vector_tile_impl::processor ren(*map_, variables_);
+             ren.set_simplify_distance(simplify_distance_);
+             ren.set_multi_polygon_union(multi_polygon_union_);
+             ren.set_fill_type(fill_type_);
+             ren.set_process_all_rings(process_all_rings_);
+             ren.set_scale_factor(scale_factor_);
+             ren.set_strictly_simple(strictly_simple_);
+             ren.set_image_format(image_format_);
+             ren.set_scaling_method(scaling_method_);
+             ren.set_area_threshold(area_threshold_);
+             ren.set_threading_mode(threading_mode_);
+             ren.update_tile(*tile_, scale_denominator_, offset_x_, offset_y_);
+         }
+         catch (std::exception const& ex)
+         {
+             SetError(ex.what());
+         }
+    }
+
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &tile_);
+        Napi::Object obj = VectorTile::constructor.New({arg});
+        return {env.Null(), napi_value(obj)};
+    }
+
+private:
+    map_ptr map_;
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
+    double area_threshold_;
+    double scale_factor_;
+    double scale_denominator_;
+    unsigned offset_x_;
+    unsigned offset_y_;
+    std::string image_format_;
+    mapnik::scaling_method_e scaling_method_;
+    double simplify_distance_;
+    bool strictly_simple_;
+    bool multi_polygon_union_;
+    bool process_all_rings_;
+    mapnik::vector_tile_impl::polygon_fill_type fill_type_;
+    std::launch threading_mode_;
+    mapnik::attributes variables_;
+};
+
+
 }
 
 /**
@@ -594,7 +686,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 if (! (layer_id.IsString() || layer_id.IsNumber()) )
                 {
                     Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
-                    return env.Null();
+                    return env.Undefined();
                 }
 
                 if (layer_id.IsString())
@@ -638,7 +730,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                             s << "no layers found in map";
                         }
                         Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-                        return env.Null();
+                        return env.Undefined();
                     }
                 }
             }
@@ -847,22 +939,36 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 process_all_rings = param_val.As<Napi::Boolean>();
             }
 
-            //closure->request.data = closure;
-            //closure->m = m;
-            //closure->d = obj.Unwrap<VectorTile>();
-            //closure->scale_factor = scale_factor;
-            //closure->scale_denominator = scale_denominator;
-            //closure->offset_x = offset_x;
-            //closure->offset_y = offset_y;
-            //closure->error = false;
             if (!acquire())
             {
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
-            //auto * worker = new AsyncRenderVectorTile(callback);
-            //worker->Queue();
+            VectorTile * vt = Napi::ObjectWrap<VectorTile>::Unwrap(obj);
+            if (vt && vt->tile_)
+            {
+                auto * worker = new detail::AsyncRenderVectorTile{
+                    map_,
+                    vt->tile_,
+                    area_threshold,
+                    scale_factor,
+                    scale_denominator,
+                    offset_x,
+                    offset_y,
+                    image_format,
+                    scaling_method,
+                    simplify_distance,
+                    strictly_simple,
+                    multi_polygon_union,
+                    process_all_rings,
+                    fill_type,
+                    threading_mode,
+                    variables,
+                    callback
+                };
+                worker->Queue();
+            }
         }
         else
         {

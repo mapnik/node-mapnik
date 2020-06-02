@@ -17,6 +17,7 @@ class Grid : public Napi::ObjectWrap<Grid>
     friend struct detail::AsyncGridClear;
     friend struct detail::AsyncRenderGrid;
     friend class Map;
+    friend class VectorTile;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

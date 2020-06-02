@@ -43,10 +43,12 @@ struct queryMany_result
     std::map<unsigned,query_result> features;
     std::map<unsigned,std::vector<query_hit> > hits;
 };
+namespace detail { struct AsyncRenderVectorTile;}
 
 class VectorTile : public Napi::ObjectWrap<VectorTile>
 {
     friend class Map;
+    friend struct detail::AsyncRenderVectorTile;
 public:
     // initiaizer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

@@ -17,6 +17,7 @@ class Map : public Napi::ObjectWrap<Map>
 {
     friend struct detail::AsyncMapLoad;
     friend struct detail::AsyncMapFromString;
+    friend class VectorTile;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

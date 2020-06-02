@@ -14,6 +14,7 @@
 
 class CairoSurface : public Napi::ObjectWrap<CairoSurface>
 {
+    friend class VectorTile;
 public:
     //typedef std::stringstream i_stream;
     // initializer
