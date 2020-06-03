@@ -445,18 +445,18 @@ Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
 
         // Create the return hash.
         Napi::Object json = Napi::Object::New(env);
-        Napi::Array grid_array = Napi::Array::New(env);
+        Napi::Array grid_array = Napi::Array::New(env, lines.size());
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
-        for (std::size_t j = 0;j < lines.size(); ++j)
+        for (std::size_t j = 0; j < lines.size(); ++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            grid_array.Set(j, Napi::String::New(env, (char*)line.get(), array_size));
+            char16_t const* data = (char16_t*)line.get();
+            grid_array.Set(j, Napi::String::New(env, data, array_size));
         }
         json.Set("grid", grid_array);
         json.Set("keys", keys_a);
         json.Set("data", feature_data);
         return scope.Escape(json);
-
     }
     catch (std::exception const& ex)
     {

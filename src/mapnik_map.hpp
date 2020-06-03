@@ -77,7 +77,7 @@ public:
     void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
-
+    inline map_ptr impl() const { return map_;}
 private:
     inline bool acquire() {return not_in_use_.fetch_and(0);}
     inline void release() {not_in_use_ = 1;}

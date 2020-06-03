@@ -287,6 +287,47 @@ void init_image_scalings(Napi::Env env, Napi::Object exports)
     exports.Set("imageScaling", image_scaling_types);
 }
 
+/**
+ * Constants representing fill types understood by [Clipper during vector tile encoding](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
+ *
+ * @name polygonFillType
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} evenOdd
+ * @property {number} nonZero
+ * @property {number} positive
+ * @property {number} negative
+ */
+void init_polygon_fill_types(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object polygon_fill_types = Napi::Object::New(env);
+    polygon_fill_types.Set("evenOdd", Napi::Number::New(env, mapnik::vector_tile_impl::even_odd_fill));
+    polygon_fill_types.Set("nonZero", Napi::Number::New(env, mapnik::vector_tile_impl::non_zero_fill));
+    polygon_fill_types.Set("positive", Napi::Number::New(env, mapnik::vector_tile_impl::positive_fill));
+    polygon_fill_types.Set("negative", Napi::Number::New(env, mapnik::vector_tile_impl::negative_fill));
+    exports.Set("polygonFillType", polygon_fill_types);
+}
+
+/**
+ * Constants representing `std::async` threading mode (aka [launch policy](http://en.cppreference.com/w/cpp/thread/launch)).
+ *
+ * @name threadingMode
+ * @memberof mapnik
+ * @static
+ * @class
+ * @property {number} async
+ * @property {number} deferred
+ */
+void init_threading_mode_types(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object threading_mode_types = Napi::Object::New(env);
+    threading_mode_types.Set( "async", static_cast<unsigned>(std::launch::async));
+    threading_mode_types.Set( "deferred", static_cast<unsigned>(std::launch::deferred));
+    threading_mode_types.Set( "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred));
+    exports.Set("threadingMode", threading_mode_types);
+}
+
 Napi::Object init(Napi::Env env, Napi::Object exports)
 {
     // methods
@@ -329,6 +370,8 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     init_image_types(env, exports);
     init_image_scalings(env, exports);
     init_image_comp_op(env, exports);
+    init_polygon_fill_types(env, exports);
+    init_threading_mode_types(env, exports);
 
     // versions
     // versions of deps

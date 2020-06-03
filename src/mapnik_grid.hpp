@@ -10,14 +10,9 @@
 
 
 using grid_ptr =  std::shared_ptr<mapnik::grid>;
-namespace detail { struct AsyncGridClear; struct AsyncRenderGrid;}
 
 class Grid : public Napi::ObjectWrap<Grid>
 {
-    friend struct detail::AsyncGridClear;
-    friend struct detail::AsyncRenderGrid;
-    friend class Map;
-    friend class VectorTile;
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -37,8 +32,8 @@ public:
     Napi::Value key(Napi::CallbackInfo const& info);
     void key(Napi::CallbackInfo const& info, const Napi::Value& value);
     inline grid_ptr impl() const { return grid_; }
-private:
     static Napi::FunctionReference constructor;
+private:
     grid_ptr grid_;
 };
 

@@ -14,7 +14,6 @@
 
 class CairoSurface : public Napi::ObjectWrap<CairoSurface>
 {
-    friend class VectorTile;
 public:
     //typedef std::stringstream i_stream;
     // initializer
@@ -30,13 +29,13 @@ public:
     //using Napi::ObjectWrap::Unref;
 
     //CairoSurface(std::string const& format, unsigned int width, unsigned int height);
-    /*
-    static cairo_status_t write_callback(void *closure,
+
+    static cairo_status_t write_callback(void * stream,
                                          const unsigned char *data,
                                          unsigned int length)
     {
 #if defined(HAVE_CAIRO)
-        if (!closure)
+        if (!stream)
         {
             // Since the closure here is the passing of the std::stringstream "i_stream" of this
             // class it is unlikely that this could ever be reached unless something was very wrong
@@ -46,21 +45,26 @@ public:
             return CAIRO_STATUS_WRITE_ERROR;
             // LCOV_EXCL_STOP
         }
-        i_stream* fin = reinterpret_cast<i_stream*>(closure);
+        std::stringstream* fin = reinterpret_cast<std::stringstream*>(stream);
         *fin << std::string((const char*)data,(size_t)length);
         return CAIRO_STATUS_SUCCESS;
 #else
-        return 11; // CAIRO_STATUS_WRITE_ERROR
+        return CAIRO_STATUS_WRITE_ERROR;
 #endif
     }
-*/
-    //unsigned width() { return width_; }
-    //unsigned height() { return height_; }
-    //mutable i_stream ss_;
-private:
+
+    inline unsigned width() const { return width_; }
+    inline unsigned height() const { return height_; }
+    inline std::string const& format() const { return format_; }
+    inline std::stringstream & stream() { return stream_; }
+    inline void flush() { data_ = stream_.str();}
+    inline void set_data(std::string const& data) { data_ = data;}
+    inline std::string const& data() const { return data_;}
     static Napi::FunctionReference constructor;
+private:
     unsigned width_;
     unsigned height_;
     std::string format_;
     std::stringstream stream_;
+    std::string data_;
 };

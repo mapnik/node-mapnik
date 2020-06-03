@@ -2106,7 +2106,7 @@ test('should fail to render due to bad arguments passed', (assert) => {
   });
 });
 
-/*
+
 test('should render expected results', (assert) => {
   var data = fs.readFileSync("./test/data/vector_tile/tile3.mvt");
   var vtile = new mapnik.VectorTile(5,28,12);
@@ -2159,10 +2159,8 @@ test('should render an image with a large amount of overzooming', (assert) => {
     } else {
       assert.equal(e.length,a.length);
     }
-
     assert.end();
   });
-
 });
 
 test('should render expected results - with objectional arguments', (assert) => {
@@ -2225,7 +2223,7 @@ test('should fail to render due to bad parameters', (assert) => {
   });
 });
 
-test('should fail to render two vector tiles at once', function() {
+test('should fail to render two vector tiles at once', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/stylesheet.xml');
@@ -2720,6 +2718,7 @@ test('should read back the vector tile and render a native svg with it', (assert
       if (!existsSync(expected_svg2) || process.env.UPDATE) {
         fs.writeFileSync(expected_svg2,surface2.getData());
       }
+      console.log(typeof surface2, surface2);
       fs.writeFileSync(actual_svg2,surface2.getData());
       var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length);
       assert.ok(diff < 50,"svg diff "+diff+" not less that 50");
@@ -4057,4 +4056,3 @@ test('pasted test 23 - testing clipper in mapnik vector tile corrects invalid ge
     assert.end();
   });
 });
-*/

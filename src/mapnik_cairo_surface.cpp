@@ -60,6 +60,7 @@ Napi::Value CairoSurface::getData(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    if (!data_.empty()) return scope.Escape(Napi::String::New(env, data_));
     std::string str = stream_.str();
     //return scope.Escape(Napi::Buffer<char>::Copy(env, const_cast<char*>(str.data()), str.size()));
     return scope.Escape(Napi::String::New(env, str));
