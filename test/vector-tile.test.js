@@ -74,21 +74,22 @@ if (hasBoostSimple) {
     assert.throws(function() { vtile.reportGeometrySimplicity(null); });
     assert.end();
   });
-}
-/*
-// this is not recommend, doing this purely to ensure we have test coverage
-// test('successfully creates a not_simple_feature with a non-simple geometry', function(done) {
-//     var vtile = new mapnik.VectorTile(0,0,0);
-//     var gj_str = fs.readFileSync('./test/data/bowtie.geojson').toString('utf8');
-//     vtile.addGeoJSON(gj_str, 'not-simple', {strictly_simple: false, fill_type: mapnik.polygonFillType.evenOdd});
-//     var simple = vtile.reportGeometrySimplicity();
-//     // some sort of assert
-//     assert.end();
-// });
+
+  // this is not recommend, doing this purely to ensure we have test coverage
+  /*
+  test('successfully creates a not_simple_feature with a non-simple geometry', (assert) => {
+    var vtile = new mapnik.VectorTile(0,0,0);
+    var gj_str = fs.readFileSync('./test/data/bowtie.geojson').toString('utf8');
+    vtile.addGeoJSON(gj_str, 'not-simple', {strictly_simple: false, fill_type: mapnik.polygonFillType.evenOdd});
+    var simple = vtile.reportGeometrySimplicity();
+    // some sort of assert
+    assert.end();
+  });
+  */
 } else {
-test('should fail when bad parameters are passed to reportGeometrySimplicity', function() {});
+  test('should fail when bad parameters are passed to reportGeometrySimplicity', (assert) => {});
 }
-*/
+
 if (hasBoostSimple) {
   test('empty tile should be simple', (assert) => {
     var vtile = new mapnik.VectorTile(0,0,0);
@@ -2962,6 +2963,7 @@ test('should be able to put an Image object into a vector tile layer', (assert) 
   assert.equal(vtile.empty(), false);
   assert.deepEqual(vtile.names(),['raster']);
   var json_obj = vtile.toJSON();
+  console.log(json_obj);
   assert.equal(json_obj[0].name,'raster');
   assert.equal(json_obj[0].features[0].raster.length, 12983);
   // now render out with fancy styling
@@ -3198,7 +3200,7 @@ test('test that degenerate exterior ring causes all rings to be throw out', (ass
   assert.end();
 });
 
-test('test that degenerate exterior ring is skipped when `process_all_rings` is true and remaining polygons are processed', function() {
+test('test that degenerate exterior ring is skipped when `process_all_rings` is true and remaining polygons are processed', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify(multi_polygon_with_degerate_exterior_ring), "geojson", {process_all_rings:true, fill_type:mapnik.polygonFillType.evenOdd});
   var expected = [{
@@ -3217,9 +3219,10 @@ test('test that degenerate exterior ring is skipped when `process_all_rings` is 
       }
     ]}];
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
-test('test that polygon with invalid exterior ring results a polygon process_all_rings true', function() {
+test('test that polygon with invalid exterior ring results a polygon process_all_rings true', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify({
     "type": "FeatureCollection",
@@ -3250,9 +3253,10 @@ test('test that polygon with invalid exterior ring results a polygon process_all
       }
     ]}];
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
-test('test that polygon with invalid exterior ring results in no vector tile with process_all_rings false', function() {
+test('test that polygon with invalid exterior ring results in no vector tile with process_all_rings false', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify({
     "type": "FeatureCollection",
@@ -3270,9 +3274,10 @@ test('test that polygon with invalid exterior ring results in no vector tile wit
   var expected = [];
   assert.equal(vtile.empty(), true);
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
-test('test that overlapping multipolygon results in two polygons in round trip with multipolygon false', function() {
+test('test that overlapping multipolygon results in two polygons in round trip with multipolygon false', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify({
     "type": "FeatureCollection",
@@ -3308,9 +3313,10 @@ test('test that overlapping multipolygon results in two polygons in round trip w
       }
     ]}];
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
-test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true', function() {
+test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify({
     "type": "FeatureCollection",
@@ -3341,9 +3347,10 @@ test('test that overlapping multipolygon results in one polygon in round trip wi
       }
     ]}];
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
-test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true and even odd', function() {
+test('test that overlapping multipolygon results in one polygon in round trip with multipolygon true and even odd', (assert) => {
   var vtile = new mapnik.VectorTile(0, 0, 0);
   vtile.addGeoJSON(JSON.stringify({
     "type": "FeatureCollection",
@@ -3374,6 +3381,7 @@ test('test that overlapping multipolygon results in one polygon in round trip wi
       }
     ]}];
   assert.deepEqual(vtile.toJSON({decode_geometry:true}), expected);
+  assert.end();
 });
 
 test('pasted test 1 - testing clipper in mapnik vector tile corrects invalid geometry issues', (assert) => {
@@ -3388,7 +3396,7 @@ test('pasted test 1 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted1.mvt';
     var actual = './test/data/vector_tile/pasted/pasted1.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3418,7 +3426,7 @@ test('pasted test 2 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted2.mvt';
     var actual = './test/data/vector_tile/pasted/pasted2.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3448,7 +3456,7 @@ test('pasted test 3 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted3.mvt';
     var actual = './test/data/vector_tile/pasted/pasted3.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3478,7 +3486,7 @@ test('pasted test 4 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted4.mvt';
     var actual = './test/data/vector_tile/pasted/pasted4.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3508,7 +3516,7 @@ test('pasted test 5 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted5.mvt';
     var actual = './test/data/vector_tile/pasted/pasted5.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3538,7 +3546,7 @@ test('pasted test 6 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted6.mvt';
     var actual = './test/data/vector_tile/pasted/pasted6.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3568,7 +3576,7 @@ test('pasted test 7 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted7.mvt';
     var actual = './test/data/vector_tile/pasted/pasted7.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3598,7 +3606,7 @@ test('pasted test 8 - testing clipper in mapnik vector tile corrects invalid geo
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted8.mvt';
     var actual = './test/data/vector_tile/pasted/pasted8.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3649,7 +3657,7 @@ test('pasted test 10 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted10.mvt';
     var actual = './test/data/vector_tile/pasted/pasted10.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3679,7 +3687,7 @@ test('pasted test 11 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted11.mvt';
     var actual = './test/data/vector_tile/pasted/pasted11.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3709,7 +3717,7 @@ test('pasted test 12 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted12.mvt';
     var actual = './test/data/vector_tile/pasted/pasted12.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3739,7 +3747,7 @@ test('pasted test 13 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted13.mvt';
     var actual = './test/data/vector_tile/pasted/pasted13.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3769,7 +3777,7 @@ test('pasted test 14 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted14.mvt';
     var actual = './test/data/vector_tile/pasted/pasted14.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3799,7 +3807,7 @@ test('pasted test 15 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted15.mvt';
     var actual = './test/data/vector_tile/pasted/pasted15.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3829,7 +3837,7 @@ test('pasted test 16 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted16.mvt';
     var actual = './test/data/vector_tile/pasted/pasted16.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3859,7 +3867,7 @@ test('pasted test 17 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted17.mvt';
     var actual = './test/data/vector_tile/pasted/pasted17.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3889,7 +3897,7 @@ test('pasted test 18 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted18.mvt';
     var actual = './test/data/vector_tile/pasted/pasted18.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3919,7 +3927,7 @@ test('pasted test 19 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted19.mvt';
     var actual = './test/data/vector_tile/pasted/pasted19.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3949,7 +3957,7 @@ test('pasted test 20 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted20.mvt';
     var actual = './test/data/vector_tile/pasted/pasted20.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -3979,7 +3987,7 @@ test('pasted test 21 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted21.mvt';
     var actual = './test/data/vector_tile/pasted/pasted21.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -4009,7 +4017,7 @@ test('pasted test 22 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted22.mvt';
     var actual = './test/data/vector_tile/pasted/pasted22.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {
@@ -4039,7 +4047,7 @@ test('pasted test 23 - testing clipper in mapnik vector tile corrects invalid ge
       assert.equal(simplicityReport.length, 0);
       assert.equal(validityReport.length, 0);
     }
-    assert(!vtile.empty());
+    assert.ok(!vtile.empty());
     var expected = './test/data/vector_tile/pasted/pasted23.mvt';
     var actual = './test/data/vector_tile/pasted/pasted23.actual.mvt';
     if (!existsSync(expected) || process.env.UPDATE) {

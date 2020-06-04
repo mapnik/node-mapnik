@@ -47,8 +47,6 @@ namespace detail { struct AsyncRenderVectorTile;}
 
 class VectorTile : public Napi::ObjectWrap<VectorTile>
 {
-    friend class Map;
-    friend struct detail::AsyncRenderVectorTile;
 public:
     // initiaizer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
@@ -104,8 +102,8 @@ public:
     void set_tile_size(Napi::CallbackInfo const& info, const Napi::Value& value);
     Napi::Value get_buffer_size(Napi::CallbackInfo const& info);
     void set_buffer_size(Napi::CallbackInfo const& info, const Napi::Value& value);
-
-private:
+    inline mapnik::vector_tile_impl::merc_tile_ptr impl() const { return tile_; }
     static Napi::FunctionReference constructor;
+private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
 };

@@ -52,6 +52,8 @@
         "src/mapnik_vector_tile_simple_valid.cpp",
         "src/mapnik_vector_tile_render.cpp",
         "src/mapnik_vector_tile_clear.cpp",
+        "src/mapnik_vector_tile_image.cpp",
+        "src/mapnik_vector_tile_composite.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_compression.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp",
         "node_modules/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp",

@@ -71,13 +71,14 @@ struct AsyncRender : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
 
-    AsyncRender(map_ptr const& map, image_ptr const& image,
+    AsyncRender(map_ptr const& map, Map * map_obj, image_ptr const& image,
                 double scale_factor, double scale_denominator,
                 int buffer_size, unsigned offset_x, unsigned offset_y,
                 mapnik::attributes const& variables,
                 Napi::Function const& callback)
         :Base(callback),
          map_(map),
+         map_obj_(map_obj),
          image_(image),
          scale_factor_(scale_factor),
          scale_denominator_(scale_denominator),
@@ -100,6 +101,7 @@ struct AsyncRender : Napi::AsyncWorker
                                        offset_y_,
                                        scale_denominator_);
             mapnik::util::apply_visitor(visit, *image_);
+            map_obj_->release();
         }
         catch (std::exception const& ex)
         {
@@ -116,6 +118,7 @@ struct AsyncRender : Napi::AsyncWorker
 
 private:
     map_ptr map_;
+    Map * map_obj_;
     image_ptr image_;
     double scale_factor_;
     double scale_denominator_;
@@ -282,6 +285,7 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
     using Base = Napi::AsyncWorker;
 
     AsyncRenderVectorTile(map_ptr const& map,
+                          Map * map_obj,
                           mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                           double area_threshold,
                           double scale_factor,
@@ -300,6 +304,7 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
                           Napi::Function const& callback)
         :Base(callback),
          map_(map),
+         map_obj_(map_obj),
          tile_(tile),
          area_threshold_(area_threshold),
          scale_factor_(scale_factor),
@@ -332,6 +337,7 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
              ren.set_area_threshold(area_threshold_);
              ren.set_threading_mode(threading_mode_);
              ren.update_tile(*tile_, scale_denominator_, offset_x_, offset_y_);
+             map_obj_->release();
          }
          catch (std::exception const& ex)
          {
@@ -343,11 +349,12 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
     {
         Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &tile_);
         Napi::Object obj = VectorTile::constructor.New({arg});
-        return {env.Null(), napi_value(obj)};
+        return {env.Undefined(), napi_value(obj)};
     }
 
 private:
     map_ptr map_;
+    Map * map_obj_;
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     double area_threshold_;
     double scale_factor_;
@@ -558,6 +565,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             }
             Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
             auto* worker = new detail::AsyncRender(map_,
+                                                   this,
                                                    image,
                                                    scale_factor,
                                                    scale_denominator,
@@ -849,11 +857,12 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             }
             Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
             VectorTile * vt = Napi::ObjectWrap<VectorTile>::Unwrap(obj);
-            if (vt && vt->tile_)
+            if (vt && vt->impl())
             {
                 auto * worker = new detail::AsyncRenderVectorTile{
                     map_,
-                    vt->tile_,
+                    this,
+                    vt->impl(),
                     area_threshold,
                     scale_factor,
                     scale_denominator,
