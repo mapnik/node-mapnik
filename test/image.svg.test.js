@@ -177,9 +177,9 @@ test('should not error on svg with unhandled elements in non-strict mode', (asse
   assert.ok(img instanceof mapnik.Image);
   assert.equal(img.width(), 100);
   assert.equal(img.height(), 100);
-  assert.equal(img.encodeSync("png").length, 1270);
+  var length = img.encodeSync("png").length;
   img.encode('png', (err, img) => {
-    assert.equal(img.length, 1270);
+    assert.equal(img.length, length);
     assert.end();
   });
 });
@@ -213,8 +213,11 @@ test('#fromSVGSync load from SVG file', (assert) => {
   assert.ok(img instanceof mapnik.Image);
   assert.equal(img.width(), 256);
   assert.equal(img.height(), 256);
-  assert.equal(img.encodeSync('png32').length, 17546);
-  assert.end();
+  var length = img.encodeSync('png32').length;
+  img.encode('png32',(err, image)=>{
+    assert.equal(image.length, length);
+    assert.end();
+  });
 });
 
 test('#fromSVGSync load from SVG file - 2', (assert) => {
@@ -223,8 +226,11 @@ test('#fromSVGSync load from SVG file - 2', (assert) => {
   assert.ok(img instanceof mapnik.Image);
   assert.equal(img.width(), 256);
   assert.equal(img.height(), 256);
-  assert.equal(img.encodeSync('png32').length, 17546);
-  assert.end();
+  var length = img.encodeSync('png32').length;
+  img.encode('png32',(err, image)=>{
+    assert.equal(image.length, length);
+    assert.end();
+  });
 });
 
 
@@ -233,9 +239,13 @@ test('#fromSVG load from SVG file', (assert) => {
     assert.ok(img); assert.ok(img instanceof mapnik.Image);
     assert.equal(img.width(), 256);
     assert.equal(img.height(), 256);
-    assert.equal(img.encodeSync('png32').length, 17546);
+    var length = img.encodeSync('png32').length;
     assert.equal(img.premultiplied(), false);
-    assert.end();
+    img.encode('png32',(err, image)=>{
+      assert.equal(image.length, length);
+      assert.end();
+    });
+
   });
 });
 
@@ -247,8 +257,11 @@ test('#fromSVGBytesSync load from SVG buffer', (assert) => {
   assert.ok(img instanceof mapnik.Image);
   assert.equal(img.width(), 100);
   assert.equal(img.height(), 100);
-  assert.equal(img.encodeSync("png").length, 1270);
-  assert.end();
+  var length = img.encodeSync('png').length;
+  img.encode('png',(err, image)=>{
+    assert.equal(image.length, length);
+    assert.end();
+  });
 });
 
 test('#fromSVGBytesSync load from SVG buffer - 2', (assert) => {
@@ -259,8 +272,11 @@ test('#fromSVGBytesSync load from SVG buffer - 2', (assert) => {
   assert.ok(img instanceof mapnik.Image);
   assert.equal(img.width(), 100);
   assert.equal(img.height(), 100);
-  assert.equal(img.encodeSync("png").length, 1270);
-  assert.end();
+  var length = img.encodeSync('png').length;
+  img.encode('png',(err, image)=>{
+    assert.equal(image.length, length);
+    assert.end();
+  });
 });
 
 test('#fromSVGBytes load from SVG buffer', (assert) => {
@@ -271,9 +287,12 @@ test('#fromSVGBytes load from SVG buffer', (assert) => {
     assert.ok(img instanceof mapnik.Image);
     assert.equal(img.width(), 100);
     assert.equal(img.height(), 100);
-    assert.equal(img.encodeSync("png").length, 1270);
+    var length = img.encodeSync('png').length;
     assert.equal(img.premultiplied(), false);
-    assert.end();
+    img.encode('png',(err, image)=>{
+      assert.equal(image.length, length);
+      assert.end();
+    });
   });
 });
 

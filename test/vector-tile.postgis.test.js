@@ -69,7 +69,7 @@ test('passes variables to replace tokens in query', (assert) => {
       opts.variables = { "fieldid": 2 };
       map.render(new mapnik.VectorTile(0, 0, 0), opts, function(err, vtile) {
         if (err) throw err;
-        assert(!vtile.empty());
+        assert.ok(!vtile.empty());
         var out = JSON.parse(vtile.toGeoJSON(0));
         assert.equal(out.type,'FeatureCollection');
         assert.equal(out.features.length,1);
