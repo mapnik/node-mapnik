@@ -1032,7 +1032,8 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
         {
             s = save_to_string(im, format, *palette);
         }
-        else {
+        else
+        {
             s = save_to_string(im, format);
         }
     }

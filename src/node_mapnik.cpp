@@ -1,4 +1,6 @@
 // Vector Tile
+#define _USE_MATH_DEFINES
+#include <cmath> // M_PI
 #include "vector_tile_config.hpp"
 
 // node-mapnik

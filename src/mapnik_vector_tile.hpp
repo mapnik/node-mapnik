@@ -3,8 +3,6 @@
 #include <napi.h>
 // mapnik-vector-tile
 #include "vector_tile_merc_tile.hpp"
-// std
-#include <cmath> // M_PI
 // mapnik
 #include <mapnik/feature.hpp>
 // boost
