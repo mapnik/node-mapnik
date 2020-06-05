@@ -37,7 +37,7 @@ struct AsyncCopy : Napi::AsyncWorker
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out_);
             Napi::Object obj = Image::constructor.New({arg});
-            return {env.Null(), napi_value(obj)};
+            return {env.Undefined(), napi_value(obj)};
         }
         return Base::GetResult(env);
     }

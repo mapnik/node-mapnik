@@ -1,33 +1,15 @@
 #include "mapnik_map.hpp"
 #include "utils.hpp"
 #include "mapnik_color.hpp"             // for Color, Color::constructor
-//#include "mapnik_featureset.hpp"        // for Featureset
 #include "mapnik_image.hpp"             // for Image, Image::constructor
 #include "mapnik_layer.hpp"             // for Layer, Layer::constructor
 #include "mapnik_palette.hpp"           // for palette_ptr, Palette, etc
-//#include "mapnik_vector_tile.hpp"
-
-// mapnik-vector-tile
-//#include "vector_tile_processor.hpp"
-
 // mapnik
-#include <mapnik/featureset.hpp>        // for featureset_ptr
+#include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>             // for layer
 #include <mapnik/save_map.hpp>          // for save_map, etc
-#include <mapnik/image_scaling.hpp>
-#include <mapnik/request.hpp>
-#if defined(HAVE_CAIRO)
-#include <mapnik/cairo_io.hpp>
-#endif
-
 // stl
-//#include <exception>                    // for exception
-//#include <iosfwd>                       // for ostringstream, ostream
-//#include <ostream>                      // for operator<<, basic_ostream, etc
 #include <sstream>                      // for basic_ostringstream, etc
-
-// boost
-#include <boost/optional/optional.hpp>  // for optional
 
 Napi::FunctionReference Map::constructor;
 

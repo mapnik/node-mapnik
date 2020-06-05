@@ -105,18 +105,6 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
     Napi::Error::New(env, "Cannot create this object from Javascript").ThrowAsJavaScriptException();
 }
 
-/*
-typedef struct {
-    uv_work_t request;
-    ImageView* im;
-    Napi::FunctionReference cb;
-    bool error;
-    std::string error_name;
-    bool result;
-} is_solid_image_view_baton_t;
-*/
-
-
 Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0)

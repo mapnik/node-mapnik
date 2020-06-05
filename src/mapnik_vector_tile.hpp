@@ -4,9 +4,7 @@
 // mapnik-vector-tile
 #include "vector_tile_merc_tile.hpp"
 // std
-#include <string>
-#include <set>
-#include <vector>
+#include <cmath> // M_PI
 // mapnik
 #include <mapnik/feature.hpp>
 // boost

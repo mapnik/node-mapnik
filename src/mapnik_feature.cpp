@@ -31,16 +31,6 @@ Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports)
     return exports;
 }
 
-//Feature::Feature(mapnik::feature_ptr f) : Napi::ObjectWrap<Feature>(),
-//    this_(f) {}
-
-//Feature::Feature(int id) : Napi::ObjectWrap<Feature>(),
-//    this_() {
-//    // TODO - accept/require context object to reused
-//    ctx_ = std::make_shared<mapnik::context_type>();
-//    this_ = mapnik::feature_factory::create(ctx_,id);
-//}
-
 /**
  * **`mapnik.Feature`**
  *

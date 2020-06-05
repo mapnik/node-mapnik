@@ -1,7 +1,4 @@
 #include "mapnik_color.hpp"
-// stl
-#include <exception>
-
 
 Napi::FunctionReference Color::constructor;
 

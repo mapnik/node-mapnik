@@ -10,9 +10,6 @@
 
 class Feature : public Napi::ObjectWrap<Feature>
 {
-    //friend class Featureset;
-    //friend class Expression;
-    //friend class VectorTile;
 public:
     // initialiser
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);

@@ -25,7 +25,7 @@ static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_
         else if (field_type == mapnik::Float) type = "Number";
         else if (field_type == mapnik::Double) type = "Number";
         else if (field_type == mapnik::String) type = "String";
-        /* LCOV_EXCL_START */
+        // LCOV_EXCL_START
         // Not currently possible to author these values in mapnik core
         // Should likely be considered for removing in mapnik
         else if (field_type == mapnik::Boolean) type = "Boolean";
@@ -34,8 +34,7 @@ static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_
         else type = "Unknown";
         std::string const& name = attr_info.get_name();
         fields.Set(name, type);
-        //fields.Set(name, Napi::String::New(env, type)); <== FIXME: duplicate?
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_STOP
     }
 }
 

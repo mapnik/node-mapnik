@@ -1,8 +1,7 @@
 #pragma once
 
 #include <napi.h>
-
-//#include <string>
+// stl
 #include <sstream>
 // cairo
 #if defined(HAVE_CAIRO)
@@ -15,7 +14,6 @@
 class CairoSurface : public Napi::ObjectWrap<CairoSurface>
 {
 public:
-    //typedef std::stringstream i_stream;
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
     // ctor
@@ -24,12 +22,6 @@ public:
     Napi::Value getData(Napi::CallbackInfo const& info);
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
-
-    //using Napi::ObjectWrap::Ref;
-    //using Napi::ObjectWrap::Unref;
-
-    //CairoSurface(std::string const& format, unsigned int width, unsigned int height);
-
     static cairo_status_t write_callback(void * stream,
                                          const unsigned char *data,
                                          unsigned int length)

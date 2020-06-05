@@ -5,12 +5,12 @@
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
-#include <mapnik/geometry/box2d.hpp>             // for box2d
-#include <mapnik/datasource.hpp>        // for datasource, datasource_ptr, etc
-#include <mapnik/datasource_cache.hpp>  // for datasource_cache
-#include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
-#include <mapnik/params.hpp>            // for parameters
-#include <mapnik/query.hpp>             // for query
+#include <mapnik/geometry/box2d.hpp>        // for box2d
+#include <mapnik/datasource.hpp>            // for datasource, datasource_ptr, etc
+#include <mapnik/datasource_cache.hpp>      // for datasource_cache
+#include <mapnik/feature_layer_desc.hpp>    // for layer_descriptor
+#include <mapnik/params.hpp>                // for parameters
+#include <mapnik/query.hpp>                 // for query
 
 // stl
 #include <exception>
@@ -134,10 +134,10 @@ Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
+        // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Undefined();
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_STOP
     }
 
     Napi::Array arr = Napi::Array::New(env, 4);
@@ -172,10 +172,10 @@ Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
+        // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Undefined();
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_STOP
     }
     return scope.Escape(description);
 }

@@ -490,7 +490,6 @@ struct AsyncBlend : Napi::AsyncWorker
         Base::SetError(err);
     }
 
-//private:
     Images images_;
     int quality_;
     int width_;
@@ -512,7 +511,7 @@ static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, b
         if (worker->format_ == BLEND_FORMAT_JPEG)
         {
 #if defined(HAVE_JPEG)
-            //if (worker->quality_ == 0) worker->quality_ = 85;
+            if (worker->quality_ == 0) worker->quality_ = 85;
             mapnik::save_as_jpeg(stream, worker->quality_, image);
 #else
             worker->SetError("Mapnik not built with jpeg support");
@@ -914,7 +913,8 @@ Napi::Value blend(Napi::CallbackInfo const& info)
 
         if (image->buffer.IsEmpty() && !image->im_obj)
         {
-            Napi::TypeError::New(env, "All elements must be Buffers or RGBA Mapnik Image objects or objects with a 'buffer' property.").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "All elements must be Buffers or RGBA Mapnik Image objects or objects with a 'buffer' property.")
+                .ThrowAsJavaScriptException();
             return env.Undefined();
         }
         if (!image->im_obj)
