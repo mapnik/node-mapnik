@@ -2719,7 +2719,6 @@ test('should read back the vector tile and render a native svg with it', (assert
       if (!existsSync(expected_svg2) || process.env.UPDATE) {
         fs.writeFileSync(expected_svg2,surface2.getData());
       }
-      console.log(typeof surface2, surface2);
       fs.writeFileSync(actual_svg2,surface2.getData());
       var diff = Math.abs(fs.readFileSync(actual_svg2,'utf8').replace(/\r/g, '').length - fs.readFileSync(expected_svg2,'utf8').replace(/\r/g, '').length);
       assert.ok(diff < 50,"svg diff "+diff+" not less that 50");
@@ -2963,7 +2962,6 @@ test('should be able to put an Image object into a vector tile layer', (assert) 
   assert.equal(vtile.empty(), false);
   assert.deepEqual(vtile.names(),['raster']);
   var json_obj = vtile.toJSON();
-  console.log(json_obj);
   assert.equal(json_obj[0].name,'raster');
   assert.equal(json_obj[0].features[0].raster.length, 12983);
   // now render out with fancy styling
