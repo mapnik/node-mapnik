@@ -1,5 +1,7 @@
 #pragma once
 
+// stl
+#include <cmath> // M_PI
 #include <napi.h>
 // mapnik-vector-tile
 #include "vector_tile_merc_tile.hpp"
@@ -7,8 +9,6 @@
 #include <mapnik/feature.hpp>
 // boost
 #include <boost/version.hpp>
-// stl
-#include <cmath> // M_PI
 
 struct query_lonlat
 {
