@@ -1,3 +1,5 @@
+// stl
+#include <cmath> // M_PI
 #include "mapnik_vector_tile.hpp"
 #include "vector_tile_load_tile.hpp"
 
