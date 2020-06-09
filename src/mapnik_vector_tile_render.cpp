@@ -47,6 +47,33 @@ using surface_type = mapnik::util::variant
 #endif
      >;
 
+struct ref_visitor
+{
+    void operator() (dummy_surface) {} // no-op
+    template <typename SurfaceType>
+    void operator() (SurfaceType * surface)
+    {
+        if (surface != nullptr)
+        {
+            surface->Ref();
+        }
+    }
+};
+
+
+struct deref_visitor
+{
+    void operator() (dummy_surface) {} // no-op
+    template <typename SurfaceType>
+    void operator() (SurfaceType * surface)
+    {
+        if (surface != nullptr)
+        {
+            surface->Unref();
+        }
+    }
+};
+
 template <typename Renderer>
 void process_layers(Renderer & ren,
                     mapnik::request const& m_req,
@@ -311,6 +338,13 @@ struct AsyncRender : Napi::AsyncWorker
         }
         return Base::GetResult(env);;
     }
+
+    void OnWorkComplete(Napi::Env env, napi_status status) override
+    {
+        mapnik::util::apply_visitor(deref_visitor(), surface_);
+        Base::OnWorkComplete(env, status);
+    }
+
 private:
     map_ptr map_;
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
@@ -671,6 +705,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "renderable mapnik object expected as second arg").ThrowAsJavaScriptException();
         return env.Undefined();
     }
+    mapnik::util::apply_visitor(ref_visitor(), surface);
     auto * worker = new AsyncRender{m->impl(),
                                     tile_,
                                     surface,
