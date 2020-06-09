@@ -1130,13 +1130,13 @@ test('should be able to getData with a FIXED', (assert) => {
     var buffer;
     switch (buffers.length) {
     case 0: // no data.  return empty buffer
-      buffer = new Buffer(0);
+      buffer = Buffer.alloc(0);
       break;
     case 1: // only one chunk of data.  return it.
       buffer = buffers[0];
       break;
     default: // concatenate the chunks of data into a single buffer.
-      buffer = new Buffer(nread);
+      buffer = Buffer.alloc(nread);
       var n = 0;
       buffers.forEach(function(b) {
         var l = b.length;
@@ -1185,13 +1185,13 @@ test('should be able to getData with a DEFAULT_STRATEGY', (assert) => {
     var buffer;
     switch (buffers.length) {
     case 0: // no data.  return empty buffer
-      buffer = new Buffer(0);
+      buffer = Buffer.alloc(0);
       break;
     case 1: // only one chunk of data.  return it.
       buffer = buffers[0];
       break;
     default: // concatenate the chunks of data into a single buffer.
-      buffer = new Buffer(nread);
+      buffer = Buffer.alloc(nread);
       var n = 0;
       buffers.forEach(function(b) {
         var l = b.length;
@@ -1288,7 +1288,7 @@ test('should be able to setData/parse gzip compressed (sync)', (assert) => {
 
 test('setData should error on bogus gzip data', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
-  var fake_gzip = new Buffer(30);
+  var fake_gzip = Buffer.alloc(30);
   fake_gzip.fill(0);
   fake_gzip[0] = 0x1F;
   fake_gzip[1] = 0x8B;
@@ -1301,7 +1301,7 @@ test('setData should error on bogus gzip data', (assert) => {
 
 test('setData should error on bogus zlib data', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
-  var fake_zlib = new Buffer(30);
+  var fake_zlib = Buffer.alloc(30);
   fake_zlib.fill(0);
   fake_zlib[0] = 0x78;
   fake_zlib[1] = 0x9C;
@@ -1320,7 +1320,7 @@ test('info should throw with invalid use', (assert) => {
 });
 
 test('info should show error on bogus gzip data', (assert) => {
-  var fake_gzip = new Buffer(30);
+  var fake_gzip = Buffer.alloc(30);
   fake_gzip.fill(0);
   fake_gzip[0] = 0x1F;
   fake_gzip[1] = 0x8B;
@@ -1333,7 +1333,7 @@ test('info should show error on bogus gzip data', (assert) => {
 });
 
 test('info should show error on bogus zlib data', (assert) => {
-  var fake_zlib = new Buffer(30);
+  var fake_zlib = Buffer.alloc(30);
   fake_zlib.fill(0);
   fake_zlib[0] = 0x78;
   fake_zlib[1] = 0x9C;
@@ -1389,9 +1389,9 @@ test('should error out if we pass invalid data to setData - 1', (assert) => {
   assert.throws(function() { vtile.setData('foo',function(){}); }); // first arg must be a buffer object
   assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
   assert.throws(function() { vtile.setData({},function(){}); }); // first arg must be a buffer object
-  assert.throws(function() { vtile.setData(new Buffer('foo'), null); });
-  assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
-  vtile.setData(new Buffer('foo'),function(err) {
+  assert.throws(function() { vtile.setData(Buffer.from('foo'), null); });
+  assert.throws(function() { vtile.setData(Buffer.alloc(0)); }); // empty buffer is not valid
+  vtile.setData(Buffer.from('foo'),function(err) {
     assert.throws(function() { if (err) throw err; });
     assert.end();
   });
@@ -1414,7 +1414,7 @@ test('should error out if we validate tile with empty layers and features to set
 test('should error out if we pass invalid data to setData - 2', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   assert.equal(vtile.empty(), true);
-  vtile.setData(new Buffer('0'),function(err) {
+  vtile.setData(Buffer.from('0'),function(err) {
     assert.throws(function() { if (err) throw err; });
     assert.end();
   });
@@ -1423,7 +1423,7 @@ test('should error out if we pass invalid data to setData - 2', (assert) => {
 test('should error out if we pass invalid data to setData - 3', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   assert.equal(vtile.empty(), true);
-  vtile.setData(new Buffer('0B1234', 'hex'),function(err) {
+  vtile.setData(Buffer.from('0B1234', 'hex'),function(err) {
     assert.throws(function() { if (err) throw err; });
     assert.end();
   });
@@ -1433,28 +1433,28 @@ test('should error out if we pass invalid data to setData - 4', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   assert.equal(vtile.empty(), true);
   // fails due to invalid tag
-  assert.throws(function() { vtile.setData(new Buffer('120774657374696e67', 'hex')); });
+  assert.throws(function() { vtile.setData(Buffer.from('120774657374696e67', 'hex')); });
   assert.equal(vtile.empty(), true);
   // fails due to invalid tag
-  assert.throws(function() { vtile.setData(new Buffer('089601', 'hex')); });
+  assert.throws(function() { vtile.setData(Buffer.from('089601', 'hex')); });
   assert.equal(vtile.empty(), true);
   assert.throws(function() {
-    vtile.setData(new Buffer('0896818181818181818181818181818181818181', 'hex'));
+    vtile.setData(Buffer.from('0896818181818181818181818181818181818181', 'hex'));
   });
   assert.throws(function() {
-    vtile.setData(new Buffer('0896818181818181818181818181818181818181', 'hex'));
+    vtile.setData(Buffer.from('0896818181818181818181818181818181818181', 'hex'));
   });
   assert.throws(function() {
-    vtile.setData(new Buffer('090123456789012345', 'hex'));
+    vtile.setData(Buffer.from('090123456789012345', 'hex'));
   });
   assert.throws(function() {
-    vtile.setData(new Buffer('0D01234567', 'hex'));
+    vtile.setData(Buffer.from('0D01234567', 'hex'));
   });
   assert.throws(function() {
-    vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
+    vtile.setData(Buffer.from('0D0123456', 'hex')); // 32 should fail because missing a byte
   });
   assert.throws(function() {
-    vtile.setData(new Buffer('0D0123456', 'hex')); // 32 should fail because missing a byte
+    vtile.setData(Buffer.from('0D0123456', 'hex')); // 32 should fail because missing a byte
   });
   assert.end();
 });
@@ -1463,7 +1463,7 @@ test('should be empty if we pass empty buffer to setData', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   assert.equal(vtile.empty(), true);
   assert.equal(vtile.empty(), true);
-  vtile.setData(new Buffer(0),function(err) {
+  vtile.setData(Buffer.alloc(0),function(err) {
     assert.throws(function() { if (err) throw err; });
     assert.deepEqual(vtile.names(), []);
     assert.equal(vtile.empty(), true);
@@ -1473,7 +1473,7 @@ test('should be empty if we pass empty buffer to setData', (assert) => {
 
 test('should not return empty and will have layer name', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
-  vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'));
+  vtile.setData(Buffer.from('1A0C0A0A6C617965722D6E616D65', 'hex'));
   assert.deepEqual(vtile.names(), ['layer-name']);
   assert.equal(vtile.empty(), false);
   assert.end();
@@ -1481,7 +1481,7 @@ test('should not return empty and will have layer name', (assert) => {
 
 test('should return empty and have no layer name when upgraded', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
-  vtile.setData(new Buffer('1A0C0A0A6C617965722D6E616D65', 'hex'),{upgrade:true});
+  vtile.setData(Buffer.from('1A0C0A0A6C617965722D6E616D65', 'hex'),{upgrade:true});
   // a layer with only a name "layer-name" and no features
   // during v1 to v2 conversion this will be dropped
   // note: this tile also lacks a version, but mapnik-vt defaults to assuming v1
@@ -1495,19 +1495,19 @@ test('should error out if we pass invalid data to addData', (assert) => {
   assert.equal(vtile.empty(), true);
   assert.throws(function() { vtile.addData(null); }); // empty buffer is not valid
   assert.throws(function() { vtile.addData({}); }); // empty buffer is not valid
-  assert.throws(function() { vtile.addData(new Buffer(0)); }); // empty buffer is not valid
-  assert.throws(function() { vtile.addData(new Buffer('foo')); });
-  assert.throws(function() { vtile.addData(new Buffer(0), 'not a function'); }); // last item must be a function
+  assert.throws(function() { vtile.addData(Buffer.alloc(0)); }); // empty buffer is not valid
+  assert.throws(function() { vtile.addData(Buffer.from('foo')); });
+  assert.throws(function() { vtile.addData(Buffer.alloc(0), 'not a function'); }); // last item must be a function
   assert.throws(function() { vtile.addDataSync(null); }); // empty buffer is not valid
   assert.throws(function() { vtile.addDataSync({}); }); // empty buffer is not valid
-  assert.throws(function() { vtile.addDataSync(new Buffer(0)); }); // empty buffer is not valid
-  assert.throws(function() { vtile.addDataSync(new Buffer('foo')); });
+  assert.throws(function() { vtile.addDataSync(Buffer.alloc(0)); }); // empty buffer is not valid
+  assert.throws(function() { vtile.addDataSync(Buffer.from('foo')); });
   assert.throws(function() { vtile.addData(null, function(err) {}); });
   assert.throws(function() { vtile.addData({}, function(err) {}); });
 
-  vtile.addData(new Buffer(0), function(err) {
+  vtile.addData(Buffer.alloc(0), function(err) {
     assert.throws(function() { if (err) throw err; });
-    vtile.addData(new Buffer('foo'), function(err) {
+    vtile.addData(Buffer.from('foo'), function(err) {
       assert.throws(function() { if (err) throw err; });
       assert.end();
     });
@@ -1519,17 +1519,17 @@ test('should error out if we pass invalid data to setData', (assert) => {
   assert.equal(vtile.empty(), true);
   assert.throws(function() { vtile.setData(null); }); // empty buffer is not valid
   assert.throws(function() { vtile.setData({}); }); // empty buffer is not valid
-  assert.throws(function() { vtile.setData(new Buffer(0)); }); // empty buffer is not valid
-  assert.throws(function() { vtile.setData(new Buffer('foo')); });
+  assert.throws(function() { vtile.setData(Buffer.alloc(0)); }); // empty buffer is not valid
+  assert.throws(function() { vtile.setData(Buffer.from('foo')); });
   assert.throws(function() { vtile.setDataSync(null); }); // empty buffer is not valid
   assert.throws(function() { vtile.setDataSync({}); }); // empty buffer is not valid
-  assert.throws(function() { vtile.setDataSync(new Buffer(0)); }); // empty buffer is not valid
-  assert.throws(function() { vtile.setDataSync(new Buffer('foo')); });
+  assert.throws(function() { vtile.setDataSync(Buffer.alloc(0)); }); // empty buffer is not valid
+  assert.throws(function() { vtile.setDataSync(Buffer.from('foo')); });
   assert.throws(function() { vtile.setData(null, function(err) {}); });
   assert.throws(function() { vtile.setData({}, function(err) {}); });
-  vtile.setData(new Buffer(0), function(err) {
+  vtile.setData(Buffer.alloc(0), function(err) {
     assert.throws(function() { if (err) throw err; });
-    vtile.setData(new Buffer('foo'), function(err) {
+    vtile.setData(Buffer.from('foo'), function(err) {
       assert.throws(function() { if (err) throw err; });
       assert.end();
     });
@@ -1544,8 +1544,8 @@ test('should fail to do clear', (assert) => {
 
 test('should fail to addData/setData due to bad data', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
-  assert.throws(function() { vtile.addData(new Buffer('foo')); });
-  assert.throws(function() { vtile.setData(new Buffer('foo')); });
+  assert.throws(function() { vtile.addData(Buffer.from('foo')); });
+  assert.throws(function() { vtile.setData(Buffer.from('foo')); });
   assert.end();
 });
 
@@ -1665,7 +1665,7 @@ test('should be able to get layer names without parsing', (assert) => {
 
 test('should be able to get tile info as JSON', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.deepEqual(vtile.names(),['world','world2']);
   var expected = [
     {
@@ -1725,7 +1725,7 @@ test('should be able to get tile info as JSON', (assert) => {
 
 test('should be able to get tile info as JSON with decoded geometry', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.deepEqual(vtile.names(),['world','world2']);
   var expected = [
     {
@@ -1791,7 +1791,7 @@ test('should be able to get tile info as JSON with decoded geometry', (assert) =
 
 test('should be able to get tile info as various flavors of GeoJSON', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   var expected_geojson = {
     "type":"FeatureCollection",
     "features":[
@@ -1868,7 +1868,7 @@ test('should fail to parse toJSON due to bad input', (assert) => {
 
 test('should be able to get and set data (sync)', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   var vtile2 = new mapnik.VectorTile(9,112,195);
   vtile2.setData(vtile.getData());
   assert.deepEqual(vtile.names(),vtile2.names());
@@ -1879,7 +1879,7 @@ test('should be able to get and set data (sync)', (assert) => {
 
 test('should be able to get and set data (async)', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"),function(err) {
+  vtile.setData(Buffer.from(_data,"hex"),function(err) {
     if (err) throw err;
     var vtile2 = new mapnik.VectorTile(9,112,195);
     vtile.getData(function(err,data) {
@@ -1895,7 +1895,7 @@ test('should be able to get and set data (async)', (assert) => {
 
 test('should be able to get virtual datasource and features', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile.getData().length,_length);
   var ds = vtile.toJSON();
   assert.equal(ds.length,2);
@@ -1940,7 +1940,7 @@ test('should be able to get virtual datasource and features', (assert) => {
 
 test('should be able to clear data (sync)', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile.getData().length,_length);
   assert.equal(vtile.painted(), true);
   var feature_count = vtile.toJSON()[0].features.length;
@@ -1953,7 +1953,7 @@ test('should be able to clear data (sync)', (assert) => {
 
   // call synchronous method directly
   var vtile2 = new mapnik.VectorTile(9,112,195);
-  vtile2.setData(new Buffer(_data,"hex"));
+  vtile2.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile2.getData().length,_length);
   assert.equal(vtile2.painted(), true);
   var feature_count2 = vtile2.toJSON()[0].features.length;
@@ -1968,7 +1968,7 @@ test('should be able to clear data (sync)', (assert) => {
 
 test('should be able to clear data (async)', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile.empty(), false);
   assert.deepEqual(vtile.names(), ["world","world2"]);
   assert.equal(vtile.empty(), false);
@@ -1991,17 +1991,17 @@ test('should be able to clear data (async)', (assert) => {
 
 test('should be able to add data', (assert) => {
   var vtile = new mapnik.VectorTile(9,112,195);
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile.empty(), false);
   assert.equal(vtile.painted(), true);
   assert.deepEqual(vtile.names(), ["world","world2"]);
   // Setting data again should still result in the same data.
-  vtile.setData(new Buffer(_data,"hex"));
+  vtile.setData(Buffer.from(_data,"hex"));
   assert.equal(vtile.empty(), false);
   assert.equal(vtile.painted(), true);
   assert.deepEqual(vtile.names(), ["world","world2"]);
   // Adding same data again should not result in new data.
-  vtile.addData(new Buffer(_data,"hex"));
+  vtile.addData(Buffer.from(_data,"hex"));
   assert.equal(vtile.empty(), false);
   assert.deepEqual(vtile.names(), ["world","world2"]);
   assert.equal(vtile.getData().length,_length);
@@ -2932,21 +2932,21 @@ test('should fail to addImageBuffer due to bad input', (assert) => {
   assert.throws(function() { vtile.addImageBuffer(null); });
   assert.throws(function() { vtile.addImageBuffer('asdf'); });
   assert.throws(function() { vtile.addImageBuffer({}); });
-  assert.throws(function() { vtile.addImageBuffer(new Buffer('foo')); });
-  assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12); });
+  assert.throws(function() { vtile.addImageBuffer(Buffer.from('foo')); });
+  assert.throws(function() { vtile.addImageBuffer(Buffer.from('foo'), 12); });
   assert.throws(function() { vtile.addImageBuffer({}, 'asdf'); });
-  assert.throws(function() { vtile.addImageBuffer(new Buffer(0), 'waka', {}); });
+  assert.throws(function() { vtile.addImageBuffer(Buffer.alloc(0), 'waka', {}); });
   assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
   assert.throws(function() { vtile.addImageBuffer({}, 'asdf', function(err) {}); });
-  assert.throws(function() { vtile.addImageBuffer(new Buffer('foo'), 12, function(err) {}); });
+  assert.throws(function() { vtile.addImageBuffer(Buffer.from('foo'), 12, function(err) {}); });
   assert.throws(function() { vtile.addImageBuffer('not a buffer', 'bar', function(err) {}); });
   assert.throws(function() { vtile.addImageBufferSync(); });
   assert.throws(function() { vtile.addImageBufferSync(null); });
   assert.throws(function() { vtile.addImageBufferSync('asdf'); });
   assert.throws(function() { vtile.addImageBufferSync({}); });
-  assert.throws(function() { vtile.addImageBufferSync(new Buffer(0), 'waka'); });
-  assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo')); });
-  assert.throws(function() { vtile.addImageBufferSync(new Buffer('foo'), 12); });
+  assert.throws(function() { vtile.addImageBufferSync(Buffer.alloc(0), 'waka'); });
+  assert.throws(function() { vtile.addImageBufferSync(Buffer.from('foo')); });
+  assert.throws(function() { vtile.addImageBufferSync(Buffer.from('foo'), 12); });
   assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
   assert.throws(function() { vtile.addImageBufferSync({}, 'asdf', function(err) {}); });
   assert.end();
