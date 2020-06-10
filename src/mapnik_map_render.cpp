@@ -140,7 +140,7 @@ struct AsyncRenderGrid : Napi::AsyncWorker
 
     AsyncRenderGrid(Map * map_obj, grid_ptr const& grid,
                     double scale_factor, double scale_denominator,
-                    int buffer_size, unsigned offset_x, unsigned offset_y,
+                    unsigned offset_x, unsigned offset_y,
                     std::size_t layer_idx,
                     Napi::Function const& callback)
         :Base(callback),
@@ -148,7 +148,6 @@ struct AsyncRenderGrid : Napi::AsyncWorker
          grid_(grid),
          scale_factor_(scale_factor),
          scale_denominator_(scale_denominator),
-         buffer_size_(buffer_size),
          offset_x_(offset_x),
          offset_y_(offset_y),
          layer_idx_(layer_idx) {}
@@ -175,7 +174,6 @@ struct AsyncRenderGrid : Napi::AsyncWorker
             {
                 attributes.insert(join_field);
             }
-
             mapnik::grid_renderer<mapnik::grid> ren(*map,
                                                     *grid_,
                                                     scale_factor_,
@@ -209,7 +207,6 @@ private:
     grid_ptr grid_;
     double scale_factor_;
     double scale_denominator_;
-    int buffer_size_;
     unsigned offset_x_;
     unsigned offset_y_;
     std::size_t layer_idx_;
@@ -692,17 +689,6 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     }
                 }
             }
-            // FIXME ?????
-            //if (options.Has("variables"))
-            // {
-            //   Napi::Value bind_opt = options.Get("variables");
-            //   if (!bind_opt.IsObject())
-            //   {
-            //       Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
-            //       return env.Undefined();
-            //   }
-                //object_to_container(variables, bind_opt.As<Napi::Object>());
-            //}
             if (!acquire())
             {
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
@@ -716,7 +702,6 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                                                        scale_denominator,
                                                        offset_x,
                                                        offset_y,
-                                                       buffer_size,
                                                        layer_idx,
                                                        callback);
             worker->Queue();
@@ -916,7 +901,6 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
     }
     catch (std::exception const& ex)
     {
-        // I am not quite sure it is possible to put a test in to cover an exception here
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
         // LCOV_EXCL_STOP
