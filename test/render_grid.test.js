@@ -18,6 +18,45 @@ function _c(grid1,grid2) {
 
 if (mapnik.supports.grid) {
   mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
+  mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
+
+  var input_geojson = {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [0, 0]
+        },
+        "properties": {}
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [1, 1]
+        },
+        "properties": {}
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [2, 2]
+        },
+        "properties": {}
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [3, 3]
+        },
+        "properties": {}
+      }
+    ]
+  }
 
   test('should match expected output (sync rendering)', (assert) => {
     var map = new mapnik.Map(256, 256);
@@ -170,18 +209,14 @@ if (mapnik.supports.grid) {
       assert.end();
     });
   });
-/* FIXME MemoryDatasource
+
   test('should match expected output if __id__ the grid key and the only attributes', (assert) => {
     var map = new mapnik.Map(256, 256);
     map.loadSync(stylesheet, {strict: true});
-    var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-    mem_datasource.add({ 'x': 0, 'y': 0 });
-    mem_datasource.add({ 'x': 1, 'y': 1 });
-    mem_datasource.add({ 'x': 2, 'y': 2 });
-    mem_datasource.add({ 'x': 3, 'y': 3 });
+    var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input_geojson) });
     var l = new mapnik.Layer('test');
     l.srs = map.srs;
-    l.datasource = mem_datasource;
+    l.datasource = ds;
     map.add_layer(l);
     map.zoomAll();
     var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
@@ -201,7 +236,7 @@ if (mapnik.supports.grid) {
       assert.end();
     });
   });
-*/
+
   test('should fail to render two things at once', (assert) => {
     var map = new mapnik.Map(256, 256);
     map.loadSync(stylesheet, {strict: true});
@@ -216,19 +251,15 @@ if (mapnik.supports.grid) {
     });
     assert.end();
   });
-/* FIXME MemoryDatasource
+
   test('should fail to render grid', (assert) => {
     var map = new mapnik.Map(256, 256);
     var map2 = new mapnik.Map(256, 256);
     map.loadSync(stylesheet, {strict: true});
-    var mem_datasource = new mapnik.MemoryDatasource({'extent': '-180,-90,180,90'});
-    mem_datasource.add({ 'x': 0, 'y': 0 });
-    mem_datasource.add({ 'x': 1, 'y': 1 });
-    mem_datasource.add({ 'x': 2, 'y': 2 });
-    mem_datasource.add({ 'x': 3, 'y': 3 });
+    var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input_geojson) });
     var l = new mapnik.Layer('test');
     l.srs = map.srs;
-    l.datasource = mem_datasource;
+    l.datasource = ds;
     map.add_layer(l);
     map.zoomAll();
     map.srs = '+init=PIZZA';
@@ -240,11 +271,9 @@ if (mapnik.supports.grid) {
     assert.throws(function() { map.render(grid, {layer:99}, function(err, result) {}); });
     assert.throws(function() { map2.render(grid, {layer:0}, function(err, result) {}); });
     assert.throws(function() { map.render(grid, {layer:0, fields:null}, function(err, result) {}); });
-    assert.throws(function() { map.render(grid, {layer:0, variables:null}, function(err, result) {}); });
     map.render(grid, {layer:0}, function(err, result) {
       assert.throws(function() { if(err) throw err; });
       assert.end();
     });
   });
-*/
 }
