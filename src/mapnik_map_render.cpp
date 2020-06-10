@@ -67,6 +67,21 @@ struct agg_renderer_visitor
     double scale_denominator_;
 };
 
+struct release_map
+{
+    release_map(Map * map_obj)
+        : map_obj_(map_obj) {}
+    ~release_map()
+    {
+        if (map_obj_)
+        {
+            map_obj_->release();
+            map_obj_->Unref();
+        }
+    }
+    Map * map_obj_;
+};
+
 struct AsyncRender : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -90,6 +105,7 @@ struct AsyncRender : Napi::AsyncWorker
     {
         try
         {
+            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             mapnik::request request(map->width(), map->height(), map->get_current_extent());
             request.set_buffer_size(buffer_size_);
@@ -106,13 +122,6 @@ struct AsyncRender : Napi::AsyncWorker
         {
             SetError(ex.what());
         }
-    }
-
-    void OnWorkComplete(Napi::Env env, napi_status status) override
-    {
-        map_obj_->release();
-        map_obj_->Unref();
-        Base::OnWorkComplete(env, status);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
@@ -156,6 +165,7 @@ struct AsyncRenderGrid : Napi::AsyncWorker
     {
         try
         {
+            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             std::vector<mapnik::layer> const& layers = map->layers();
             // copy property names
@@ -186,14 +196,7 @@ struct AsyncRenderGrid : Napi::AsyncWorker
         {
             SetError(ex.what());
         }
-    }
-
-    void OnWorkComplete(Napi::Env env, napi_status status) override
-    {
-        map_obj_->release();
-        map_obj_->Unref();
-        Base::OnWorkComplete(env, status);
-    }
+   }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
@@ -237,6 +240,7 @@ struct AsyncRenderFile : Napi::AsyncWorker
     {
         try
         {
+            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             if (use_cairo_)
             {
@@ -274,14 +278,6 @@ struct AsyncRenderFile : Napi::AsyncWorker
         {
             SetError(ex.what());
         }
-
-    }
-
-    void OnWorkComplete(Napi::Env env, napi_status status) override
-    {
-        map_obj_->release();
-        map_obj_->Unref();
-        Base::OnWorkComplete(env, status);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
@@ -343,6 +339,7 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
     {
          try
          {
+             release_map rm(map_obj_);
              map_ptr map = map_obj_->impl();
              mapnik::vector_tile_impl::processor ren(*map, variables_);
              ren.set_simplify_distance(simplify_distance_);
@@ -361,13 +358,6 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
          {
              SetError(ex.what());
          }
-    }
-
-    void OnWorkComplete(Napi::Env env, napi_status status) override
-    {
-        map_obj_->release();
-        map_obj_->Unref();
-        Base::OnWorkComplete(env, status);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
@@ -494,7 +484,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
         // defaults
         int buffer_size = 0;
         double scale_factor = 1.0;
-        double scale_denominator = 0.0;
+        double scale_denominator = 1.0;
         unsigned offset_x = 0;
         unsigned offset_y = 0;
 
