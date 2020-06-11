@@ -3100,7 +3100,6 @@ test('should be able to render data->vtile and vtile->image with roughtly the sa
   var x=3;
   var y=2;
   var z=2;
-  //var extent = [10018754.171394622,-10018754.17139462,20037508.342789244,9.313225746154785e-10];
   var extent = mercator.bbox(x, y, z, false, '900913');
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/data/map.xml');
