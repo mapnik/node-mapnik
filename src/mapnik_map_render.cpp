@@ -67,32 +67,36 @@ struct agg_renderer_visitor
     double scale_denominator_;
 };
 
-struct release_map
+
+struct AsyncRender : Napi::AsyncWorker
 {
-    release_map(Map * map_obj)
-        : map_obj_(map_obj) {}
-    ~release_map()
+    using Base = Napi::AsyncWorker;
+    AsyncRender(Map * map_obj, Napi::Function const& callback)
+        : Base(callback),
+          map_obj_(map_obj) {}
+
+    ~AsyncRender() {} // an empty dtor
+    void OnWorkComplete(Napi::Env env, napi_status status) override
     {
         if (map_obj_)
         {
             map_obj_->release();
             map_obj_->Unref();
         }
+        Base::OnWorkComplete(env, status);
     }
+protected:
     Map * map_obj_;
 };
 
-struct AsyncRender : Napi::AsyncWorker
+struct AsyncRenderImage : AsyncRender
 {
-    using Base = Napi::AsyncWorker;
-
-    AsyncRender(Map* map_obj, image_ptr const& image,
+    AsyncRenderImage(Map* map_obj, image_ptr const& image,
                 double scale_factor, double scale_denominator,
                 int buffer_size, unsigned offset_x, unsigned offset_y,
                 mapnik::attributes const& variables,
                 Napi::Function const& callback)
-        :Base(callback),
-         map_obj_(map_obj),
+        :AsyncRender(map_obj, callback),
          image_(image),
          scale_factor_(scale_factor),
          scale_denominator_(scale_denominator),
@@ -101,11 +105,12 @@ struct AsyncRender : Napi::AsyncWorker
          offset_y_(offset_y),
          variables_(variables) {}
 
+    ~AsyncRenderImage() {}
+
     void Execute() override
     {
         try
         {
-            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             mapnik::request request(map->width(), map->height(), map->get_current_extent());
             request.set_buffer_size(buffer_size_);
@@ -132,7 +137,6 @@ struct AsyncRender : Napi::AsyncWorker
     }
 
 private:
-    Map * map_obj_;
     image_ptr image_;
     double scale_factor_;
     double scale_denominator_;
@@ -143,17 +147,14 @@ private:
 };
 
 
-struct AsyncRenderGrid : Napi::AsyncWorker
+struct AsyncRenderGrid : AsyncRender
 {
-    using Base = Napi::AsyncWorker;
-
     AsyncRenderGrid(Map * map_obj, grid_ptr const& grid,
                     double scale_factor, double scale_denominator,
                     unsigned offset_x, unsigned offset_y,
                     std::size_t layer_idx,
                     Napi::Function const& callback)
-        :Base(callback),
-         map_obj_(map_obj),
+        :AsyncRender(map_obj, callback),
          grid_(grid),
          scale_factor_(scale_factor),
          scale_denominator_(scale_denominator),
@@ -161,11 +162,11 @@ struct AsyncRenderGrid : Napi::AsyncWorker
          offset_y_(offset_y),
          layer_idx_(layer_idx) {}
 
+    ~AsyncRenderGrid() {}
     void Execute() override
     {
         try
         {
-            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             std::vector<mapnik::layer> const& layers = map->layers();
             // copy property names
@@ -196,7 +197,7 @@ struct AsyncRenderGrid : Napi::AsyncWorker
         {
             SetError(ex.what());
         }
-   }
+    }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
@@ -206,7 +207,6 @@ struct AsyncRenderGrid : Napi::AsyncWorker
     }
 
 private:
-    Map * map_obj_;
     grid_ptr grid_;
     double scale_factor_;
     double scale_denominator_;
@@ -215,18 +215,15 @@ private:
     std::size_t layer_idx_;
 };
 
-struct AsyncRenderFile : Napi::AsyncWorker
+struct AsyncRenderFile : AsyncRender
 {
-    using Base = Napi::AsyncWorker;
-
     AsyncRenderFile(Map * map_obj, std::string const& output_filename,
                     double scale_factor, double scale_denominator,
                     int buffer_size, palette_ptr const& palette,
                     std::string const& format, bool use_cairo,
                     mapnik::attributes const& variables,
                     Napi::Function const& callback)
-        :Base(callback),
-         map_obj_(map_obj),
+        : AsyncRender(map_obj, callback),
          output_filename_(output_filename),
          scale_factor_(scale_factor),
          scale_denominator_(scale_denominator),
@@ -240,7 +237,6 @@ struct AsyncRenderFile : Napi::AsyncWorker
     {
         try
         {
-            release_map rm(map_obj_);
             map_ptr map = map_obj_->impl();
             if (use_cairo_)
             {
@@ -285,7 +281,6 @@ struct AsyncRenderFile : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 private:
-    Map * map_obj_;
     std::string output_filename_;
     double scale_factor_;
     double scale_denominator_;
@@ -297,9 +292,8 @@ private:
 };
 
 
-struct AsyncRenderVectorTile : Napi::AsyncWorker
+struct AsyncRenderVectorTile : AsyncRender
 {
-    using Base = Napi::AsyncWorker;
     AsyncRenderVectorTile(Map * map_obj,
                           mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                           double area_threshold,
@@ -317,29 +311,29 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
                           std::launch threading_mode,
                           mapnik::attributes const& variables,
                           Napi::Function const& callback)
-        :Base(callback),
-         map_obj_(map_obj),
-         tile_(tile),
-         area_threshold_(area_threshold),
-         scale_factor_(scale_factor),
-         scale_denominator_(scale_denominator),
-         offset_x_(offset_x),
-         offset_y_(offset_y),
-         image_format_(image_format),
-         scaling_method_(scaling_method),
-         simplify_distance_(simplify_distance),
-         strictly_simple_(strictly_simple),
-         multi_polygon_union_(multi_polygon_union),
-         process_all_rings_(process_all_rings),
-         fill_type_(fill_type),
-         threading_mode_(threading_mode),
-         variables_(variables) {}
+    : AsyncRender(map_obj, callback),
+      tile_(tile),
+      area_threshold_(area_threshold),
+      scale_factor_(scale_factor),
+      scale_denominator_(scale_denominator),
+      offset_x_(offset_x),
+      offset_y_(offset_y),
+      image_format_(image_format),
+      scaling_method_(scaling_method),
+      simplify_distance_(simplify_distance),
+      strictly_simple_(strictly_simple),
+      multi_polygon_union_(multi_polygon_union),
+      process_all_rings_(process_all_rings),
+      fill_type_(fill_type),
+      threading_mode_(threading_mode),
+      variables_(variables) {}
+
+    ~AsyncRenderVectorTile() {}
 
     void Execute() override
     {
          try
          {
-             release_map rm(map_obj_);
              map_ptr map = map_obj_->impl();
              mapnik::vector_tile_impl::processor ren(*map, variables_);
              ren.set_simplify_distance(simplify_distance_);
@@ -368,7 +362,6 @@ struct AsyncRenderVectorTile : Napi::AsyncWorker
     }
 
 private:
-    Map * map_obj_;
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     double area_threshold_;
     double scale_factor_;
@@ -541,7 +534,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
                     return env.Undefined();
                 }
-                offset_x = offset_x_val.As<Napi::Number>().Int32Value();
+                offset_x = offset_x_val.As<Napi::Number>().Uint32Value();
             }
             if (options.Has("offset_y"))
             {
@@ -551,7 +544,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
                     return env.Undefined();
                 }
-                offset_y = offset_y_val.As<Napi::Number>().Int32Value();
+                offset_y = offset_y_val.As<Napi::Number>().Uint32Value();
             }
         }
 
@@ -566,7 +559,6 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 Napi::Value variables_val = options.Get("variables");
                 if (!variables_val.IsObject())
                 {
-                    //delete closure;
                     Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
                     return env.Undefined();
                 }
@@ -579,15 +571,15 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             }
             Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
             this->Ref();
-            auto* worker = new detail::AsyncRender(this,
-                                                   image,
-                                                   scale_factor,
-                                                   scale_denominator,
-                                                   offset_x,
-                                                   offset_y,
-                                                   buffer_size,
-                                                   variables,
-                                                   callback);
+            auto* worker = new detail::AsyncRenderImage{this,
+                                                        image,
+                                                        scale_factor,
+                                                        scale_denominator,
+                                                        buffer_size,
+                                                        offset_x,
+                                                        offset_y,
+                                                        variables,
+                                                        callback};
             worker->Queue();
             return env.Undefined();
         }
@@ -686,14 +678,14 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
             }
             Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
             this->Ref();
-            auto* worker = new detail::AsyncRenderGrid(this,
+            auto* worker = new detail::AsyncRenderGrid{this,
                                                        grid,
                                                        scale_factor,
                                                        scale_denominator,
                                                        offset_x,
                                                        offset_y,
                                                        layer_idx,
-                                                       callback);
+                                                       callback};
             worker->Queue();
             return env.Undefined();
         }
@@ -1168,7 +1160,7 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 
     Napi::Function callback = callback_val.As<Napi::Function>();
     this->Ref();
-    auto* worker = new detail::AsyncRenderFile(this,
+    auto* worker = new detail::AsyncRenderFile{this,
                                                output_filename,
                                                scale_factor,
                                                scale_denominator,
@@ -1177,7 +1169,7 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
                                                format,
                                                use_cairo,
                                                variables,
-                                               callback);
+                                               callback};
     worker->Queue();
     return env.Undefined();
 
