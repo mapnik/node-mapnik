@@ -33,11 +33,10 @@ test('should be initialized property', (assert) => {
 
   pal = new mapnik.Palette(Buffer.from('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'), 'rgba');
   assert.equal('[Palette 2 colors #01020304 #ff0993]', pal.toString());
-  //assert.equal(Buffer.from('\x01\x02\x03\x04\xff\x09\x93\xFF'), pal.toBuffer().toString('binary')); // FIXME
-
+  assert.equal(Buffer.from('\x01\x02\x03\x04\xff\x09\x93\xFF','binary').toString(), pal.toBuffer().toString()); // FIXME
   pal = new mapnik.Palette(Buffer.from('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
   assert.equal('[Palette 2 colors #01020304 #ff0993]', pal.toString());
-  //assert.equal(Buffer.from('\x01\x02\x03\x04\xff\x09\x93\xFF'), pal.toBuffer().toString('binary')); // FIXME
+  assert.equal(Buffer.from('\x01\x02\x03\x04\xff\x09\x93\xFF', 'binary').toString(), pal.toBuffer().toString()); // FIXME
   assert.end();
 });
 
