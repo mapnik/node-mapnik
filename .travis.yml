@@ -47,10 +47,6 @@ matrix:
     - os: linux
       env: BUILDTYPE=release
       node_js: 12
-    # linux publishable node v13
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 13
     # linux publishable node v14
     - os: linux
       env: BUILDTYPE=release
