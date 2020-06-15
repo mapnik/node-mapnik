@@ -53,12 +53,12 @@ matrix:
       node_js: 14
     # osx publishable node v10
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode11.0
       env: BUILDTYPE=release
       node_js: 10
     # osx publishable node v12
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode11.0
       env: BUILDTYPE=release
       node_js: 12
     # Sanitizer build node v10/Debug
