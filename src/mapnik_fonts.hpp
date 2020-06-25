@@ -87,6 +87,16 @@ static inline Napi::Value memory_fonts(Napi::CallbackInfo const& info)
     return scope.Escape(arr);
 }
 
+static inline Napi::Value clear_memory_fonts(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    auto& font_cache = mapnik::freetype_engine::get_cache();
+    font_cache.clear();
+    return env.Undefined();
+}
+
+
 static inline Napi::Value available_font_files(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();

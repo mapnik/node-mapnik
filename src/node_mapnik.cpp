@@ -343,6 +343,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set("fonts", Napi::Function::New(env, node_mapnik::available_font_faces));
     exports.Set("fontFiles", Napi::Function::New(env, node_mapnik::available_font_files));
     exports.Set("memoryFonts", Napi::Function::New(env, node_mapnik::memory_fonts));
+    exports.Set("clearMemoryFonts", Napi::Function::New(env, node_mapnik::clear_memory_fonts));
     exports.Set("clearCache", Napi::Function::New(env, node_mapnik::clearCache));
     exports.Set("blend", Napi::Function::New(env, node_mapnik::blend));
     exports.Set("rgb2hsl", Napi::Function::New(env, node_mapnik::rgb2hsl));
