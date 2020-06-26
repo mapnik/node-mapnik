@@ -28,6 +28,7 @@ public:
     Napi::Value fontFiles(Napi::CallbackInfo const& info);
     Napi::Value fontDirectory(Napi::CallbackInfo const& info);
     Napi::Value loadFonts(Napi::CallbackInfo const& info);
+    Napi::Value clearMemoryFonts(Napi::CallbackInfo const& info);
     Napi::Value registerFonts(Napi::CallbackInfo const& info);
     Napi::Value memoryFonts(Napi::CallbackInfo const& info);
     Napi::Value loadSync(Napi::CallbackInfo const& info);

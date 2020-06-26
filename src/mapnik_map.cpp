@@ -23,6 +23,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports)
             InstanceMethod<&Map::memoryFonts>("memoryFonts"),
             InstanceMethod<&Map::registerFonts>("registerFonts"),
             InstanceMethod<&Map::loadFonts>("loadFonts"),
+            InstanceMethod<&Map::clearMemoryFonts>("clearMemoryFonts"),
             InstanceMethod<&Map::load>("load"),
             InstanceMethod<&Map::loadSync>("loadSync"),
             InstanceMethod<&Map::fromStringSync>("fromStringSync"),
@@ -473,6 +474,13 @@ Napi::Value Map::memoryFonts(Napi::CallbackInfo const& info)
         arr.Set(index++, kv.first);
     }
     return scope.Escape(arr);
+}
+
+Napi::Value Map::clearMemoryFonts(Napi::CallbackInfo const& info)
+{
+    auto & font_cache = map_->get_font_memory_cache();
+    font_cache.clear();
+    return info.Env().Undefined();
 }
 
 Napi::Value Map::registerFonts(Napi::CallbackInfo const& info)
