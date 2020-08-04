@@ -39,32 +39,19 @@ script:
 # run your tests and build binaries
 matrix:
   include:
-    # linux publishable node v10
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 10
-    # linux publishable node v12
+    # linux publishable
     - os: linux
       env: BUILDTYPE=release
       node_js: 12
-    # linux publishable node v14
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 14
-    # osx publishable node v10
-    - os: osx
-      osx_image: xcode11
-      env: BUILDTYPE=release
-      node_js: 10
-    # osx publishable node v12
+    # osx publishable
     - os: osx
       osx_image: xcode11
       env: BUILDTYPE=release
       node_js: 12
-    # Sanitizer build node v10/Debug
+    # Sanitizer build
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
-      node_js: 10
+      node_js: 12
       # Overrides `install` to set up custom asan flags
       install:
         - ./scripts/setup.sh --config local.env
@@ -89,7 +76,7 @@ matrix:
     # g++ build (default builds all use clang++)
     - os: linux
       env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"
-      node_js: 10
+      node_js: 12
       addons:
         apt:
           sources:
@@ -111,14 +98,14 @@ matrix:
     # test building with out SSE_MATH enabled
     - os: linux
       env: BUILDTYPE=release SSE_MATH=false
-      node_js: 10
+      node_js: 12
       # Overrides `script` to disable publishing
       before_script:
         - npm test
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
-      node_js: 10
+      node_js: 12
       # Overrides `script` to publish coverage data to codecov
       before_script:
         - source scripts/postgis/setup_and_run.sh
@@ -129,7 +116,3 @@ matrix:
         - curl -S -f https://codecov.io/bash -o codecov
         - chmod +x codecov
         - ./codecov -x "llvm-cov gcov" -Z
-
-notifications:
-  slack:
-    secure: wLpScQaDoEsVe0Bu28b62FGZBfmX3s/NK8DWcuSxEFx80k8RKPNgnMg8htamG0zRSf5htF+X6jy2P0IeUvbeupIaJwqtXvHaJYtlMTmemG/xuXLTpLp6k6giT2mWm/lp+ykuaF/PvUcZWUhSf1zhS6vwIekrMYIcDYvNXjO8DNw=

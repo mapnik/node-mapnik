@@ -4,15 +4,15 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.4.0",
+  "version": "4.4.0-napi.1",
   "mapnik_version": "26d3084ea",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
     "module_path": "./lib/binding/",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{module_name}/v{version}/",
-    "package_name": "{node_abi}-{platform}-{arch}-{configuration}{toolset}.tar.gz"
+    "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
+    "package_name": "{platform}-{arch}.tar.gz"
   },
   "bugs": {
     "email": "dane@mapbox.com",
