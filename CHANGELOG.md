@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.5.0
+- Ported to N-API.
+- Now supporting node v14 using a "universal binary" (same binary will be used for all major node versions)
+- Update mapnik to 26d3084ea
+- Ported tests from mocha to tape
+- Upgraded to boost 1.73.0
+
 ## 4.4.0
 
 - Update mapnik to 3be9ce8fa
