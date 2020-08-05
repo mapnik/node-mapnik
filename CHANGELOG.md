@@ -6,6 +6,7 @@
 - Update mapnik to 26d3084ea
 - Ported tests from mocha to tape
 - Upgraded to boost 1.73.0
+- Binaries now compiled with clang++ 10.x
 
 ## 4.4.0
 
