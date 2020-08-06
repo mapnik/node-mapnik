@@ -176,7 +176,7 @@ struct AsyncRenderTile : Napi::AsyncWorker
             double scale_denom = scale_denominator_;
             if (scale_denom <= 0.0)
             {
-                scale_denom = mapnik::scale_denominator(m_req.scale(),map_proj.is_geographic());
+                scale_denom = mapnik::scale_denominator(m_req.scale(), map_proj.is_geographic());
             }
             scale_denom *= scale_factor_;
             std::vector<mapnik::layer> const& layers = map->layers();
@@ -453,7 +453,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     bool zxy_override = false;
     int buffer_size = 0;
     double scale_factor = 1.0;
-    double scale_denominator = 1.0;
+    double scale_denominator = 0.0;
     mapnik::attributes variables;
 
     if (info.Length() > 2)
