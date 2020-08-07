@@ -25,7 +25,7 @@ for (var name in mapnik.compositeOp) {
   })(name); // jshint ignore:line
 }
 
-test.only('should stitch input images correctly', (assert) => {
+test('should stitch input images correctly', (assert) => {
   var input = [ [mapnik.Image.open('test/support/a.png'), 0,     0],
                 [mapnik.Image.open('test/support/b.png'), 256,   0],
                 [mapnik.Image.open('test/support/a.png'), 256, 256],
