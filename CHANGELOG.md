@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.1
+- Fixed 'scale_denominator' default value in `VectorTile::render(..)`(#952)
+- Fixed wrong arguments order in AsyncComposite + added test (#953)
+
 ## 4.5.0
 - Ported to N-API.
 - Now supporting node v14 using a "universal binary" (same binary will be used for all major node versions)
