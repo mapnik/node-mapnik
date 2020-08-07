@@ -1,33 +1,17 @@
-#ifndef __NODE_MAPNIK_EXPRESSION_H__
-#define __NODE_MAPNIK_EXPRESSION_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
-#include <memory>
-
+#include <napi.h>
 // mapnik
 #include <mapnik/expression.hpp>
 
-
-
-class Expression: public Nan::ObjectWrap {
+class Expression : public Napi::ObjectWrap<Expression>
+{
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static NAN_METHOD(toString);
-    static NAN_METHOD(evaluate);
-
-    Expression();
-    inline mapnik::expression_ptr get() { return this_; }
-
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    explicit Expression(Napi::CallbackInfo const& info);
+    Napi::Value toString(Napi::CallbackInfo const& info);
+    Napi::Value evaluate(Napi::CallbackInfo const& info);
 private:
-    ~Expression();
-    mapnik::expression_ptr this_;
+    static Napi::FunctionReference constructor;
+    mapnik::expression_ptr expression_;
 };
-
-#endif

@@ -4,15 +4,15 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.4.0",
-  "mapnik_version": "3be9ce8fa",
+  "version": "4.5.1",
+  "mapnik_version": "26d3084ea",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
     "module_path": "./lib/binding/",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{module_name}/v{version}/",
-    "package_name": "{node_abi}-{platform}-{arch}-{configuration}{toolset}.tar.gz"
+    "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
+    "package_name": "{platform}-{arch}.tar.gz"
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -37,7 +37,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "mapnik-vector-tile": "3.0.1",
-    "nan": "~2.14.0",
+    "node-addon-api": "~3.0.0",
     "node-pre-gyp": "~0.13.0"
   },
   "bin": {
@@ -47,8 +47,7 @@
     "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
   },
   "scripts": {
-    "prepublishOnly": "npm ls",
-    "test": "jshint bin lib/index.js lib/mapnik.js && mocha -R spec --timeout 50000",
+    "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
@@ -56,8 +55,8 @@
     "@mapbox/sphericalmercator": "~1.0.2",
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
-    "jshint": "^2.5.10",
-    "mocha": "^7.0.1"
+    "nyc": "^14.1.1",
+    "tape": "^4.5.1"
   },
   "jshintConfig": {
     "node": true,

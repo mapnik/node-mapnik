@@ -1,11 +1,5 @@
-#ifndef NODE_MAPNIK_BLEND_HPP
-#define NODE_MAPNIK_BLEND_HPP
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
+#pragma once
+#include <napi.h>
 
 // stl
 #include <string>
@@ -19,7 +13,7 @@ namespace node_mapnik {
 
 struct BImage {
     BImage() :
-        data(NULL),
+        data(nullptr),
         dataLength(0),
         x(0),
         y(0),
@@ -29,8 +23,9 @@ struct BImage {
         im_ptr(nullptr),
         im_raw_ptr(nullptr),
         im_obj(nullptr) {}
-    Nan::Persistent<v8::Object> buffer;
-    const char * data;
+
+    Napi::Reference<Napi::Buffer<char>> buffer;
+    char const* data;
     size_t dataLength;
     int x;
     int y;
@@ -55,49 +50,8 @@ enum AlphaMode {
     BLEND_MODE_HEXTREE
 };
 
-NAN_METHOD(rgb2hsl);
-NAN_METHOD(hsl2rgb);
-NAN_METHOD(Blend);
-
-struct BlendBaton {
-    uv_work_t request;
-    Nan::Persistent<v8::Function> callback;
-    Images images;
-
-    std::string message;
-
-    int quality;
-    BlendFormat format;
-    bool reencode;
-    int width;
-    int height;
-    palette_ptr palette;
-    unsigned int matte;
-    int compression;
-    AlphaMode mode;
-    std::unique_ptr<std::string> output_data;
-
-    BlendBaton() :
-        quality(0),
-        format(BLEND_FORMAT_PNG),
-        reencode(false),
-        width(0),
-        height(0),
-        matte(0),
-        compression(-1),
-        mode(BLEND_MODE_HEXTREE),
-        output_data()
-    {
-        this->request.data = this;
-    }
-
-    ~BlendBaton()
-    {
-        for (auto const& image : images) if (image) image->buffer.Reset();
-        callback.Reset();
-    }
-};
+Napi::Value rgb2hsl(Napi::CallbackInfo const& info);
+Napi::Value hsl2rgb(Napi::CallbackInfo const& info);
+Napi::Value blend(Napi::CallbackInfo const& info);
 
 }
-
-#endif // NODE_MAPNIK_BLEND_HPP

@@ -1,41 +1,44 @@
-#ifndef __NODE_MAPNIK_LAYER_H__
-#define __NODE_MAPNIK_LAYER_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
+#include <napi.h>
 // stl
-#include <string>
 #include <memory>
 
-
-
 namespace mapnik { class layer; }
-typedef std::shared_ptr<mapnik::layer> layer_ptr;
 
-class Layer: public Nan::ObjectWrap {
+using layer_ptr =  std::shared_ptr<mapnik::layer>;
+
+class Layer : public Napi::ObjectWrap<Layer>
+{
+    friend class Map;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-
-    static v8::Local<v8::Value> NewInstance(mapnik::layer const& lay_ref);
-    static NAN_METHOD(describe);
-
-    static NAN_GETTER(get_prop);
-    static NAN_SETTER(set_prop);
-
-    Layer(std::string const& name);
-    Layer(std::string const& name, std::string const& srs);
-    Layer();
-    inline layer_ptr get() { return layer_; }
-
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Layer(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value describe(Napi::CallbackInfo const& info);
+    // accessors
+    Napi::Value name(Napi::CallbackInfo const& info);
+    void name(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value styles(Napi::CallbackInfo const& info);
+    void styles(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value active(Napi::CallbackInfo const& info);
+    void active(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value srs(Napi::CallbackInfo const& info);
+    void srs(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value datasource(Napi::CallbackInfo const& info);
+    void datasource(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value minimum_scale_denominator(Napi::CallbackInfo const& info);
+    void minimum_scale_denominator(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value maximum_scale_denominator(Napi::CallbackInfo const& info);
+    void maximum_scale_denominator(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value queryable(Napi::CallbackInfo const& info);
+    void queryable(Napi::CallbackInfo const& info, Napi::Value const& value);
+    Napi::Value clear_label_cache(Napi::CallbackInfo const& info);
+    void clear_label_cache(Napi::CallbackInfo const& info, Napi::Value const& value);
+    inline layer_ptr impl() const {return layer_;}
 private:
-    ~Layer();
+    static Napi::FunctionReference constructor;
     layer_ptr layer_;
 };
-
-#endif

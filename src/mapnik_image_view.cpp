@@ -8,12 +8,63 @@
 #include "mapnik_image_view.hpp"
 #include "mapnik_color.hpp"
 #include "mapnik_palette.hpp"
-#include "utils.hpp"
+#include "pixel_utils.hpp"
 
-// std
-#include <exception>
+namespace {
 
-Nan::Persistent<v8::FunctionTemplate> ImageView::constructor;
+struct AsyncIsSolid : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncIsSolid(image_view_ptr const& image_view, Napi::Function const& callback)
+        : Base(callback),
+          image_view_(image_view)
+    {}
+
+    void Execute() override
+    {
+        if (image_view_ && image_view_->width() > 0 && image_view_->height() > 0)
+        {
+            solid_ = mapnik::is_solid(*image_view_);
+
+        }
+        else
+        {
+            SetError("image_view does not have valid dimensions");
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        std::vector<napi_value> result = {env.Null(), Napi::Boolean::New(env, solid_)};
+        if (solid_) result.push_back(mapnik::util::apply_visitor(detail::visitor_get_pixel<mapnik::image_view_any>(env, 0, 0), *image_view_));
+        return result;
+    }
+
+private:
+    bool solid_;
+    image_view_ptr image_view_;
+};
+}
+
+Napi::FunctionReference ImageView::constructor;
+
+Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "ImageView", {
+            InstanceMethod<&ImageView::width>("width"),
+            InstanceMethod<&ImageView::height>("height"),
+            InstanceMethod<&ImageView::encodeSync>("encodeSync"),
+            InstanceMethod<&ImageView::encode>("encode"),
+            InstanceMethod<&ImageView::saveSync>("saveSync"),
+            InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
+            InstanceMethod<&ImageView::isSolid>("isSolid"),
+            InstanceMethod<&ImageView::getPixel>("getPixel")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("ImageView", func);
+    return exports;
+}
 
 /**
  * This is usually not initialized directly: you'll use the `mapnik.Image#view`
@@ -30,561 +81,332 @@ Nan::Persistent<v8::FunctionTemplate> ImageView::constructor;
  * var im = new mapnik.Image(256, 256);
  * var view = im.view(0, 0, 256, 256);
  */
-void ImageView::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(ImageView::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("ImageView").ToLocalChecked());
-
-    Nan::SetPrototypeMethod(lcons, "encodeSync", encodeSync);
-    Nan::SetPrototypeMethod(lcons, "encode", encode);
-    Nan::SetPrototypeMethod(lcons, "save", save);
-    Nan::SetPrototypeMethod(lcons, "width", width);
-    Nan::SetPrototypeMethod(lcons, "height", height);
-    Nan::SetPrototypeMethod(lcons, "isSolid", isSolid);
-    Nan::SetPrototypeMethod(lcons, "isSolidSync", isSolidSync);
-    Nan::SetPrototypeMethod(lcons, "getPixel", getPixel);
-
-    Nan::Set(target, Nan::New("ImageView").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-
-ImageView::ImageView(Image * JSImage) :
-    Nan::ObjectWrap(),
-    this_(),
-    JSImage_(JSImage) {
-        JSImage_->Ref();
-    }
-
-ImageView::~ImageView()
+ImageView::ImageView(Napi::CallbackInfo const& info)
+    :Napi::ObjectWrap<ImageView>(info)
 {
-    JSImage_->Unref();
-}
-
-NAN_METHOD(ImageView::New)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 5 && info[0].IsExternal()
+        && info[1].IsNumber() && info[2].IsNumber()
+        && info[3].IsNumber() && info[4].IsNumber())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
+        std::size_t x = info[1].As<Napi::Number>().Int64Value();
+        std::size_t y = info[2].As<Napi::Number>().Int64Value();
+        std::size_t w = info[3].As<Napi::Number>().Int64Value();
+        std::size_t h = info[4].As<Napi::Number>().Int64Value();
+        auto ext = info[0].As<Napi::External<image_ptr>>();
+        if (ext)
+        {
+            image_ = *ext.Data();
+            image_view_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*image_, x, y, w, h));
+            return;
+        }
     }
+    Napi::Error::New(env, "Cannot create this object from Javascript").ThrowAsJavaScriptException();
+}
 
-    if (info[0]->IsExternal())
+Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
+{
+    if (info.Length() == 0)
     {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        ImageView* im =  static_cast<ImageView*>(ptr);
-        im->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-    } else {
-        Nan::ThrowError("Cannot create this object from Javascript");
-        return;
+        return isSolidSync(info);
     }
-    return;
-}
-
-v8::Local<v8::Value> ImageView::NewInstance(Image * JSImage ,
-                             unsigned x,
-                             unsigned y,
-                             unsigned w,
-                             unsigned h
-    )
-{
-    Nan::EscapableHandleScope scope;
-    ImageView* imv = new ImageView(JSImage);
-    imv->this_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*(JSImage->get()),x,y,w,h));
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(imv);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new ImageView instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
-}
-
-typedef struct {
-    uv_work_t request;
-    ImageView* im;
-    Nan::Persistent<v8::Function> cb;
-    bool error;
-    std::string error_name;
-    bool result;
-} is_solid_image_view_baton_t;
-
-NAN_METHOD(ImageView::isSolid)
-{
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-
-    if (info.Length() == 0) {
-        info.GetReturnValue().Set(_isSolidSync(info));
-        return;
-    }
+    Napi::Env env = info.Env();
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+    Napi::Value callback_val = info[info.Length() - 1];
+    if (!callback_val.IsFunction())
+    {
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
-    is_solid_image_view_baton_t *closure = new is_solid_image_view_baton_t();
-    closure->request.data = closure;
-    closure->im = im;
-    closure->result = true;
-    closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_IsSolid, (uv_after_work_cb)EIO_AfterIsSolid);
-    im->Ref();
-    return;
+    auto * worker = new AsyncIsSolid(image_view_, callback_val.As<Napi::Function>());
+    worker->Queue();
+    return env.Undefined();
 }
 
-void ImageView::EIO_IsSolid(uv_work_t* req)
+Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
 {
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    if (closure->im->this_->width() > 0 && closure->im->this_->height() > 0)
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (image_view_->width() > 0 && image_view_->height() > 0)
     {
-        closure->result = mapnik::is_solid(*(closure->im->this_));
+        return scope.Escape(Napi::Boolean::New(env, mapnik::is_solid(*(image_view_))));
     }
-    else
-    {
-        closure->error = true;
-        closure->error_name = "image does not have valid dimensions";
-    }
+
+    Napi::TypeError::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
+    return scope.Escape(env.Undefined());
 }
 
-struct visitor_get_pixel_view
+Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
 {
-    visitor_get_pixel_view(int x, int y)
-        : x_(x), y_(y) {}
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_null const& data)
-    {
-        // This should never be reached because the width and height of 0 for a null
-        // image will prevent the visitor from being called.
-        /* LCOV_EXCL_START */
-        Nan::EscapableHandleScope scope;
-        return scope.Escape(Nan::Undefined());
-        /* LCOV_EXCL_STOP */
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray8 const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Uint32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray8s const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Int32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray16 const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Uint32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray16s const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Int32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32 const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Uint32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32s const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::int32_t val = mapnik::get_pixel<std::int32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Int32>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray32f const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Number>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64 const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::uint64_t val = mapnik::get_pixel<std::uint64_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Number>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64s const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::int64_t val = mapnik::get_pixel<std::int64_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Number>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_gray64f const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        double val = mapnik::get_pixel<double>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Number>(val));
-    }
-
-    v8::Local<v8::Value> operator() (mapnik::image_view_rgba8 const& data)
-    {
-        Nan::EscapableHandleScope scope;
-        std::uint32_t val = mapnik::get_pixel<std::uint32_t>(data, x_, y_);
-        return scope.Escape(Nan::New<v8::Number>(val));
-    }
-
-  private:
-    int x_;
-    int y_;
-
-};
-
-void ImageView::EIO_AfterIsSolid(uv_work_t* req)
-{
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
-    is_solid_image_view_baton_t *closure = static_cast<is_solid_image_view_baton_t *>(req->data);
-    if (closure->error) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-    }
-    else
-    {
-        if (closure->result)
-        {
-            v8::Local<v8::Value> argv[3] = { Nan::Null(),
-                                     Nan::New(closure->result),
-                                     mapnik::util::apply_visitor(visitor_get_pixel_view(0,0),*(closure->im->this_)),
-            };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 3, argv);
-        }
-        else
-        {
-            v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::New(closure->result) };
-            async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
-        }
-    }
-    closure->im->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-
-
-NAN_METHOD(ImageView::isSolidSync)
-{
-    info.GetReturnValue().Set(_isSolidSync(info));
-}
-
-v8::Local<v8::Value> ImageView::_isSolidSync(Nan::NAN_METHOD_ARGS_TYPE info)
-{
-    Nan::EscapableHandleScope scope;
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    if (im->this_->width() > 0 && im->this_->height() > 0)
-    {
-        return scope.Escape(Nan::New<v8::Boolean>(mapnik::is_solid(*(im->this_))));
-    }
-    else
-    {
-        Nan::ThrowTypeError("image does not have valid dimensions");
-        return scope.Escape(Nan::Undefined());
-    }
-}
-
-
-NAN_METHOD(ImageView::getPixel)
-{
+    Napi::Env env = info.Env();
     int x = 0;
     int y = 0;
     bool get_color = false;
-
-    if (info.Length() >= 3) {
-
-        if (!info[2]->IsObject()) {
-            Nan::ThrowTypeError("optional third argument must be an options object");
-            return;
-        }
-
-        v8::Local<v8::Object> options = info[2]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-
-        if (Nan::Has(options, Nan::New("get_color").ToLocalChecked()).FromMaybe(false)) {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("get_color").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsBoolean()) {
-                Nan::ThrowTypeError("optional arg 'color' must be a boolean");
-                return;
-            }
-            get_color = Nan::To<bool>(bind_opt).FromJust();
-        }
-
-    }
-
-    if (info.Length() >= 2) {
-        if (!info[0]->IsNumber()) {
-            Nan::ThrowTypeError("first arg, 'x' must be an integer");
-            return;
-        }
-        if (!info[1]->IsNumber()) {
-            Nan::ThrowTypeError("second arg, 'y' must be an integer");
-            return;
-        }
-        x = Nan::To<int>(info[0]).FromJust();
-        y = Nan::To<int>(info[1]).FromJust();
-    } else {
-        Nan::ThrowTypeError("must supply x,y to query pixel color");
-        return;
-    }
-
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    if (x >= 0 && x < static_cast<int>(im->this_->width())
-        && y >=0 && y < static_cast<int>(im->this_->height()))
+    if (info.Length() >= 3)
     {
-        if (get_color)
+        if (!info[2].IsObject())
         {
-            mapnik::color val = mapnik::get_pixel<mapnik::color>(*im->this_, x, y);
-            info.GetReturnValue().Set(Color::NewInstance(val));
-        } else {
-            visitor_get_pixel_view visitor(x, y);
-            info.GetReturnValue().Set(mapnik::util::apply_visitor(visitor, *im->this_));
-        }
-    }
-    return;
-}
-
-
-NAN_METHOD(ImageView::width)
-{
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->width())));
-}
-
-NAN_METHOD(ImageView::height)
-{
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Int32>(static_cast<std::int32_t>(im->this_->height())));
-}
-
-
-NAN_METHOD(ImageView::encodeSync)
-{
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-
-    std::string format = "png";
-    palette_ptr palette;
-
-    // accept custom format
-    if (info.Length() >= 1) {
-        if (!info[0]->IsString()) {
-            Nan::ThrowTypeError("first arg, 'format' must be a string");
-            return;
-        }
-        format = TOSTR(info[0]);
-    }
-
-    // options hash
-    if (info.Length() >= 2) {
-        if (!info[1]->IsObject()) {
-            Nan::ThrowTypeError("optional second arg must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
 
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
-
-        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[2].As<Napi::Object>();
+        if (options.Has("get_color"))
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsObject()) {
-                Nan::ThrowTypeError("'palette' must be an object");
-                return;
+            Napi::Value bind_opt = options.Get("get_color");
+            if (!bind_opt.IsBoolean())
+            {
+                Napi::TypeError::New(env, "optional arg 'color' must be a boolean").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-
-            v8::Local<v8::Object> obj = format_opt.As<v8::Object>();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
-                return;
-            }
-
-            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            get_color = bind_opt.As<Napi::Boolean>();
         }
     }
 
-    try {
-        std::string s;
-        if (palette.get())
-        {
-            s = save_to_string(*(im->this_), format, *palette);
-        }
-        else {
-            s = save_to_string(*(im->this_), format);
-        }
-
-        info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(),s.size()).ToLocalChecked());
-    }
-    catch (std::exception const& ex)
+    if (info.Length() >= 2)
     {
-        Nan::ThrowError(ex.what());
-        return;
-    }
-}
-
-typedef struct {
-    uv_work_t request;
-    ImageView* im;
-    std::string format;
-    palette_ptr palette;
-    std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    std::string result;
-} encode_image_view_baton_t;
-
-
-NAN_METHOD(ImageView::encode)
-{
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
-
-    std::string format = "png";
-    palette_ptr palette;
-
-    // accept custom format
-    if (info.Length() > 1){
-        if (!info[0]->IsString()) {
-            Nan::ThrowTypeError("first arg, 'format' must be a string");
-            return;
-        }
-        format = TOSTR(info[0]);
-    }
-
-    // options hash
-    if (info.Length() >= 2) {
-        if (!info[1]->IsObject()) {
-            Nan::ThrowTypeError("optional second arg must be an options object");
-            return;
-        }
-
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
-
-        if (Nan::Has(options, Nan::New("palette").ToLocalChecked()).FromMaybe(false))
+        if (!info[0].IsNumber())
         {
-            v8::Local<v8::Value> format_opt = Nan::Get(options, Nan::New("palette").ToLocalChecked()).ToLocalChecked();
-            if (!format_opt->IsObject()) {
-                Nan::ThrowTypeError("'palette' must be an object");
-                return;
-            }
-
-            v8::Local<v8::Object> obj = format_opt.As<v8::Object>();
-            if (obj->IsNull() || obj->IsUndefined() || !Nan::New(Palette::constructor)->HasInstance(obj)) {
-                Nan::ThrowTypeError("mapnik.Palette expected as second arg");
-                return;
-            }
-
-            palette = Nan::ObjectWrap::Unwrap<Palette>(obj)->palette();
+            Napi::TypeError::New(env, "first arg, 'x' must be an integer").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
-    }
-
-    // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length() - 1];
-    if (!info[info.Length()-1]->IsFunction()) {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
-    }
-
-    encode_image_view_baton_t *baton = new encode_image_view_baton_t();
-    baton->request.data = baton;
-    baton->im = im;
-    baton->format = format;
-    baton->palette = palette;
-    baton->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &baton->request, AsyncEncode, (uv_after_work_cb)AfterEncode);
-    im->Ref();
-    return;
-}
-
-void ImageView::AsyncEncode(uv_work_t* req)
-{
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
-
-    try {
-        if (baton->palette.get())
+        if (!info[1].IsNumber())
         {
-            baton->result = save_to_string(*(baton->im->this_), baton->format, *baton->palette);
+            Napi::TypeError::New(env, "second arg, 'y' must be an integer").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
-        else
-        {
-            baton->result = save_to_string(*(baton->im->this_), baton->format);
-        }
-    }
-    catch (std::exception const& ex)
-    {
-        baton->error_name = ex.what();
-    }
-}
-
-void ImageView::AfterEncode(uv_work_t* req)
-{
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
-
-    encode_image_view_baton_t *baton = static_cast<encode_image_view_baton_t *>(req->data);
-
-    if (!baton->error_name.empty()) {
-        v8::Local<v8::Value> argv[1] = { Nan::Error(baton->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 1, argv);
+        x = info[0].As<Napi::Number>().Int32Value();
+        y = info[1].As<Napi::Number>().Int32Value();
     }
     else
     {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), Nan::CopyBuffer((char*)baton->result.data(), baton->result.size()).ToLocalChecked() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(baton->cb), 2, argv);
+        Napi::Error::New(env, "must supply x,y to query pixel color").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
-    baton->im->Unref();
-    baton->cb.Reset();
-    delete baton;
+    if (x >= 0 && x < static_cast<int>(image_view_->width())
+        && y >= 0 && y < static_cast<int>(image_view_->height()))
+    {
+        if (get_color)
+        {
+            Napi::EscapableHandleScope scope(env);
+            mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_view_, x, y);
+            Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
+            Napi::Object obj = Color::constructor.New({arg});
+            return scope.Escape(napi_value(obj)).ToObject();
+        }
+        else
+        {
+            detail::visitor_get_pixel<mapnik::image_view_any> visitor{env, x, y};
+            return mapnik::util::apply_visitor(visitor, *image_view_);
+        }
+    }
+    return env.Undefined();
 }
 
 
-NAN_METHOD(ImageView::save)
+Napi::Value ImageView::width(Napi::CallbackInfo const& info)
 {
-    if (info.Length() == 0 || !info[0]->IsString()){
-        Nan::ThrowTypeError("filename required");
-        return;
-    }
+    return Napi::Number::New(info.Env(), image_view_->width());
+}
 
-    std::string filename = TOSTR(info[0]);
+Napi::Value ImageView::height(Napi::CallbackInfo const& info)
+{
+    return Napi::Number::New(info.Env(), image_view_->height());
+}
 
-    std::string format("");
 
-    if (info.Length() >= 2) {
-        if (!info[1]->IsString()) {
-            Nan::ThrowTypeError("both 'filename' and 'format' arguments must be strings");
+void ImageView::encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette)
+{
+    Napi::Env env = info.Env();
+    // accept custom format
+    if (info.Length() >= 1)
+    {
+        if (!info[0].IsString())
+        {
+            Napi::TypeError::New(env, "first arg, 'format' must be a string").ThrowAsJavaScriptException();
             return;
         }
-
-        format = mapnik::guess_type(TOSTR(info[1]));
-        if (format == "<unknown>") {
-            std::ostringstream s("");
-            s << "unknown output extension for: " << filename << "\n";
-            Nan::ThrowError(s.str().c_str());
+        format = info[0].As<Napi::String>();
+    }
+    // options
+    if (info.Length() >= 2)
+    {
+        if (!info[1].IsObject())
+        {
+            Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
             return;
         }
-    }
+        Napi::Object options = info[1].As<Napi::Object>();
+        if (options.Has("palette"))
+        {
+            Napi::Value palette_opt = options.Get("palette");
+            if (!palette_opt.IsObject())
+            {
+                Napi::TypeError::New(env, "'palette' must be an object").ThrowAsJavaScriptException();
+                return;
+            }
 
-    ImageView* im = Nan::ObjectWrap::Unwrap<ImageView>(info.Holder());
+            Napi::Object obj = palette_opt.As<Napi::Object>();
+
+            if (!obj.InstanceOf(Palette::constructor.Value()))
+            {
+                Napi::TypeError::New(env, "mapnik.Palette expected as second arg").ThrowAsJavaScriptException();
+                return;
+            }
+            palette = Napi::ObjectWrap<Palette>::Unwrap(obj)->palette_;
+        }
+    }
+}
+
+namespace {
+
+struct AsyncEncode : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    // ctor
+    AsyncEncode(image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+        : Base(callback),
+          image_view_(image_view),
+          palette_(palette),
+          format_(format)
+    {}
+    void Execute() override
+    {
+        try
+        {
+            if (palette_) result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_, *palette_));
+            else result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_));
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        if (result_)
+        {
+            std::string & str = *result_;
+            auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
+                                                  [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
+                                                      if (str_ptr != nullptr) {
+                                                          Napi::MemoryManagement::AdjustExternalMemory
+                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                      }
+                                                      delete str_ptr;
+                                                  },
+                                                  result_.release());
+            Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+            return {env.Null(), buffer};
+        }
+        return Base::GetResult(env);
+    }
+private:
+    image_view_ptr image_view_;
+    palette_ptr palette_;
+    std::string format_;
+    std::unique_ptr<std::string> result_;
+};
+
+}
+
+
+Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::string format{"png"};
+    palette_ptr palette;
+    encode_common_args_(info, format, palette);
     try
     {
-        save_to_file(*im->this_,filename);
+        std::unique_ptr<std::string> result;
+        if (palette) result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
+        else result = std::make_unique<std::string>(save_to_string(*image_, format));
+        std::string & str = *result;
+        auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
+                                              [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
+                                                  if (str_ptr != nullptr) {
+                                                      Napi::MemoryManagement::AdjustExternalMemory
+                                                          (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                  }
+                                                  delete str_ptr;
+                                              },
+                                              result.release());
+        Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+        return scope.Escape(buffer);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
     }
-    return;
+}
+
+Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    std::string format = "png";
+    palette_ptr palette;
+
+    encode_common_args_(info, format, palette);
+     // ensure callback is a function
+    Napi::Value callback_val = info[info.Length() - 1];
+    if (!callback_val.IsFunction())
+    {
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    Napi::Function callback = callback_val.As<Napi::Function>();
+    auto* worker = new AsyncEncode{image_view_, palette, format, callback};
+    worker->Queue();
+    return env.Undefined();
+}
+
+void ImageView::saveSync(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    if (info.Length() == 0 || !info[0].IsString())
+    {
+        Napi::TypeError::New(env, "filename required to save file").ThrowAsJavaScriptException();
+        return;
+    }
+
+    std::string filename = info[0].As<Napi::String>();
+    std::string format("");
+
+    if (info.Length() >= 2)
+    {
+        if (!info[1].IsString())
+        {
+            Napi::TypeError::New(env, "both 'filename' and 'format' arguments must be strings").ThrowAsJavaScriptException();
+            return;
+        }
+        format = info[1].As<Napi::String>();
+    }
+    else
+    {
+        format = mapnik::guess_type(filename);
+        if (format == "<unknown>")
+        {
+            std::ostringstream s("");
+            s << "unknown output extension for: " << filename << "\n";
+            Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+            return;
+        }
+    }
+    try
+    {
+        mapnik::save_to_file(*image_view_, filename, format);
+    }
+    catch (std::exception const& ex)
+    {
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+    }
 }

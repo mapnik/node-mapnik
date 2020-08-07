@@ -1,39 +1,28 @@
-#ifndef __NODE_MAPNIK_DATASOURCE_H__
-#define __NODE_MAPNIK_DATASOURCE_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
+#include <napi.h>
 #include <memory>
-
-
 
 namespace mapnik { class datasource; }
 
-typedef std::shared_ptr<mapnik::datasource> datasource_ptr;
+using datasource_ptr = std::shared_ptr<mapnik::datasource>;
 
-class Datasource: public Nan::ObjectWrap {
+class Datasource : public Napi::ObjectWrap<Datasource>
+{
+    friend class Layer;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(datasource_ptr ds_ptr);
-
-    static NAN_METHOD(parameters);
-    static NAN_METHOD(describe);
-    static NAN_METHOD(featureset);
-    static NAN_METHOD(extent);
-    static NAN_METHOD(fields);
-
-    Datasource();
-    inline datasource_ptr get() { return datasource_; }
-
+    //initilizer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Datasource(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value parameters(Napi::CallbackInfo const& info);
+    Napi::Value describe(Napi::CallbackInfo const& info);
+    Napi::Value featureset(Napi::CallbackInfo const& info);
+    Napi::Value extent(Napi::CallbackInfo const& info);
+    Napi::Value fields(Napi::CallbackInfo const& info);
+    inline datasource_ptr impl() { return datasource_;}
 private:
-    ~Datasource();
+    static Napi::FunctionReference constructor;
     datasource_ptr datasource_;
 };
-
-#endif

@@ -2,96 +2,65 @@
 #include "mapnik_cairo_surface.hpp"
 
 
-Nan::Persistent<v8::FunctionTemplate> CairoSurface::constructor;
+Napi::FunctionReference CairoSurface::constructor;
 
-void CairoSurface::Initialize(v8::Local<v8::Object> target) {
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(CairoSurface::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("CairoSurface").ToLocalChecked());
-    Nan::SetPrototypeMethod(lcons, "width", width);
-    Nan::SetPrototypeMethod(lcons, "height", height);
-    Nan::SetPrototypeMethod(lcons, "getData", getData);
-    Nan::Set(target, Nan::New("CairoSurface").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
+Napi::Object CairoSurface::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "CairoSurface", {
+            InstanceMethod<&CairoSurface::width>("width"),
+            InstanceMethod<&CairoSurface::height>("height"),
+            InstanceMethod<&CairoSurface::getData>("getData")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("CairoSurface", func);
+    return exports;
 }
 
-CairoSurface::CairoSurface(std::string const& format, unsigned int width, unsigned int height) :
-    Nan::ObjectWrap(),
-    ss_(),
-    width_(width),
-    height_(height),
-    format_(format)
+// ctor
+CairoSurface::CairoSurface(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<CairoSurface>(info)
 {
-}
-
-CairoSurface::~CairoSurface()
-{
-}
-
-NAN_METHOD(CairoSurface::New)
-{
-    if (!info.IsConstructCall())
-    {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
-    }
-
-    if (info[0]->IsExternal())
-    {
-        // Currently there is no C++ that executes this call
-        /* LCOV_EXCL_START */
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        CairoSurface* im =  static_cast<CairoSurface*>(ptr);
-        im->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-        /* LCOV_EXCL_STOP */
-    }
-
+    Napi::Env env = info.Env();
     if (info.Length() == 3)
     {
-        if (!info[0]->IsString())
+        if (!info[0].IsString())
         {
-            Nan::ThrowTypeError("CairoSurface 'format' must be a string");
+            Napi::TypeError::New(env, "CairoSurface 'format' must be a string").ThrowAsJavaScriptException();
             return;
         }
-        std::string format = TOSTR(info[0]);
-        if (!info[1]->IsNumber() || !info[2]->IsNumber())
+        format_ = info[0].As<Napi::String>();
+        if (!info[1].IsNumber() || !info[2].IsNumber())
         {
-            Nan::ThrowTypeError("CairoSurface 'width' and 'height' must be a integers");
+            Napi::TypeError::New(env, "CairoSurface 'width' and 'height' must be a integers").ThrowAsJavaScriptException();
             return;
         }
-        CairoSurface* im = new CairoSurface(format, Nan::To<int>(info[1]).FromJust(), Nan::To<int>(info[2]).FromJust());
-        im->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
+        width_ = info[1].As<Napi::Number>().Int32Value();
+        height_ = info[2].As<Napi::Number>().Int32Value();
     }
     else
     {
-        Nan::ThrowError("CairoSurface requires three arguments: format, width, and height");
-        return;
+        Napi::Error::New(env, "CairoSurface requires three arguments: format, width, and height").ThrowAsJavaScriptException();
     }
-    return;
 }
 
-NAN_METHOD(CairoSurface::width)
+Napi::Value CairoSurface::width(Napi::CallbackInfo const& info)
 {
-    CairoSurface* im = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
-    info.GetReturnValue().Set(Nan::New(im->width()));
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, width_);
 }
 
-NAN_METHOD(CairoSurface::height)
+Napi::Value CairoSurface::height(Napi::CallbackInfo const& info)
 {
-    CairoSurface* im = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
-    info.GetReturnValue().Set(Nan::New(im->height()));
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, height_);
 }
 
-NAN_METHOD(CairoSurface::getData)
+Napi::Value CairoSurface::getData(Napi::CallbackInfo const& info)
 {
-    CairoSurface* surface = Nan::ObjectWrap::Unwrap<CairoSurface>(info.Holder());
-    std::string s = surface->ss_.str();
-    info.GetReturnValue().Set(Nan::CopyBuffer((char*)s.data(), s.size()).ToLocalChecked());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    if (!data_.empty()) return scope.Escape(Napi::String::New(env, data_));
+    std::string str = stream_.str();
+    return scope.Escape(Napi::String::New(env, str));
 }

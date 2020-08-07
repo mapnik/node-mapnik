@@ -10,7 +10,26 @@
 #include <mapnik/value/types.hpp>
 #include <mapnik/util/feature_to_geojson.hpp>
 
-Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
+Napi::FunctionReference Feature::constructor;
+
+Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+
+    Napi::Function func = DefineClass(env, "Feature", {
+            InstanceMethod<&Feature::id>("id"),
+            InstanceMethod<&Feature::extent>("extent"),
+            InstanceMethod<&Feature::attributes>("attributes"),
+            InstanceMethod<&Feature::geometry>("geometry"),
+            InstanceMethod<&Feature::toJSON>("toJSON"),
+            StaticMethod<&Feature::fromJSON>("fromJSON")
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Feature", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Feature`**
@@ -21,72 +40,29 @@ Nan::Persistent<v8::FunctionTemplate> Feature::constructor;
  *
  * @class Feature
  */
-void Feature::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Feature::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Feature").ToLocalChecked());
-
-    Nan::SetPrototypeMethod(lcons, "id", id);
-    Nan::SetPrototypeMethod(lcons, "extent", extent);
-    Nan::SetPrototypeMethod(lcons, "attributes", attributes);
-    Nan::SetPrototypeMethod(lcons, "geometry", geometry);
-    Nan::SetPrototypeMethod(lcons, "toJSON", toJSON);
-
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(),
-                    "fromJSON",
-                    Feature::fromJSON);
-
-    Nan::Set(target, Nan::New("Feature").ToLocalChecked(),Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-Feature::Feature(mapnik::feature_ptr f) :
-    Nan::ObjectWrap(),
-    this_(f) {}
-
-Feature::Feature(int id) :
-    Nan::ObjectWrap(),
-    this_() {
-    // TODO - accept/require context object to reused
-    ctx_ = std::make_shared<mapnik::context_type>();
-    this_ = mapnik::feature_factory::create(ctx_,id);
-}
-
-Feature::~Feature()
+Feature::Feature(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Feature>(info)
 {
-}
-
-NAN_METHOD(Feature::New)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1)
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
+        if (info[0].IsExternal())
+        {
+            auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
+            if (ext) feature_  = *ext.Data();
+            return;
+        }
+        else if (info[0].IsNumber())
+        {
+            ctx_ = std::make_shared<mapnik::context_type>();
+            std::int64_t id = info[0].As<Napi::Number>().Int64Value();
+            feature_ = mapnik::feature_factory::create(ctx_, id);
+            return;
+        }
     }
-
-    if (info[0]->IsExternal())
-    {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        Feature* f =  static_cast<Feature*>(ptr);
-        f->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-    }
-
-    // TODO - expose mapnik.Context
-
-    if (info.Length() > 1 || info.Length() < 1 || !info[0]->IsNumber()) {
-        Nan::ThrowTypeError("requires one argument: an integer feature id");
-        return;
-    }
-
-    Feature* f = new Feature(Nan::To<int>(info[0]).FromJust());
-    f->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Napi::Error::New(env, "requires one argument: an integer feature id")
+        .ThrowAsJavaScriptException();
 }
 
 /**
@@ -97,46 +73,38 @@ NAN_METHOD(Feature::New)
  *
  * Create a feature from a GeoJSON representation.
  */
-NAN_METHOD(Feature::fromJSON)
+Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
 {
-    if (info.Length() < 1 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("requires one argument: a string representing a GeoJSON feature");
-        return;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (info.Length() < 1 || !info[0].IsString())
+    {
+        Napi::TypeError::New(env, "requires one argument: a string representing a GeoJSON feature").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
-    std::string json = TOSTR(info[0]);
+    std::string json = info[0].As<Napi::String>();
     try
     {
-        mapnik::feature_ptr f(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
-        if (!mapnik::json::from_geojson(json,*f))
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(), 1));
+        if (!mapnik::json::from_geojson(json,*feature))
         {
-            Nan::ThrowError("Failed to read GeoJSON");
-            return;
+            Napi::Error::New(env, "Failed to read GeoJSON").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
-        Feature* feat = new Feature(f);
-        v8::Local<v8::Value> ext = Nan::New<v8::External>(feat);
-        Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-        if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
-        else info.GetReturnValue().Set(maybe_local.ToLocalChecked());
+        Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
+        Napi::Object obj = Feature::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();
     }
     catch (std::exception const& ex)
     {
         // no way currently for any of the above code to throw,
         // but we'll keep this try catch to protect against mapnik or v8 changing
         /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
-}
-
-v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
-{
-    Nan::EscapableHandleScope scope;
-    Feature* f = new Feature(f_ptr);
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(f);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Feature instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
 }
 
 /**
@@ -145,10 +113,10 @@ v8::Local<v8::Value> Feature::NewInstance(mapnik::feature_ptr f_ptr)
  * @instance
  * @returns {number} id the feature's internal id
  */
-NAN_METHOD(Feature::id)
+Napi::Value Feature::id(Napi::CallbackInfo const& info)
 {
-    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Number>(fp->get()->id()));
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, feature_->id());
 }
 
 /**
@@ -159,17 +127,17 @@ NAN_METHOD(Feature::id)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
-NAN_METHOD(Feature::extent)
+Napi::Value Feature::extent(Napi::CallbackInfo const& info)
 {
-    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
-    mapnik::box2d<double> const& e = fp->get()->envelope();
-    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
-    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
-    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
-    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
-
-    info.GetReturnValue().Set(a);
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> const& envelope = feature_->envelope();
+    Napi::Array arr = Napi::Array::New(env, 4);
+    arr.Set(0u, Napi::Number::New(env, envelope.minx()));
+    arr.Set(1u, Napi::Number::New(env, envelope.miny()));
+    arr.Set(2u, Napi::Number::New(env, envelope.maxx()));
+    arr.Set(3u, Napi::Number::New(env, envelope.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -180,21 +148,21 @@ NAN_METHOD(Feature::extent)
  * @instance
  * @returns {Object} attributes
  */
-NAN_METHOD(Feature::attributes)
+Napi::Value Feature::attributes(Napi::CallbackInfo const& info)
 {
-    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    v8::Local<v8::Object> feat = Nan::New<v8::Object>();
-    mapnik::feature_ptr feature = fp->get();
-    if (feature)
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object attributes = Napi::Object::New(env);
+    if (feature_)
     {
-        for (auto const& attr : *feature)
+        for (auto const& attr : *feature_)
         {
-            Nan::Set(feat, Nan::New<v8::String>(std::get<0>(attr)).ToLocalChecked(),
-                      mapnik::util::apply_visitor(node_mapnik::value_converter(), std::get<1>(attr))
+            attributes.Set(std::get<0>(attr),
+                           mapnik::util::apply_visitor(node_mapnik::value_converter(env), std::get<1>(attr))
                 );
         }
     }
-    info.GetReturnValue().Set(feat);
+    return scope.Escape(attributes);
 }
 
 
@@ -206,10 +174,13 @@ NAN_METHOD(Feature::attributes)
  * @instance
  * @returns {mapnik.Geometry} geometry
  */
-NAN_METHOD(Feature::geometry)
+Napi::Value Feature::geometry(Napi::CallbackInfo const& info)
 {
-    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
-    info.GetReturnValue().Set(Geometry::NewInstance(fp->get()));
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature_);
+    Napi::Object obj = Geometry::constructor.New({arg});
+    return scope.Escape(napi_value(obj)).ToObject();
 }
 
 /**
@@ -220,16 +191,16 @@ NAN_METHOD(Feature::geometry)
  * @memberof Feature
  * @returns {string} geojson Feature object in stringified GeoJSON
  */
-NAN_METHOD(Feature::toJSON)
+Napi::Value Feature::toJSON(Napi::CallbackInfo const& info)
 {
-    Feature* fp = Nan::ObjectWrap::Unwrap<Feature>(info.Holder());
+    Napi::Env env = info.Env();
     std::string json;
-    if (!mapnik::util::to_geojson(json, *(fp->get())))
+    if (!mapnik::util::to_geojson(json, *feature_))
     {
         /* LCOV_EXCL_START */
-        Nan::ThrowError("Failed to generate GeoJSON");
-        return;
+        Napi::Error::New(env, "Failed to generate GeoJSON").ThrowAsJavaScriptException();
+        return env.Undefined();
         /* LCOV_EXCL_STOP */
     }
-    info.GetReturnValue().Set(Nan::New<v8::String>(json).ToLocalChecked());
+    return Napi::String::New(env, json);
 }

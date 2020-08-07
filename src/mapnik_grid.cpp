@@ -1,4 +1,3 @@
-
 #if defined(GRID_RENDERER)
 
 // mapnik
@@ -12,11 +11,137 @@
 // std
 #include <exception>
 
-Nan::Persistent<v8::FunctionTemplate> Grid::constructor;
+
+namespace detail {
+
+// AsyncWorker
+
+struct AsyncGridClear : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    AsyncGridClear(grid_ptr const& grid, Napi::Function const& callback)
+        : Base(callback),
+          grid_(grid)
+    {}
+
+    void Execute() override
+    {
+        grid_->clear();
+    }
+
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        if (grid_)
+        {
+            Napi::Value arg = Napi::External<grid_ptr>::New(env, &grid_);
+            Napi::Object obj = Grid::constructor.New({arg});
+            return {env.Null(), napi_value(obj)};
+        }
+        return Base::GetResult(env);
+    }
+    grid_ptr grid_;
+};
+
+struct AsyncGridEncode : Napi::AsyncWorker
+{
+    using Base = Napi::AsyncWorker;
+    // ctor
+    AsyncGridEncode(grid_ptr grid, unsigned resolution, bool add_features, Napi::Function const& callback)
+        : Base(callback),
+          grid_(grid),
+          resolution_(resolution),
+          add_features_(add_features)
+    {}
+    void Execute() override
+    {
+        try
+        {
+            node_mapnik::grid2utf<mapnik::grid>(*grid_,
+                                                lines_,
+                                                key_order_,
+                                                resolution_);
+
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
+    }
+    std::vector<napi_value> GetResult(Napi::Env env) override
+    {
+        // convert key order to proper javascript array
+        Napi::Array keys_a = Napi::Array::New(env, key_order_.size());
+        std::vector<std::string>::iterator it;
+        std::size_t i;
+        for (it = key_order_.begin(), i = 0; it < key_order_.end(); ++it, ++i)
+        {
+            keys_a.Set(i, *it);
+        }
+
+        mapnik::grid const& grid_type = *grid_;
+        // gather feature data
+        Napi::Object feature_data = Napi::Object::New(env);
+        if (add_features_)
+        {
+            node_mapnik::write_features<mapnik::grid>(env, grid_type,
+                                                      feature_data,
+                                                      key_order_);
+        }
+
+        // Create the return hash.
+        Napi::Object json = Napi::Object::New(env);
+        Napi::Array grid_array = Napi::Array::New(env, lines_.size());
+        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution_));
+        for (std::size_t j = 0;j < lines_.size(); ++j)
+        {
+            node_mapnik::grid_line_type const & line = lines_[j];
+            grid_array.Set(j, Napi::String::New(env, (char*)line.get(), array_size));
+        }
+        json.Set("grid", grid_array);
+        json.Set("keys", keys_a);
+        json.Set("data", feature_data);
+        return { env.Null(), json };
+    }
+private:
+    grid_ptr grid_;
+    std::vector<node_mapnik::grid_line_type> lines_;
+    unsigned int resolution_;
+    bool add_features_;
+    std::vector<mapnik::grid::lookup_type> key_order_;
+};
+
+} // ns
+
+Napi::FunctionReference Grid::constructor;
+
+Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+
+    Napi::Function func = DefineClass(env, "Grid", {
+            InstanceAccessor<&Grid::key, &Grid::key>("key"),
+            InstanceMethod<&Grid::encodeSync>("encodeSync"),
+            InstanceMethod<&Grid::encode>("encode"),
+            InstanceMethod<&Grid::clearSync>("clearSync"),
+            InstanceMethod<&Grid::clear>("clear"),
+            InstanceMethod<&Grid::painted>("painted"),
+            InstanceMethod<&Grid::fields>("fields"),
+            InstanceMethod<&Grid::addField>("addField"),
+            InstanceMethod<&Grid::view>("view"),
+            InstanceMethod<&Grid::width>("width"),
+            InstanceMethod<&Grid::height>("height"),
+            StaticValue("base_mask", Napi::Number::New(env, mapnik::grid::base_mask))
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Grid", func);
+    return exports;
+}
+
 
 /**
  * **`mapnik.Grid`**
- * 
+ *
  * Generator for [UTFGrid](https://www.mapbox.com/guides/an-open-platform)
  * representations of data.
  *
@@ -26,189 +151,91 @@ Nan::Persistent<v8::FunctionTemplate> Grid::constructor;
  * @param {Object} [options={}] optional argument, which can have a 'key' property
  * @property {string} key
  */
-void Grid::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Grid::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Grid").ToLocalChecked());
-
-    // methods
-    Nan::SetPrototypeMethod(lcons, "encodeSync", encodeSync);
-    Nan::SetPrototypeMethod(lcons, "encode", encode);
-    Nan::SetPrototypeMethod(lcons, "addField", addField);
-    Nan::SetPrototypeMethod(lcons, "fields", fields);
-    Nan::SetPrototypeMethod(lcons, "view", view);
-    Nan::SetPrototypeMethod(lcons, "width", width);
-    Nan::SetPrototypeMethod(lcons, "height", height);
-    Nan::SetPrototypeMethod(lcons, "painted", painted);
-    Nan::SetPrototypeMethod(lcons, "clear", clear);
-    Nan::SetPrototypeMethod(lcons, "clearSync", clearSync);
-    // properties
-    ATTR(lcons, "key", get_key, set_key);
-
-    Nan::Set(target, Nan::New("Grid").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(), "base_mask", mapnik::grid::base_mask);
-
-    constructor.Reset(lcons);
-}
-
-Grid::Grid(unsigned int width, unsigned int height, std::string const& key) :
-    Nan::ObjectWrap(),
-    this_(std::make_shared<mapnik::grid>(width,height,key))
+Grid::Grid(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Grid>(info)
 {
-}
-
-Grid::~Grid()
-{
-}
-
-NAN_METHOD(Grid::New)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        auto ext = info[0].As<Napi::External<grid_ptr>>();
+        if (ext) grid_ = *ext.Data();
         return;
     }
-
     if (info.Length() >= 2)
     {
-        if (!info[0]->IsNumber() || !info[1]->IsNumber())
+        if (!info[0].IsNumber() || !info[1].IsNumber())
         {
-            Nan::ThrowTypeError("Grid 'width' and 'height' must be a integers");
+            Napi::TypeError::New(env, "Grid 'width' and 'height' must be a integers").ThrowAsJavaScriptException();
             return;
         }
 
         // defaults
         std::string key("__id__");
 
-        if (info.Length() >= 3) {
+        if (info.Length() >= 3)
+        {
 
-            if (!info[2]->IsObject())
+            if (!info[2].IsObject())
             {
-                Nan::ThrowTypeError("optional third arg must be an options object");
+                Napi::TypeError::New(env, "optional third arg must be an options object").ThrowAsJavaScriptException();
                 return;
             }
-            v8::Local<v8::Object> options = info[2].As<v8::Object>();
+            Napi::Object options = info[2].As<Napi::Object>();
 
-            if (Nan::Has(options, Nan::New("key").ToLocalChecked()).FromMaybe(false)) {
-                v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("key").ToLocalChecked()).ToLocalChecked();
-                if (!bind_opt->IsString())
+            if (options.Has("key"))
+            {
+                Napi::Value bind_opt = options.Get("key");
+                if (!bind_opt.IsString())
                 {
-                    Nan::ThrowTypeError("optional arg 'key' must be an string");
+                    Napi::TypeError::New(env, "optional arg 'key' must be an string").ThrowAsJavaScriptException();
                     return;
                 }
 
-                key = TOSTR(bind_opt);
+                key = bind_opt.As<Napi::String>();
             }
         }
-
-        Grid* g = new Grid(Nan::To<int>(info[0]).FromJust(), Nan::To<int>(info[1]).FromJust(), key);
-        g->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
+        grid_ = std::make_shared<mapnik::grid>(info[0].As<Napi::Number>().Int32Value(),
+                                               info[1].As<Napi::Number>().Int32Value(),
+                                               key);
     }
     else
     {
-        Nan::ThrowError("please provide Grid width and height");
-        return;
+        Napi::Error::New(env, "please provide Grid width and height").ThrowAsJavaScriptException();
     }
 }
 
-NAN_METHOD(Grid::clearSync)
+Napi::Value Grid::clearSync(Napi::CallbackInfo const& info)
 {
-    info.GetReturnValue().Set(_clearSync(info));
+    Napi::Env env = info.Env();
+    grid_->clear();
+    return env.Undefined();
 }
 
-v8::Local<v8::Value> Grid::_clearSync(Nan::NAN_METHOD_ARGS_TYPE info)
+Napi::Value Grid::clear(Napi::CallbackInfo const& info)
 {
-    Nan::EscapableHandleScope scope;
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    g->get()->clear();
-    return scope.Escape(Nan::Undefined());
-}
-
-typedef struct {
-    uv_work_t request;
-    Grid* g;
-    bool error;
-    std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-} clear_grid_baton_t;
-
-NAN_METHOD(Grid::clear)
-{
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-
-    if (info.Length() == 0) {
-        info.GetReturnValue().Set(_clearSync(info));
-        return;
+    if (info.Length() == 0)
+    {
+        return clearSync(info);
     }
+    Napi::Env env = info.Env();
     // ensure callback is a function
-    v8::Local<v8::Value> callback = info[info.Length()-1];
-    if (!info[info.Length()-1]->IsFunction())
+
+
+    Napi::Value callback_val = info[info.Length()-1];
+    if (!callback_val.IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
-    clear_grid_baton_t *closure = new clear_grid_baton_t();
-    closure->request.data = closure;
-    closure->g = g;
-    closure->error = false;
-    closure->cb.Reset(callback.As<v8::Function>());
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Clear, (uv_after_work_cb)EIO_AfterClear);
-    g->Ref();
-    return;
+    auto * worker = new detail::AsyncGridClear{grid_, callback_val.As<Napi::Function>()};
+    worker->Queue();
+    return env.Undefined();
 }
 
-void Grid::EIO_Clear(uv_work_t* req)
+Napi::Value Grid::painted(Napi::CallbackInfo const& info)
 {
-    clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
-    try
-    {
-        closure->g->get()->clear();
-    }
-    catch(std::exception const& ex)
-    {
-        // It is not clear how clear could EVER throw an exception but leaving
-        // it in but removing the following lines from coverage test.
-        /* LCOV_EXCL_START */
-        closure->error = true;
-        closure->error_name = ex.what();
-        /* LCOV_EXCL_STOP */
-    }
-}
-
-void Grid::EIO_AfterClear(uv_work_t* req)
-{
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
-    clear_grid_baton_t *closure = static_cast<clear_grid_baton_t *>(req->data);
-    if (closure->error)
-    {
-        // There seems to be no possible way for the exception to be thrown in the previous 
-        // process and therefore not possible to have an error here so removing it from code
-        // coverage
-        /* LCOV_EXCL_START */
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_STOP */
-    }
-    else
-    {
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), closure->g->handle() };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
-    }
-    closure->g->Unref();
-    closure->cb.Reset();
-    delete closure;
-}
-
-NAN_METHOD(Grid::painted)
-{
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New(g->get()->painted()));
+    return Napi::Boolean::New(info.Env(), grid_->painted());
 }
 
 /**
@@ -218,10 +245,9 @@ NAN_METHOD(Grid::painted)
  * @name width
  * @returns {number} width
  */
-NAN_METHOD(Grid::width)
+Napi::Value Grid::width(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Integer>((unsigned)g->get()->width()));
+    return Napi::Number::New(info.Env(), grid_->width());
 }
 
 /**
@@ -231,27 +257,25 @@ NAN_METHOD(Grid::width)
  * @name height
  * @returns {number} height
  */
-NAN_METHOD(Grid::height)
+Napi::Value Grid::height(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Integer>(static_cast<unsigned>(g->get()->height())));
+    return Napi::Number::New(info.Env(), grid_->height());
 }
 
-NAN_GETTER(Grid::get_key)
+Napi::Value Grid::key(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::String>(g->get()->get_key()).ToLocalChecked());
+    return Napi::String::New(info.Env(), grid_->get_key());
 }
 
-NAN_SETTER(Grid::set_key)
+void Grid::key(Napi::CallbackInfo const& info, const Napi::Value& value)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    if (!value->IsString())
+    Napi::Env env = info.Env();
+    if (!value.IsString())
     {
-        Nan::ThrowTypeError("key must be an string");
+        Napi::TypeError::New(env, "key must be an string").ThrowAsJavaScriptException();
         return;
     }
-    g->get()->set_key(TOSTR(value));
+    grid_->set_key(value.As<Napi::String>());
 }
 
 
@@ -262,24 +286,23 @@ NAN_SETTER(Grid::set_key)
  * @name addField
  * @param {string} field
  */
-NAN_METHOD(Grid::addField)
+Napi::Value Grid::addField(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-
-    if (info.Length() == 1) {
-        if (!info[0]->IsString())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1)
+    {
+        if (!info[0].IsString())
         {
-            Nan::ThrowTypeError("argument must be a string");
-            return;
+            Napi::TypeError::New(env, "argument must be a string").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
-        g->get()->add_field(TOSTR(info[0]));
-        return;
+        grid_->add_field(info[0].As<Napi::String>());
     }
     else
     {
-        Nan::ThrowTypeError("one parameter, a string is required");
-        return;
+        Napi::TypeError::New(env, "one parameter, a string is required").ThrowAsJavaScriptException();
     }
+    return env.Undefined();
 }
 
 /**
@@ -289,21 +312,20 @@ NAN_METHOD(Grid::addField)
  * @name addField
  * @returns {v8::Array<string>} fields
  */
-NAN_METHOD(Grid::fields)
+Napi::Value Grid::fields(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    std::set<std::string> const& a = g->get()->get_fields();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    std::set<std::string> const& a = grid_->get_fields();
     std::set<std::string>::const_iterator itr = a.begin();
     std::set<std::string>::const_iterator end = a.end();
-    v8::Local<v8::Array> l = Nan::New<v8::Array>(a.size());
-    int idx = 0;
+    Napi::Array l = Napi::Array::New(env, a.size());
+    std::size_t idx = 0;
     for (; itr != end; ++itr)
     {
-        std::string name = *itr;
-        Nan::Set(l, idx, Nan::New<v8::String>(name).ToLocalChecked());
-        ++idx;
+        l.Set(idx++, *itr);
     }
-    info.GetReturnValue().Set(l);
+    return scope.Escape(l);
 }
 
 /**
@@ -317,21 +339,23 @@ NAN_METHOD(Grid::fields)
  * @param {number} height
  * @returns {mapnik.Grid} a grid constrained to this new view
  */
-NAN_METHOD(Grid::view)
+Napi::Value Grid::view(Napi::CallbackInfo const& info)
 {
-    if ( (info.Length() != 4) || (!info[0]->IsNumber() && !info[1]->IsNumber() && !info[2]->IsNumber() && !info[3]->IsNumber() ))
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() ))
     {
-        Nan::ThrowTypeError("requires 4 integer arguments: x, y, width, height");
-        return;
+        Napi::TypeError::New(env, "requires 4 integer arguments: x, y, width, height").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
-    unsigned x = Nan::To<int>(info[0]).FromJust();
-    unsigned y = Nan::To<int>(info[1]).FromJust();
-    unsigned w = Nan::To<int>(info[2]).FromJust();
-    unsigned h = Nan::To<int>(info[3]).FromJust();
-
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-    info.GetReturnValue().Set(GridView::NewInstance(g,x,y,w,h));
+    Napi::Number x = info[0].As<Napi::Number>();
+    Napi::Number y = info[1].As<Napi::Number>();
+    Napi::Number w = info[2].As<Napi::Number>();
+    Napi::Number h = info[3].As<Napi::Number>();
+    Napi::Value grid_obj = Napi::External<grid_ptr>::New(env, &grid_);
+    Napi::Object obj = GridView::constructor.New({grid_obj, x, y, w, h });
+    return scope.Escape(napi_value(obj)).ToObject();
 }
 
 /**
@@ -342,51 +366,54 @@ NAN_METHOD(Grid::view)
  * @param {Object} [options={ resolution: 4, features: false }]
  * @returns {Object} an encoded field with `grid`, `keys`, and `data` members.
  */
-NAN_METHOD(Grid::encodeSync)
+
+Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
     // defaults
     unsigned int resolution = 4;
     bool add_features = true;
 
     // options hash
-    if (info.Length() >= 1) {
-        if (!info[0]->IsObject())
+    if (info.Length() >= 1)
+    {
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("optional arg must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional arg must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
 
-        v8::Local<v8::Object> options = info[0].As<v8::Object>();
+        Napi::Object options = info[0].As<Napi::Object>();
 
-        if (Nan::Has(options, Nan::New("resolution").ToLocalChecked()).FromMaybe(false))
+        if (options.Has("resolution"))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("resolution").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = options.Get("resolution");
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("'resolution' must be an Integer");
-                return;
+                Napi::TypeError::New(env, "'resolution' must be an Integer").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
 
-            resolution = Nan::To<int>(bind_opt).FromJust();
+            resolution = bind_opt.As<Napi::Number>().Int32Value();
             if (resolution == 0)
             {
-                Nan::ThrowTypeError("'resolution' can not be zero");
-                return;
+                Napi::TypeError::New(env, "'resolution' can not be zero").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
         }
 
-        if (Nan::Has(options, Nan::New("features").ToLocalChecked()).FromMaybe(false))
+        if (options.Has("features"))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("features").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsBoolean())
+            Napi::Value bind_opt = options.Get("features");
+            if (!bind_opt.IsBoolean())
             {
-                Nan::ThrowTypeError("'features' must be an Boolean");
-                return;
+                Napi::TypeError::New(env, "'features' must be an Boolean").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
 
-            add_features = Nan::To<bool>(bind_opt).FromJust();
+            add_features = bind_opt.As<Napi::Boolean>();
         }
     }
 
@@ -394,213 +421,113 @@ NAN_METHOD(Grid::encodeSync)
 
         std::vector<node_mapnik::grid_line_type> lines;
         std::vector<mapnik::grid::lookup_type> key_order;
-        node_mapnik::grid2utf<mapnik::grid>(*g->get(),lines,key_order,resolution);
+        node_mapnik::grid2utf<mapnik::grid>(*grid_, lines, key_order, resolution);
 
         // convert key order to proper javascript array
-        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(key_order.size());
+        Napi::Array keys_a = Napi::Array::New(env, key_order.size());
         std::vector<std::string>::iterator it;
-        unsigned int i;
+        std::size_t i;
         for (it = key_order.begin(), i = 0; it < key_order.end(); ++it, ++i)
         {
-            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
+            keys_a.Set(i, Napi::String::New(env, *it));
         }
 
-        mapnik::grid const& grid_type = *g->get();
+        mapnik::grid const& grid_type = *grid_;
 
         // gather feature data
-        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
-        if (add_features) {
-            node_mapnik::write_features<mapnik::grid>(*g->get(),
+        Napi::Object feature_data = Napi::Object::New(env);
+        if (add_features)
+        {
+            node_mapnik::write_features<mapnik::grid>(env, *grid_,
                                                       feature_data,
                                                       key_order);
         }
 
         // Create the return hash.
-        v8::Local<v8::Object> json = Nan::New<v8::Object>();
-        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>();
+        Napi::Object json = Napi::Object::New(env);
+        Napi::Array grid_array = Napi::Array::New(env, lines.size());
         unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
-        for (unsigned j=0;j<lines.size();++j)
+        for (std::size_t j = 0; j < lines.size(); ++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
+            char16_t const* data = (char16_t*)line.get();
+            grid_array.Set(j, Napi::String::New(env, data, array_size));
         }
-        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
-        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
-        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
-        info.GetReturnValue().Set(json);
-
+        json.Set("grid", grid_array);
+        json.Set("keys", keys_a);
+        json.Set("data", feature_data);
+        return scope.Escape(json);
     }
     catch (std::exception const& ex)
     {
         // There is no known exception throws in the processing above
         // so simply removing the following from coverage
-        /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_START
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
+        // LCOV_EXCL_STOP
     }
 }
 
-typedef struct {
-    uv_work_t request;
-    Grid* g;
-    bool error;
-    std::string error_name;
-    Nan::Persistent<v8::Function> cb;
-    std::vector<node_mapnik::grid_line_type> lines;
-    unsigned int resolution;
-    bool add_features;
-    std::vector<mapnik::grid::lookup_type> key_order;
-} encode_grid_baton_t;
-
-NAN_METHOD(Grid::encode)
+Napi::Value Grid::encode(Napi::CallbackInfo const& info)
 {
-    Grid* g = Nan::ObjectWrap::Unwrap<Grid>(info.Holder());
-
+    Napi::Env env = info.Env();
     // defaults
     unsigned int resolution = 4;
     bool add_features = true;
 
     // options hash
-    if (info.Length() >= 1) {
-        if (!info[0]->IsObject())
+    if (info.Length() >= 1)
+    {
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("optional arg must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional arg must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
 
-        v8::Local<v8::Object> options = info[0].As<v8::Object>();
+        Napi::Object options = info[0].As<Napi::Object>();
 
-        if (Nan::Has(options, Nan::New("resolution").ToLocalChecked()).FromMaybe(false))
+        if (options.Has("resolution"))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("resolution").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsNumber())
+            Napi::Value bind_opt = options.Get("resolution");
+            if (!bind_opt.IsNumber())
             {
-                Nan::ThrowTypeError("'resolution' must be an Integer");
-                return;
+                Napi::TypeError::New(env, "'resolution' must be an Integer").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
 
-            resolution = Nan::To<int>(bind_opt).FromJust();
+            resolution = bind_opt.As<Napi::Number>().Int32Value();
             if (resolution == 0)
             {
-                Nan::ThrowTypeError("'resolution' can not be zero");
-                return;
+                Napi::TypeError::New(env, "'resolution' can not be zero").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
         }
 
-        if (Nan::Has(options, Nan::New("features").ToLocalChecked()).FromMaybe(false))
+        if (options.Has("features"))
         {
-            v8::Local<v8::Value> bind_opt = Nan::Get(options, Nan::New("features").ToLocalChecked()).ToLocalChecked();
-            if (!bind_opt->IsBoolean())
+            Napi::Value bind_opt = options.Get("features");
+            if (!bind_opt.IsBoolean())
             {
-                Nan::ThrowTypeError("'features' must be an Boolean");
-                return;
+                Napi::TypeError::New(env, "'features' must be an Boolean").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
 
-            add_features = Nan::To<bool>(bind_opt).FromJust();
+            add_features = bind_opt.As<Napi::Boolean>();
         }
     }
 
     // ensure callback is a function
-    if (!info[info.Length()-1]->IsFunction())
+    if (!info[info.Length() - 1].IsFunction())
     {
-        Nan::ThrowTypeError("last argument must be a callback function");
-        return;
+        Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
-    v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(info[info.Length()-1]);
+    Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
 
-    encode_grid_baton_t *closure = new encode_grid_baton_t();
-    closure->request.data = closure;
-    closure->g = g;
-    closure->error = false;
-    closure->resolution = resolution;
-    closure->add_features = add_features;
-    closure->cb.Reset(callback.As<v8::Function>());
-    // todo - reserve lines size?
-    uv_queue_work(uv_default_loop(), &closure->request, EIO_Encode, (uv_after_work_cb)EIO_AfterEncode);
-    g->Ref();
-    return;
-}
-
-void Grid::EIO_Encode(uv_work_t* req)
-{
-    encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
-
-    try
-    {
-        node_mapnik::grid2utf<mapnik::grid>(*closure->g->get(),
-                                            closure->lines,
-                                            closure->key_order,
-                                            closure->resolution);
-    }
-    catch (std::exception const& ex)
-    {
-        // There is no known exception throws in the processing above
-        // so simply removing the following from coverage
-        /* LCOV_EXCL_START */
-        closure->error = true;
-        closure->error_name = ex.what();
-        /* LCOV_EXCL_STOP */
-    }
-}
-
-void Grid::EIO_AfterEncode(uv_work_t* req)
-{
-    Nan::HandleScope scope;
-    Nan::AsyncResource async_resource(__func__);
-    encode_grid_baton_t *closure = static_cast<encode_grid_baton_t *>(req->data);
-
-
-    if (closure->error) 
-    {
-        // There is no known ways to throw errors in the processing prior
-        // so simply removing the following from coverage
-        /* LCOV_EXCL_START */
-        v8::Local<v8::Value> argv[1] = { Nan::Error(closure->error_name.c_str()) };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 1, argv);
-        /* LCOV_EXCL_STOP */
-    } 
-    else 
-    {
-
-        // convert key order to proper javascript array
-        v8::Local<v8::Array> keys_a = Nan::New<v8::Array>(closure->key_order.size());
-        std::vector<std::string>::iterator it;
-        unsigned int i;
-        for (it = closure->key_order.begin(), i = 0; it < closure->key_order.end(); ++it, ++i)
-        {
-            Nan::Set(keys_a, i, Nan::New<v8::String>(*it).ToLocalChecked());
-        }
-
-        mapnik::grid const& grid_type = *closure->g->get();
-        // gather feature data
-        v8::Local<v8::Object> feature_data = Nan::New<v8::Object>();
-        if (closure->add_features) {
-            node_mapnik::write_features<mapnik::grid>(grid_type,
-                                                      feature_data,
-                                                      closure->key_order);
-        }
-
-        // Create the return hash.
-        v8::Local<v8::Object> json = Nan::New<v8::Object>();
-        v8::Local<v8::Array> grid_array = Nan::New<v8::Array>(closure->lines.size());
-        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(closure->resolution));
-        for (unsigned j=0;j<closure->lines.size();++j)
-        {
-            node_mapnik::grid_line_type const & line = closure->lines[j];
-            Nan::Set(grid_array, j, Nan::New<v8::String>(line.get(),array_size).ToLocalChecked());
-        }
-        Nan::Set(json, Nan::New("grid").ToLocalChecked(), grid_array);
-        Nan::Set(json, Nan::New("keys").ToLocalChecked(), keys_a);
-        Nan::Set(json, Nan::New("data").ToLocalChecked(), feature_data);
-
-        v8::Local<v8::Value> argv[2] = { Nan::Null(), json };
-        async_resource.runInAsyncScope(Nan::GetCurrentContext()->Global(), Nan::New(closure->cb), 2, argv);
-    }
-
-    closure->g->Unref();
-    closure->cb.Reset();
-    delete closure;
+    auto * worker = new detail::AsyncGridEncode{grid_, resolution, add_features, callback};
+    worker->Queue();
+    return env.Undefined();
 }
 
 #endif

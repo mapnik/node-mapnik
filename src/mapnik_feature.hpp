@@ -1,44 +1,30 @@
-#ifndef __NODE_MAPNIK_FEATURE_H__
-#define __NODE_MAPNIK_FEATURE_H__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
+#pragma once
+// stl
 #include <memory>
 
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
+//
+#include <napi.h>
 
-
-
-class Feature: public Nan::ObjectWrap {
+class Feature : public Napi::ObjectWrap<Feature>
+{
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(mapnik::feature_ptr f_ptr);
-    static NAN_METHOD(fromJSON);
-    static NAN_METHOD(id);
-    static NAN_METHOD(extent);
-    static NAN_METHOD(attributes);
-    static NAN_METHOD(geometry);
-    static NAN_METHOD(toJSON);
-
-    // todo
-    // how to allow altering of attributes
-    // expose get_geometry
-    Feature(mapnik::feature_ptr f);
-    Feature(int id);
-    inline mapnik::feature_ptr get() { return this_; }
-
+    // initialiser
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Feature(Napi::CallbackInfo const& info);
+    // methods
+    static Napi::Value fromJSON(Napi::CallbackInfo const& info);
+    Napi::Value id(Napi::CallbackInfo const& info);
+    Napi::Value extent(Napi::CallbackInfo const& info);
+    Napi::Value attributes(Napi::CallbackInfo const& info);
+    Napi::Value geometry(Napi::CallbackInfo const& info);
+    Napi::Value toJSON(Napi::CallbackInfo const& info);
+    inline mapnik::feature_ptr impl() const {return feature_;}
+    static Napi::FunctionReference constructor;
 private:
-    ~Feature();
-    mapnik::feature_ptr this_;
+    mapnik::feature_ptr feature_;
     mapnik::context_ptr ctx_;
 };
-
-#endif

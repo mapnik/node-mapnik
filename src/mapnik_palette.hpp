@@ -1,34 +1,26 @@
-#ifndef __NODE_MAPNIK_PALETTE_H__
-#define __NODE_MAPNIK_PALETTE_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
+#include <napi.h>
 #include <mapnik/palette.hpp>
 #include <memory>
 
+using palette_ptr =  std::shared_ptr<mapnik::rgba_palette>;
 
-
-typedef std::shared_ptr<mapnik::rgba_palette> palette_ptr;
-
-class Palette: public Nan::ObjectWrap {
+class Palette : public Napi::ObjectWrap<Palette>
+{
+    friend class Image;
+    friend class ImageView;
+    friend class Map;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-
-    explicit Palette(std::string const& palette, mapnik::rgba_palette::palette_type type);
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-
-    static NAN_METHOD(ToString);
-    static NAN_METHOD(ToBuffer);
-
-    inline palette_ptr palette() { return palette_; }
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Palette(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value toString(Napi::CallbackInfo const& info);
+    Napi::Value toBuffer(Napi::CallbackInfo const& info);
+    inline palette_ptr palette() { return palette_;}
 private:
-    ~Palette();
+    static Napi::FunctionReference constructor;
     palette_ptr palette_;
 };
-
-#endif

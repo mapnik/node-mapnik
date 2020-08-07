@@ -1,32 +1,23 @@
-#ifndef __NODE_MAPNIK_FEATURESET_H__
-#define __NODE_MAPNIK_FEATURESET_H__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
+#pragma once
 
 #include <mapnik/featureset.hpp>
-#include <memory>
+#include <napi.h>
 
+using featureset_ptr =  mapnik::featureset_ptr;
+namespace detail { struct AsyncQueryPoint;}
 
-
-typedef mapnik::featureset_ptr fs_ptr;
-
-class Featureset: public Nan::ObjectWrap {
+class Featureset : public Napi::ObjectWrap<Featureset>
+{
+    friend class Datasource;
+    friend struct detail::AsyncQueryPoint;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-    static v8::Local<v8::Value> NewInstance(mapnik::featureset_ptr fs_ptr);
-    static NAN_METHOD(next);
-
-    Featureset();
-
+    // initialiser
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Featureset(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value next(Napi::CallbackInfo const& info);
 private:
-    ~Featureset();
-    fs_ptr this_;
+    static Napi::FunctionReference constructor;
+    featureset_ptr featureset_;
 };
-
-#endif

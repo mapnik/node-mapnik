@@ -1,7 +1,19 @@
 #include "mapnik_featureset.hpp"
 #include "mapnik_feature.hpp"
 
-Nan::Persistent<v8::FunctionTemplate> Featureset::constructor;
+Napi::FunctionReference Featureset::constructor;
+
+Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Featureset", {
+            InstanceMethod<&Featureset::next>("next")
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Featureset", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Featureset`**
@@ -10,48 +22,19 @@ Nan::Persistent<v8::FunctionTemplate> Featureset::constructor;
  *
  * @class Featureset
  */
-void Featureset::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Featureset::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Featureset").ToLocalChecked());
-
-    Nan::SetPrototypeMethod(lcons, "next", next);
-
-    Nan::Set(target, Nan::New("Featureset").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-Featureset::Featureset() :
-    Nan::ObjectWrap(),
-    this_() {}
-
-Featureset::~Featureset()
+Featureset::Featureset(Napi::CallbackInfo const& info)
+    :  Napi::ObjectWrap<Featureset>(info)
 {
-}
-
-NAN_METHOD(Featureset::New)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+        auto ext = info[0].As<Napi::External<mapnik::featureset_ptr>>();
+        if (ext) featureset_ = *ext.Data();
         return;
     }
-
-    if (info[0]->IsExternal())
-    {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        Featureset* fs =  static_cast<Featureset*>(ptr);
-        fs->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-    }
-
-    Nan::ThrowTypeError("Sorry a Featureset cannot currently be created, only accessed via an existing datasource");
-    return;
+    Napi::TypeError::New(env, "Sorry a Featureset cannot currently be created, only accessed via an existing datasource")
+        .ThrowAsJavaScriptException();
 }
 
 /**
@@ -63,14 +46,17 @@ NAN_METHOD(Featureset::New)
  * @memberof Featureset
  * @returns {mapnik.Feature|null} next feature
  */
-NAN_METHOD(Featureset::next)
+Napi::Value Featureset::next(Napi::CallbackInfo const& info)
 {
-    Featureset* fs = Nan::ObjectWrap::Unwrap<Featureset>(info.Holder());
-    if (fs->this_) {
-        mapnik::feature_ptr fp;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+
+    if (featureset_)
+    {
+        mapnik::feature_ptr feature;
         try
         {
-            fp = fs->this_->next();
+            feature = featureset_->next();
         }
         catch (std::exception const& ex)
         {
@@ -80,25 +66,16 @@ NAN_METHOD(Featureset::next)
             // be developed outside of mapnik core plugins that could raise here we are probably best still
             // wrapping this in a try catch.
             /* LCOV_EXCL_START */
-            Nan::ThrowError(ex.what());
-            return;
+            Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+            return env.Undefined();
             /* LCOV_EXCL_STOP */
         }
-
-        if (fp) {
-            info.GetReturnValue().Set(Feature::NewInstance(fp));
+        if (feature)
+        {
+            Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
+            Napi::Object obj = Feature::constructor.New({arg});
+            return scope.Escape(napi_value(obj)).ToObject();
         }
     }
-    return;
-}
-
-v8::Local<v8::Value> Featureset::NewInstance(mapnik::featureset_ptr fsp)
-{
-    Nan::EscapableHandleScope scope;
-    Featureset* fs = new Featureset();
-    fs->this_ = fsp;
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(fs);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Featureset instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
+    return env.Null(); // Loop termination condition
 }

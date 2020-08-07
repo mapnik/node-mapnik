@@ -1,5 +1,4 @@
-#ifndef __NODE_MAPNIK_GRID_UTILS_H__
-#define __NODE_MAPNIK_GRID_UTILS_H__
+#pragma once
 
 // mapnik
 #include <mapnik/version.hpp>
@@ -13,8 +12,6 @@
 #include <stdint.h>  // for uint16_t
 
 #include <memory>
-
-
 
 
 namespace node_mapnik {
@@ -84,11 +81,11 @@ static void grid2utf(T const& grid_type,
 
 
 template <typename T>
-static void write_features(T const& grid_type,
-                           v8::Local<v8::Object>& feature_data,
+static void write_features(Napi::Env env, T const& grid_type,
+                           Napi::Object& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    Nan::HandleScope scope;
+    Napi::HandleScope scope(env);
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {
@@ -110,30 +107,29 @@ static void write_features(T const& grid_type,
         }
 
         bool found = false;
-        v8::Local<v8::Object> feat = Nan::New<v8::Object>();
+        Napi::Object feat = Napi::Object::New(env);
         mapnik::feature_ptr feature = feat_itr->second;
         for (std::string const& attr : attributes)
         {
             if (attr == "__id__")
             {
-                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(), Nan::New<v8::Number>(feature->id()));
+                (feat).Set(Napi::String::New(env, attr), Napi::Number::New(env, feature->id()));
             }
             else if (feature->has_key(attr))
             {
                 found = true;
                 mapnik::feature_impl::value_type const& attr_val = feature->get(attr);
-                Nan::Set(feat, Nan::New<v8::String>(attr).ToLocalChecked(),
-                    mapnik::util::apply_visitor(node_mapnik::value_converter(),
-                    attr_val));
+                feat.Set(attr,
+                         mapnik::util::apply_visitor(node_mapnik::value_converter(env),
+                                                     attr_val));
             }
         }
 
         if (found)
         {
-            Nan::Set(feature_data, Nan::New<v8::String>(feat_itr->first).ToLocalChecked(), feat);
+            feature_data.Set(feat_itr->first, feat);
         }
     }
 }
 
-}
-#endif // __NODE_MAPNIK_GRID_UTILS_H__
+} // ns node_mapnik

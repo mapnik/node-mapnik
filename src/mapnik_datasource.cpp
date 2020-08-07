@@ -5,18 +5,35 @@
 
 // mapnik
 #include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
-#include <mapnik/geometry/box2d.hpp>             // for box2d
-#include <mapnik/datasource.hpp>        // for datasource, datasource_ptr, etc
-#include <mapnik/datasource_cache.hpp>  // for datasource_cache
-#include <mapnik/feature_layer_desc.hpp>  // for layer_descriptor
-#include <mapnik/params.hpp>            // for parameters
-#include <mapnik/query.hpp>             // for query
+#include <mapnik/geometry/box2d.hpp>        // for box2d
+#include <mapnik/datasource.hpp>            // for datasource, datasource_ptr, etc
+#include <mapnik/datasource_cache.hpp>      // for datasource_cache
+#include <mapnik/feature_layer_desc.hpp>    // for layer_descriptor
+#include <mapnik/params.hpp>                // for parameters
+#include <mapnik/query.hpp>                 // for query
 
 // stl
 #include <exception>
 #include <vector>
 
-Nan::Persistent<v8::FunctionTemplate> Datasource::constructor;
+Napi::FunctionReference Datasource::constructor;
+
+Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Datasource", {
+            InstanceMethod<&Datasource::parameters>("parameters"),
+            InstanceMethod<&Datasource::describe>("describe"),
+            InstanceMethod<&Datasource::featureset>("featureset"),
+            InstanceMethod<&Datasource::extent>("extent"),
+            InstanceMethod<&Datasource::fields>("fields")
+
+        });
+
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Datasource", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Datasource`**
@@ -26,143 +43,72 @@ Nan::Persistent<v8::FunctionTemplate> Datasource::constructor;
  *
  * @class Datasource
  */
-void Datasource::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Datasource::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Datasource").ToLocalChecked());
-
-    // methods
-    Nan::SetPrototypeMethod(lcons, "parameters", parameters);
-    Nan::SetPrototypeMethod(lcons, "describe", describe);
-    Nan::SetPrototypeMethod(lcons, "featureset", featureset);
-    Nan::SetPrototypeMethod(lcons, "extent", extent);
-    Nan::SetPrototypeMethod(lcons, "fields", fields);
-
-    Nan::Set(target, Nan::New("Datasource").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-Datasource::Datasource() :
-    Nan::ObjectWrap(),
-    datasource_() {}
-
-Datasource::~Datasource()
+Datasource::Datasource(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Datasource>(info)
 {
-}
-
-NAN_METHOD(Datasource::New)
-{
-    if (!info.IsConstructCall())
-    {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
-    }
-
-    if (info[0]->IsExternal())
-    {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        Datasource* d =  static_cast<Datasource*>(ptr);
-        if (d->datasource_->type() == mapnik::datasource::Raster)
-        {
-            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
-                             Nan::New("raster").ToLocalChecked());
-        }
-        else
-        {
-            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
-                             Nan::New("vector").ToLocalChecked());
-        }
-        d->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-    }
+    Napi::Env env = info.Env();
     if (info.Length() != 1)
     {
-        Nan::ThrowTypeError("accepts only one argument, an object of key:value datasource options");
+        Napi::TypeError::New(env, "accepts only one argument, an object of key:value datasource options").ThrowAsJavaScriptException();
         return;
     }
 
-    if (!info[0]->IsObject())
+    if (info[0].IsExternal())
     {
-        Nan::ThrowTypeError("Must provide an object, eg {type: 'shape', file : 'world.shp'}");
+        auto ext = info[0].As<Napi::External<datasource_ptr>>();
+        if (ext)
+        {
+            datasource_ = *ext.Data();
+            if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
+            else info.This().As<Napi::Object>().Set("type","vector");
+        }
         return;
     }
 
-    v8::Local<v8::Object> options = info[0].As<v8::Object>();
+    if (!info[0].IsObject())
+    {
+        Napi::TypeError::New(env, "Must provide an object, eg {type: 'shape', file : 'world.shp'}").ThrowAsJavaScriptException();
+        return;
+    }
+
+    Napi::Object options = info[0].As<Napi::Object>();
 
     mapnik::parameters params;
-    v8::Local<v8::Array> names = Nan::GetPropertyNames(options).ToLocalChecked();
-    unsigned int i = 0;
-    unsigned int a_length = names->Length();
-    while (i < a_length) {
-        v8::Local<v8::Value> name = Nan::Get(names, i).ToLocalChecked()->ToString(Nan::GetCurrentContext()).ToLocalChecked();
-        v8::Local<v8::Value> value = Nan::Get(options, name).ToLocalChecked();
-        // TODO - don't treat everything as strings
-        params[TOSTR(name)] = const_cast<char const*>(TOSTR(value));
-        i++;
+    Napi::Array names = options.GetPropertyNames();
+    unsigned int length = names.Length();
+    for (unsigned index = 0; index < length; ++index)
+    {
+        std::string name = names.Get(index).As<Napi::String>();
+        Napi::Value value = options.Get(name);
+        // TODO - don't treat everything as strings (FIXME ??)
+        params[name] = value.ToString().Utf8Value();
     }
 
-    mapnik::datasource_ptr ds;
     try
     {
-        ds = mapnik::datasource_cache::instance().create(params);
+        datasource_ = mapnik::datasource_cache::instance().create(params);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return;
-    }
+     }
 
-    if (ds)
-    {
-        if (ds->type() == mapnik::datasource::Raster)
-        {
-            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
-                             Nan::New("raster").ToLocalChecked());
-        }
-        else
-        {
-            Nan::Set(info.This(), Nan::New("type").ToLocalChecked(),
-                             Nan::New("vector").ToLocalChecked());
-        }
-        Datasource* d = new Datasource();
-        d->Wrap(info.This());
-        d->datasource_ = ds;
-        info.GetReturnValue().Set(info.This());
-        return;
-    }
-    // Not sure this point could ever be reached, because if a ds is created,
-    // even if it is an empty or bad dataset the pointer will still exist
-    /* LCOV_EXCL_START */
-    return;
-    /* LCOV_EXCL_STOP */
+    if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
+    else info.This().As<Napi::Object>().Set("type","vector");
 }
 
-v8::Local<v8::Value> Datasource::NewInstance(mapnik::datasource_ptr ds_ptr) {
-    Nan::EscapableHandleScope scope;
-    Datasource* d = new Datasource();
-    d->datasource_ = ds_ptr;
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(d);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Datasource instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
-}
-
-NAN_METHOD(Datasource::parameters)
+Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
 {
-    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.This());
-    v8::Local<v8::Object> ds = Nan::New<v8::Object>();
-    mapnik::parameters::const_iterator it = d->datasource_->params().begin();
-    mapnik::parameters::const_iterator end = d->datasource_->params().end();
-    for (; it != end; ++it)
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object params = Napi::Object::New(env);
+    for (auto const& kv : datasource_->params())
     {
-        node_mapnik::params_to_object(ds, it->first, it->second);
+        node_mapnik::params_to_object(env, params, std::get<0>(kv), std::get<1>(kv));
     }
-    info.GetReturnValue().Set(ds);
+    return scope.Escape(params);
 }
 
 /**
@@ -173,13 +119,14 @@ NAN_METHOD(Datasource::parameters)
  * @instance
  * @returns {Array<number>} extent [minx, miny, maxx, maxy] order feature extent.
  */
-NAN_METHOD(Datasource::extent)
+Napi::Value Datasource::extent(Napi::CallbackInfo const& info)
 {
-    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    mapnik::box2d<double> e;
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> bbox;
     try
     {
-        e = d->datasource_->envelope();
+        bbox = datasource_->envelope();
     }
     catch (std::exception const& ex)
     {
@@ -187,18 +134,18 @@ NAN_METHOD(Datasource::extent)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_START
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
+        // LCOV_EXCL_STOP
     }
 
-    v8::Local<v8::Array> a = Nan::New<v8::Array>(4);
-    Nan::Set(a, 0, Nan::New<v8::Number>(e.minx()));
-    Nan::Set(a, 1, Nan::New<v8::Number>(e.miny()));
-    Nan::Set(a, 2, Nan::New<v8::Number>(e.maxx()));
-    Nan::Set(a, 3, Nan::New<v8::Number>(e.maxy()));
-    info.GetReturnValue().Set(a);
+    Napi::Array arr = Napi::Array::New(env, 4);
+    arr.Set(0u, Napi::Number::New(env, bbox.minx()));
+    arr.Set(1u, Napi::Number::New(env, bbox.miny()));
+    arr.Set(2u, Napi::Number::New(env, bbox.maxx()));
+    arr.Set(3u, Napi::Number::New(env, bbox.maxy()));
+    return scope.Escape(arr);
 }
 
 /**
@@ -210,13 +157,14 @@ NAN_METHOD(Datasource::extent)
  * @returns {Object} description: an object with type, fields, encoding,
  * geometry_type, and proj4 code
  */
-NAN_METHOD(Datasource::describe)
+Napi::Value Datasource::describe(Napi::CallbackInfo const& info)
 {
-    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    v8::Local<v8::Object> description = Nan::New<v8::Object>();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object description = Napi::Object::New(env);
     try
     {
-        node_mapnik::describe_datasource(description,d->datasource_);
+        node_mapnik::describe_datasource(env, description, datasource_);
     }
     catch (std::exception const& ex)
     {
@@ -224,13 +172,12 @@ NAN_METHOD(Datasource::describe)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
-        /* LCOV_EXCL_STOP */
+        // LCOV_EXCL_START
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
+        // LCOV_EXCL_STOP
     }
-
-    info.GetReturnValue().Set(description);
+    return scope.Escape(description);
 }
 
 /**
@@ -251,45 +198,48 @@ NAN_METHOD(Datasource::describe)
  *     features.push(feature);
  * }
  */
-NAN_METHOD(Datasource::featureset)
+
+Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
 {
-    Datasource* ds = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    mapnik::box2d<double> extent = ds->datasource_->envelope();
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    mapnik::box2d<double> extent = datasource_->envelope();
+
     if (info.Length() > 0)
     {
         // options object
-        if (!info[0]->IsObject())
+        if (!info[0].IsObject())
         {
-            Nan::ThrowTypeError("optional second argument must be an options object");
-            return;
+            Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
         }
-        v8::Local<v8::Object> options = info[0]->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
-        if (Nan::Has(options, Nan::New("extent").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[0].As<Napi::Object>();
+        if (options.Has("extent"))
         {
-            v8::Local<v8::Value> extent_opt = Nan::Get(options, Nan::New("extent").ToLocalChecked()).ToLocalChecked();
-            if (!extent_opt->IsArray())
+            Napi::Value extent_opt = options.Get("extent");
+            if (!extent_opt.IsArray())
             {
-                Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
-                return;
+                Napi::TypeError::New(env, "extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Array> bbox = extent_opt.As<v8::Array>();
-            auto len = bbox->Length();
+            Napi::Array bbox = extent_opt.As<Napi::Array>();
+            auto len = bbox.Length();
             if (!(len == 4))
             {
-                Nan::ThrowTypeError("extent value must be an array of [minx,miny,maxx,maxy]");
-                return;
+                Napi::TypeError::New(env, "extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Value> minx = Nan::Get(bbox, 0).ToLocalChecked();
-            v8::Local<v8::Value> miny = Nan::Get(bbox, 1).ToLocalChecked();
-            v8::Local<v8::Value> maxx = Nan::Get(bbox, 2).ToLocalChecked();
-            v8::Local<v8::Value> maxy = Nan::Get(bbox, 3).ToLocalChecked();
-            if (!minx->IsNumber() || !miny->IsNumber() || !maxx->IsNumber() || !maxy->IsNumber())
+            Napi::Value minx = bbox.Get(0u);
+            Napi::Value miny = bbox.Get(1u);
+            Napi::Value maxx = bbox.Get(2u);
+            Napi::Value maxy = bbox.Get(3u);
+            if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
-                Nan::ThrowError("max_extent [minx,miny,maxx,maxy] must be numbers");
-                return;
+                Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
+                return env.Null();
             }
-            extent = mapnik::box2d<double>(Nan::To<double>(minx).FromJust(),Nan::To<double>(miny).FromJust(),
-                                           Nan::To<double>(maxx).FromJust(),Nan::To<double>(maxy).FromJust());
+            extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
+                                           maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
         }
     }
 
@@ -297,14 +247,14 @@ NAN_METHOD(Datasource::featureset)
     try
     {
         mapnik::query q(extent);
-        mapnik::layer_descriptor ld = ds->datasource_->get_descriptor();
+        mapnik::layer_descriptor ld = datasource_->get_descriptor();
         auto const& desc = ld.get_descriptors();
         for (auto const& attr_info : desc)
         {
             q.add_property_name(attr_info.get_name());
         }
 
-        fs = ds->datasource_->features(q);
+        fs = datasource_->features(q);
     }
     catch (std::exception const& ex)
     {
@@ -312,20 +262,17 @@ NAN_METHOD(Datasource::featureset)
         // where a plugin dynamically calculated extent such as
         // postgis plugin. Therefore this makes this difficult
         // to add to testing. Therefore marking it with exclusion
-        /* LCOV_EXCL_START */
-        Nan::ThrowError(ex.what());
-        return;
-        /* LCOV_EXCL_STOP */
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
     if (fs && mapnik::is_valid(fs))
     {
-        info.GetReturnValue().Set(Featureset::NewInstance(fs));
+        Napi::Value arg = Napi::External<mapnik::featureset_ptr>::New(env, &fs);
+        Napi::Object obj = Featureset::constructor.New({arg});
+        return scope.Escape(napi_value(obj)).ToObject();;
     }
-    // This should never be able to be reached
-    /* LCOV_EXCL_START */
-    return;
-    /* LCOV_EXCL_STOP */
+    return env.Null(); // an empty Featureset
 }
 
 
@@ -352,10 +299,12 @@ NAN_METHOD(Datasource::featureset)
  * //     LAT: 'Number'
  * // }
  */
-NAN_METHOD(Datasource::fields)
+
+Napi::Value Datasource::fields(Napi::CallbackInfo const& info)
 {
-    Datasource* d = Nan::ObjectWrap::Unwrap<Datasource>(info.Holder());
-    v8::Local<v8::Object> fields = Nan::New<v8::Object>();
-    node_mapnik::get_fields(fields,d->datasource_);
-    info.GetReturnValue().Set(fields);
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    Napi::Object fields = Napi::Object::New(env);
+    node_mapnik::get_fields(env, fields, datasource_);
+    return scope.Escape(fields);
 }

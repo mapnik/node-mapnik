@@ -1,12 +1,34 @@
-#include "utils.hpp"
+//#include "utils.hpp"
 #include "mapnik_logger.hpp"
 #include <mapnik/debug.hpp>
 
-Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
+Napi::FunctionReference Logger::constructor;
+
+Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Logger", {
+            StaticMethod<&Logger::get_severity>("getSeverity"),
+            StaticMethod<&Logger::set_severity>("setSeverity"),
+            StaticValue("NONE", Napi::Number::New(env, mapnik::logger::severity_type::none), napi_enumerable),
+            StaticValue("ERROR", Napi::Number::New(env, mapnik::logger::severity_type::error), napi_enumerable),
+            StaticValue("DEBUG", Napi::Number::New(env, mapnik::logger::severity_type::debug), napi_enumerable),
+            StaticValue("WARN", Napi::Number::New(env, mapnik::logger::severity_type::warn), napi_enumerable)
+        });
+    // What about booleans like:
+    // ENABLE_STATS
+    // ENABLE_LOG
+    // DEFAULT_LOG_SEVERITY
+    // RENDERING_STATS
+    // DEBUG
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Logger", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Logger`**
- * 
+ *
  * No constructor - Severity level is only available via `mapnik.Logger` static instance.
  *
  * @class Logger
@@ -15,39 +37,12 @@ Nan::Persistent<v8::FunctionTemplate> Logger::constructor;
  * var log = mapnik.Logger.get_severity();
  * console.log(log); // 3
  */
-void Logger::Initialize(v8::Local<v8::Object> target) {
-    Nan::HandleScope scope;
 
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Logger::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Logger").ToLocalChecked());
-
-    // Static methods
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "getSeverity", Logger::get_severity);
-    Nan::SetMethod(Nan::GetFunction(lcons).ToLocalChecked().As<v8::Object>(), "setSeverity", Logger::set_severity);
-
-    // Constants
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"NONE",mapnik::logger::severity_type::none);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"ERROR",mapnik::logger::severity_type::error);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"DEBUG",mapnik::logger::severity_type::debug);
-    NODE_MAPNIK_DEFINE_CONSTANT(Nan::GetFunction(lcons).ToLocalChecked(),"WARN",mapnik::logger::severity_type::warn);
-
-    // What about booleans like:
-    // ENABLE_STATS
-    // ENABLE_LOG
-    // DEFAULT_LOG_SEVERITY
-    // RENDERING_STATS
-    // DEBUG
-
-    // Not sure if needed...
-    Nan::Set(target, Nan::New("Logger").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-
-}
-
-NAN_METHOD(Logger::New){
-    Nan::ThrowError("a mapnik.Logger cannot be created directly - rather you should ....");
-    return;
+Logger::Logger(Napi::CallbackInfo const& info)
+ : Napi::ObjectWrap<Logger>(info)
+{
+    Napi::Env env = info.Env();
+    Napi::Error::New(env, "a mapnik.Logger cannot be created directly - rather you should ....").ThrowAsJavaScriptException();
 }
 
 /**
@@ -57,9 +52,11 @@ NAN_METHOD(Logger::New){
  * @static
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::get_severity){
+Napi::Value Logger::get_severity(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
     int severity = mapnik::logger::instance().get_severity();
-    info.GetReturnValue().Set(Nan::New(severity));
+    return Napi::Number::New(env, severity);
 }
 
 /**
@@ -73,13 +70,16 @@ NAN_METHOD(Logger::get_severity){
  * @param {number} severity - severity level
  * @returns {number} severity level
  */
-NAN_METHOD(Logger::set_severity){
-    if (info.Length() != 1 || !info[0]->IsNumber()) {
-        Nan::ThrowTypeError("requires a severity level parameter");
-        return;
+Napi::Value Logger::set_severity(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    if (info.Length() != 1 || !info[0].IsNumber())
+    {
+        Napi::TypeError::New(env, "requires a severity level parameter").ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 
-    int severity = Nan::To<int>(info[0]).FromJust();
+    int severity = info[0].As<Napi::Number>().Int32Value();
     mapnik::logger::instance().set_severity(static_cast<mapnik::logger::severity_type>(severity));
-    return;
+    return env.Undefined();
 }

@@ -1,12 +1,6 @@
-#ifndef __NODE_MAPNIK_PROJECTION_H__
-#define __NODE_MAPNIK_PROJECTION_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
-
+#include <napi.h>
 // stl
 #include <string>
 #include <memory>
@@ -14,52 +8,39 @@
 namespace mapnik { class proj_transform; }
 namespace mapnik { class projection; }
 
+using proj_ptr = std::shared_ptr<mapnik::projection>;
 
-
-typedef std::shared_ptr<mapnik::projection> proj_ptr;
-
-class Projection: public Nan::ObjectWrap {
+class Projection : public Napi::ObjectWrap<Projection>
+{
+    friend class ProjTransform;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-
-    static NAN_METHOD(inverse);
-    static NAN_METHOD(forward);
-
-    explicit Projection(std::string const& name, bool defer_init);
-
-    inline proj_ptr get() { return projection_; }
-
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit Projection(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value inverse(Napi::CallbackInfo const& info);
+    Napi::Value forward(Napi::CallbackInfo const& info);
 private:
-    ~Projection();
+    static Napi::FunctionReference constructor;
     proj_ptr projection_;
 };
 
-typedef std::shared_ptr<mapnik::proj_transform> proj_tr_ptr;
+using proj_tr_ptr = std::shared_ptr<mapnik::proj_transform>;
 
-class ProjTransform: public Nan::ObjectWrap {
+class ProjTransform : public Napi::ObjectWrap<ProjTransform>
+{
+    friend class Geometry;
 public:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
-    static void Initialize(v8::Local<v8::Object> target);
-    static NAN_METHOD(New);
-
-    static NAN_METHOD(forward);
-    static NAN_METHOD(backward);
-
-    ProjTransform(mapnik::projection const& src,
-                  mapnik::projection const& dest);
-
-    inline proj_tr_ptr get() { return this_; }
-
-    using Nan::ObjectWrap::Ref;
-    using Nan::ObjectWrap::Unref;
-
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    // ctor
+    explicit ProjTransform(Napi::CallbackInfo const& info);
+    // methods
+    Napi::Value forward(Napi::CallbackInfo const& info);
+    Napi::Value backward(Napi::CallbackInfo const& info);
+    inline proj_tr_ptr impl() { return proj_transform_;}
 private:
-    ~ProjTransform();
-    proj_tr_ptr this_;
+    static Napi::FunctionReference constructor;
+    proj_tr_ptr proj_transform_;
 };
-
-
-#endif
-

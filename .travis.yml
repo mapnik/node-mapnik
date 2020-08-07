@@ -1,13 +1,5 @@
 language: node_js
 
-sudo: false
-
-# build options and AWS keys for publishing binaries
-# note: you'll need to generate your own keys for publishing a separate project
-env:
-  global:
-   - secure: "bvbvxQe4GXZoU1zxm6KylaUSuQuhUZKe1V4+iYM0Sde6hj6RtAUccCWT7mNacCe2I6uGVHHjVfd7wLovT5y7lyT5pzY3UtypxFwuvGxDHotH4hhTg4m8/7APdB4bf5YgBf5IC6pMUPpUloh6TsTIwYzEaJdp/52b31Qfx80FooqOGOrEqntiyvidWsdUmlrxWnpxCVndkZgwvD15Uc08DWyD8Hklor6cKW6d/3zVIFmy81uAvTQp5W5xXC47S/BYYIwz3GU0zx+CMWM1oFObSbkVMG3LXDurqyvzWf9+09ZtBlC2JW0AOt9atk7vnD115Ia1KaEWalMhb3AGwJx4M4hqonooWOx20NL5P0sqEUe94GBUwvvb295vFTbw9guSGYXL3cOeWTlh2Ol466vJUwBvfr4OQ6Qu401nb1sIIv4SoIT9xXSHbopoderRVQurrcl/wesR19hgzrQC9ytJ6QCS1xnnzKogflfMQDDayrCMwpiZ5gvMGheGNbAh661wL03YXiviMwG307+iwFk8zyw05g4nW5/v3S+OYq3QatUgk+ZDpX2JS2zX4D6Aj2QLzKtCrx9pNpngl8pN+drmac1nklUeQLANxyv8hQjJvs1a4utj7ed9CY7QEWkvfrUl7rZqXvzacKmGEWoTkZKru19pa0enLTThKQV6AOei3e4="
-
 install:
   # set up the environment by installing mason and clang++
   - ./scripts/setup.sh --config local.env
@@ -39,29 +31,29 @@ script:
 # run your tests and build binaries
 matrix:
   include:
-    # linux publishable node v10
-    - os: linux
-      env: BUILDTYPE=release
-      node_js: 10
-    # linux publishable node v12
+    # linux publishable Release
     - os: linux
       env: BUILDTYPE=release
       node_js: 12
-    # osx publishable node v10
+    # osx publishable Release
     - os: osx
-      osx_image: xcode8.2
-      env: BUILDTYPE=release
-      node_js: 10
-    # osx publishable node v12
-    - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode11
       env: BUILDTYPE=release
       node_js: 12
-    # Sanitizer build node v10/Debug
+    # linux publishable Debug
+    - os: linux
+      env: BUILDTYPE=debug
+      node_js: 12
+    # osx publishable
+    - os: osx
+      osx_image: xcode11
+      env: BUILDTYPE=debug
+      node_js: 12
+    # Sanitizer build
     - os: linux
       env: BUILDTYPE=debug TOOLSET=-asan
-      node_js: 10
-      # Overrides `install` to set up custom asan flags
+      node_js: 12
+      # Overrides `before_script` to disable publishing and to set up custom asan flags
       install:
         - ./scripts/setup.sh --config local.env
         # put mason and clang++ on PATH
@@ -72,7 +64,7 @@ matrix:
         - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
         - make distclean
         - make ${BUILDTYPE}
-      # Overrides `script` to disable asan LD_PRELOAD before publishing
+      # Overrides `before_script` to disable asan LD_PRELOAD before publishing
       before_script:
         - export LD_PRELOAD=${MASON_LLVM_RT_PRELOAD}
         # TODO: re-enable detect_leaks=0 once we can build and test against an asan sanitized libc++
@@ -85,7 +77,7 @@ matrix:
     # g++ build (default builds all use clang++)
     - os: linux
       env: BUILDTYPE=debug CXX="g++-6" CC="gcc-6"
-      node_js: 10
+      node_js: 12
       addons:
         apt:
           sources:
@@ -97,7 +89,7 @@ matrix:
       install:
         - make distclean
         - make ${BUILDTYPE}
-      # Overrides `script` to disable publishing
+      # Overrides `before_script` to disable publishing
       before_script:
         # manually initialize mason (avoid sourcing local.env since we don't want to use clang++ here)
         - ./scripts/setup.sh --config local.env
@@ -107,15 +99,15 @@ matrix:
     # test building with out SSE_MATH enabled
     - os: linux
       env: BUILDTYPE=release SSE_MATH=false
-      node_js: 10
-      # Overrides `script` to disable publishing
+      node_js: 12
+      # Overrides `before_script` to disable publishing
       before_script:
         - npm test
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
-      node_js: 10
-      # Overrides `script` to publish coverage data to codecov
+      node_js: 12
+      # Overrides `before_script` to disable publishing and to publish coverage data to codecov
       before_script:
         - source scripts/postgis/setup_and_run.sh
         - npm test
@@ -125,7 +117,3 @@ matrix:
         - curl -S -f https://codecov.io/bash -o codecov
         - chmod +x codecov
         - ./codecov -x "llvm-cov gcov" -Z
-
-notifications:
-  slack:
-    secure: wLpScQaDoEsVe0Bu28b62FGZBfmX3s/NK8DWcuSxEFx80k8RKPNgnMg8htamG0zRSf5htF+X6jy2P0IeUvbeupIaJwqtXvHaJYtlMTmemG/xuXLTpLp6k6giT2mWm/lp+ykuaF/PvUcZWUhSf1zhS6vwIekrMYIcDYvNXjO8DNw=

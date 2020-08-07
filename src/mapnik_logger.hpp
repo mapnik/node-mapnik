@@ -1,33 +1,21 @@
-#ifndef __NODE_MAPNIK_LOGGER_H__
-#define __NODE_MAPNIK_LOGGER_H__
+#pragma once
+#include <napi.h>
 
-#include <nan.h>
-
-//Forward declaration of mapnik logger
 namespace mapnik { class logger; }
 
-class Logger: public Nan::ObjectWrap {
+class Logger : public Napi::ObjectWrap<Logger>
+{
 public:
-    // V8 way of...
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    // initializer
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
 
-    // Initialize function is needed for all addons
-    static void Initialize(v8::Local<v8::Object> target);
-
-    // Nan_Method when new Logger object is instantiated
-    static NAN_METHOD(New);
+    // ctor
+    explicit Logger(Napi::CallbackInfo const& info);
 
     // Get and set functions
     // Are these the only methods available in logger?
-    static NAN_METHOD(get_severity);
-    static NAN_METHOD(set_severity);
-    static NAN_METHOD(evoke_error);
-
+    static Napi::Value get_severity(Napi::CallbackInfo const& info);
+    static Napi::Value set_severity(Napi::CallbackInfo const& info);
 private:
-    // Default Constructor
-    Logger();
-    // Deconstructor
-    ~Logger();
+    static Napi::FunctionReference constructor;
 };
-
-#endif

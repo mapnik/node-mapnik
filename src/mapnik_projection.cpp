@@ -6,7 +6,22 @@
 #include <mapnik/projection.hpp>
 #include <sstream>
 
-Nan::Persistent<v8::FunctionTemplate> Projection::constructor;
+Napi::FunctionReference Projection::constructor;
+
+
+Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::HandleScope scope(env);
+    Napi::Function func = DefineClass(env, "Projection", {
+            InstanceMethod<&Projection::forward>("forward"),
+            InstanceMethod<&Projection::inverse>("inverse")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Projection", func);
+    return exports;
+}
+
 
 /**
  * **`mapnik.Projection`**
@@ -24,73 +39,43 @@ Nan::Persistent<v8::FunctionTemplate> Projection::constructor;
  * @example
  * var wgs84 = new mapnik.Projection('+init=epsg:4326');
  */
-void Projection::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Projection::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Projection").ToLocalChecked());
-
-    Nan::SetPrototypeMethod(lcons, "forward", forward);
-    Nan::SetPrototypeMethod(lcons, "inverse", inverse);
-
-    Nan::Set(target, Nan::New("Projection").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-Projection::Projection(std::string const& name, bool defer_init) :
-    Nan::ObjectWrap(),
-    projection_(std::make_shared<mapnik::projection>(name, defer_init)) {}
-
-Projection::~Projection()
+Projection::Projection(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Projection>(info)
 {
-}
-
-NAN_METHOD(Projection::New)
-{
-    if (!info.IsConstructCall())
+    Napi::Env env = info.Env();
+    if (info.Length() <= 0 || !info[0].IsString())
     {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
-    }
-
-    if (info.Length() <= 0 || !info[0]->IsString()) {
-        Nan::ThrowTypeError("please provide a proj4 initialization string");
+        Napi::TypeError::New(env, "please provide a proj4 initialization string").ThrowAsJavaScriptException();
         return;
     }
     bool lazy = false;
     if (info.Length() >= 2)
     {
-        if (!info[1]->IsObject())
+        if (!info[1].IsObject())
         {
-            Nan::ThrowTypeError("The second parameter provided should be an options object");
+            Napi::TypeError::New(env, "The second parameter provided should be an options object").ThrowAsJavaScriptException();
             return;
         }
-        v8::Local<v8::Object> options = info[1].As<v8::Object>();
-        if (Nan::Has(options, Nan::New("lazy").ToLocalChecked()).FromMaybe(false))
+        Napi::Object options = info[1].As<Napi::Object>();
+        if (options.Has("lazy"))
         {
-            v8::Local<v8::Value> lazy_opt = Nan::Get(options, Nan::New("lazy").ToLocalChecked()).ToLocalChecked();
-            if (!lazy_opt->IsBoolean())
+            Napi::Value lazy_opt = options.Get("lazy");
+            if (!lazy_opt.IsBoolean())
             {
-                Nan::ThrowTypeError("'lazy' must be a Boolean");
+                Napi::TypeError::New(env, "'lazy' must be a Boolean").ThrowAsJavaScriptException();
                 return;
             }
-            lazy = Nan::To<bool>(lazy_opt).FromJust();
+            lazy = lazy_opt.As<Napi::Boolean>();
         }
     }
-
     try
     {
-        Projection* p = new Projection(TOSTR(info[0]), lazy);
-        p->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
+        projection_ = std::make_shared<mapnik::projection>(info[0].As<Napi::String>(), lazy);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
     }
 }
 
@@ -107,59 +92,64 @@ NAN_METHOD(Projection::New)
  * var long_lat_coords = [-122.33517, 47.63752];
  * var projected = merc.forward(long_lat_coords);
  */
-NAN_METHOD(Projection::forward)
+Napi::Value Projection::forward(Napi::CallbackInfo const& info)
 {
-    Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
     try
     {
-        if (info.Length() != 1) {
-            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
-        } else {
-            if (!info[0]->IsArray()) {
-                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                return;
+        if (info.Length() != 1)
+        {
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        else
+        {
+            if (!info[0].IsArray())
+            {
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Array> a = info[0].As<v8::Array>();
-            unsigned int array_length = a->Length();
+            Napi::Array arr_in = info[0].As<Napi::Array>();
+            unsigned int array_length = arr_in.Length();
             if (array_length == 2)
             {
-                double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-                double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
-                p->projection_->forward(x,y);
-                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                Nan::Set(arr, 0, Nan::New(x));
-                Nan::Set(arr, 1, Nan::New(y));
-                info.GetReturnValue().Set(arr);
+                double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                projection_->forward(x,y);
+                Napi::Array arr_out = Napi::Array::New(env, 2);
+                arr_out.Set(0u, Napi::Number::New(env, x));
+                arr_out.Set(1u, Napi::Number::New(env, y));
+                return scope.Escape(arr_out);
             }
             else if (array_length == 4)
             {
                 double ulx, uly, urx, ury, lrx, lry, llx, lly;
-                ulx = llx = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-                lry = lly = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
-                lrx = urx = Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust();
-                uly = ury = Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust();
-                p->projection_->forward(ulx,uly);
-                p->projection_->forward(urx,ury);
-                p->projection_->forward(lrx,lry);
-                p->projection_->forward(llx,lly);
-                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                Nan::Set(arr, 0, Nan::New(std::min(ulx,llx)));
-                Nan::Set(arr, 1, Nan::New(std::min(lry,lly)));
-                Nan::Set(arr, 2, Nan::New(std::max(urx,lrx)));
-                Nan::Set(arr, 3, Nan::New(std::max(ury,uly)));
-                info.GetReturnValue().Set(arr);
+                ulx = llx = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                lry = lly = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                lrx = urx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
+                uly = ury = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
+                projection_->forward(ulx,uly);
+                projection_->forward(urx,ury);
+                projection_->forward(lrx,lry);
+                projection_->forward(llx,lly);
+                Napi::Array arr_out = Napi::Array::New(env, 4);
+                arr_out.Set(0u, Napi::Number::New(env, std::min(ulx,llx)));
+                arr_out.Set(1u, Napi::Number::New(env, std::min(lry,lly)));
+                arr_out.Set(2u, Napi::Number::New(env, std::max(urx,lrx)));
+                arr_out.Set(3u, Napi::Number::New(env, std::max(ury,uly)));
+                return scope.Escape(arr_out);
             }
             else
             {
-                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                return;
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
+                return env.Undefined();
             }
         }
     } catch (std::exception const & ex) {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 }
 
@@ -173,247 +163,262 @@ NAN_METHOD(Projection::forward)
  * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
  * @returns {Array<number>} unprojected coordinates
  */
-NAN_METHOD(Projection::inverse)
+Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
 {
-    Projection* p = Nan::ObjectWrap::Unwrap<Projection>(info.Holder());
+
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
     try
     {
-        if (info.Length() != 1) {
-            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
-        } else {
-            if (!info[0]->IsArray()) {
-                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                return;
+        if (info.Length() != 1)
+        {
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        else
+        {
+            if (!info[0].IsArray())
+            {
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                    .ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Array> a = info[0].As<v8::Array>();
-            unsigned int array_length = a->Length();
+            Napi::Array arr_in = info[0].As<Napi::Array>();
+            unsigned int array_length = arr_in.Length();
             if (array_length == 2)
             {
-                double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-                double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
-                p->projection_->inverse(x,y);
-                v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-                Nan::Set(arr, 0, Nan::New(x));
-                Nan::Set(arr, 1, Nan::New(y));
-                info.GetReturnValue().Set(arr);
+                double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                projection_->inverse(x,y);
+                Napi::Array arr_out = Napi::Array::New(env, 2);
+                arr_out.Set(0u, Napi::Number::New(env, x));
+                arr_out.Set(1u, Napi::Number::New(env, y));
+                return scope.Escape(arr_out);
             }
             else if (array_length == 4)
             {
-                double minx = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-                double miny = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
-                double maxx = Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust();
-                double maxy = Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust();
-                p->projection_->inverse(minx,miny);
-                p->projection_->inverse(maxx,maxy);
-                v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-                Nan::Set(arr, 0, Nan::New(minx));
-                Nan::Set(arr, 1, Nan::New(miny));
-                Nan::Set(arr, 2, Nan::New(maxx));
-                Nan::Set(arr, 3, Nan::New(maxy));
-                info.GetReturnValue().Set(arr);
+                double minx = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+                double miny = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
+                double maxx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
+                double maxy = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
+                projection_->inverse(minx,miny);
+                projection_->inverse(maxx,maxy);
+                Napi::Array arr_out = Napi::Array::New(env, 4);
+                arr_out.Set(0u, Napi::Number::New(env, minx));
+                arr_out.Set(1u, Napi::Number::New(env, miny));
+                arr_out.Set(2u, Napi::Number::New(env, maxx));
+                arr_out.Set(3u, Napi::Number::New(env, maxy));
+                return scope.Escape(arr_out);
             }
             else
             {
-                Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-                return;
+                Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                    .ThrowAsJavaScriptException();
+                return env.Undefined();
             }
         }
-    } catch (std::exception const & ex) {
-        Nan::ThrowError(ex.what());
-        return;
+    } catch (std::exception const & ex)
+    {
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
     }
 }
 
-Nan::Persistent<v8::FunctionTemplate> ProjTransform::constructor;
+Napi::FunctionReference ProjTransform::constructor;
 
-void ProjTransform::Initialize(v8::Local<v8::Object> target) {
-
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(ProjTransform::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("ProjTransform").ToLocalChecked());
-
-    Nan::SetPrototypeMethod(lcons, "forward", forward);
-    Nan::SetPrototypeMethod(lcons, "backward", backward);
-
-    Nan::Set(target, Nan::New("ProjTransform").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-ProjTransform::ProjTransform(mapnik::projection const& src,
-                             mapnik::projection const& dest) :
-    Nan::ObjectWrap(),
-    this_(std::make_shared<mapnik::proj_transform>(src,dest)) {}
-
-ProjTransform::~ProjTransform()
+Napi::Object ProjTransform::Initialize(Napi::Env env, Napi::Object exports)
 {
+    Napi::HandleScope scope(env);
+
+    Napi::Function func = DefineClass(env, "ProjTransform", {
+            InstanceMethod<&ProjTransform::forward>("forward"),
+            InstanceMethod<&ProjTransform::backward>("backward")
+         });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("ProjTransform", func);
+    return exports;
 }
 
-NAN_METHOD(ProjTransform::New)
+
+ProjTransform::ProjTransform(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<ProjTransform>(info)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
+    Napi::Env env = info.Env();
+
+    if (info.Length() != 2 || !info[0].IsObject()  || !info[1].IsObject())
+    {
+        Napi::TypeError::New(env, "please provide two arguments: a pair of mapnik.Projection objects")
+            .ThrowAsJavaScriptException();
         return;
     }
 
-    if (info.Length() != 2 || !info[0]->IsObject()  || !info[1]->IsObject()) {
-        Nan::ThrowTypeError("please provide two arguments: a pair of mapnik.Projection objects");
+    Napi::Object src_obj = info[0].As<Napi::Object>();
+
+    if (!src_obj.InstanceOf(Projection::constructor.Value()))
+    {
+        Napi::TypeError::New(env, "mapnik.Projection expected for first argument")
+            .ThrowAsJavaScriptException();
         return;
     }
 
-    v8::Local<v8::Object> src_obj = info[0].As<v8::Object>();
-    if (src_obj->IsNull() || src_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(src_obj)) {
-        Nan::ThrowTypeError("mapnik.Projection expected for first argument");
+    Napi::Object dst_obj = info[1].As<Napi::Object>();
+    if (!dst_obj.InstanceOf(Projection::constructor.Value()))
+    {
+        Napi::TypeError::New(env, "mapnik.Projection expected for second argument").ThrowAsJavaScriptException();
         return;
     }
-
-    v8::Local<v8::Object> dest_obj = info[1].As<v8::Object>();
-    if (dest_obj->IsNull() || dest_obj->IsUndefined() || !Nan::New(Projection::constructor)->HasInstance(dest_obj)) {
-        Nan::ThrowTypeError("mapnik.Projection expected for second argument");
-        return;
-    }
-
-    Projection *p1 = Nan::ObjectWrap::Unwrap<Projection>(src_obj);
-    Projection *p2 = Nan::ObjectWrap::Unwrap<Projection>(dest_obj);
+    Projection *p1 = Napi::ObjectWrap<Projection>::Unwrap(src_obj);
+    Projection *p2 = Napi::ObjectWrap<Projection>::Unwrap(dst_obj);
 
     try
     {
-        ProjTransform* p = new ProjTransform(*p1->get(),*p2->get());
-        p->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
+        proj_transform_ = std::make_shared<mapnik::proj_transform>(*p1->projection_, *p2->projection_);
     }
     catch (std::exception const& ex)
     {
-        Nan::ThrowError(ex.what());
-        return;
+        Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
     }
 }
 
-NAN_METHOD(ProjTransform::forward)
+Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
 {
-    ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
-    if (info.Length() != 1) {
-        Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-        return;
-    } else {
-        if (!info[0]->IsArray()) {
-            Nan::ThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
+    if (info.Length() != 1)
+    {
+        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    else
+    {
+        if (!info[0].IsArray())
+        {
+            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
 
-        v8::Local<v8::Array> a = info[0].As<v8::Array>();
-        unsigned int array_length = a->Length();
+        Napi::Array arr_in = info[0].As<Napi::Array>();
+        unsigned int array_length = arr_in.Length();
         if (array_length == 2)
         {
-            double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-            double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
+            double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+            double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
             double z = 0;
-            if (!p->this_->forward(x,y,z))
+            if (!proj_transform_->forward(x, y, z))
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << x <<  "," << y << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                Nan::ThrowError(s.str().c_str());
-                return;
-
+                  << x <<  "," << y << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            Nan::Set(arr, 0, Nan::New(x));
-            Nan::Set(arr, 1, Nan::New(y));
-            info.GetReturnValue().Set(arr);
+            Napi::Array arr_out = Napi::Array::New(env, 2);
+            arr_out.Set(0u, Napi::Number::New(env, x));
+            arr_out.Set(1u, Napi::Number::New(env, y));
+            return scope.Escape(arr_out);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box(Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust());
-            if (!p->this_->forward(box))
+            mapnik::box2d<double> box(arr_in.Get(0u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(1u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(2u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(3u).As<Napi::Number>().DoubleValue());
+            if (!proj_transform_->forward(box))
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                Nan::ThrowError(s.str().c_str());
-                return;
+                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
+                return env.Undefined();
             }
-            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            Nan::Set(arr, 0, Nan::New(box.minx()));
-            Nan::Set(arr, 1, Nan::New(box.miny()));
-            Nan::Set(arr, 2, Nan::New(box.maxx()));
-            Nan::Set(arr, 3, Nan::New(box.maxy()));
-            info.GetReturnValue().Set(arr);
+            Napi::Array arr_out = Napi::Array::New(env, 4);
+            arr_out.Set(0u, Napi::Number::New(env, box.minx()));
+            arr_out.Set(1u, Napi::Number::New(env, box.miny()));
+            arr_out.Set(2u, Napi::Number::New(env, box.maxx()));
+            arr_out.Set(3u, Napi::Number::New(env, box.maxy()));
+            return scope.Escape(arr_out);
         }
         else
         {
-            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
     }
 }
 
-NAN_METHOD(ProjTransform::backward)
+Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
 {
-    ProjTransform* p = Nan::ObjectWrap::Unwrap<ProjTransform>(info.Holder());
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
 
-    if (info.Length() != 1) {
-        Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-        return;
-    } else {
-        if (!info[0]->IsArray())
+    if (info.Length() != 1)
+    {
+        Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+            .ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    else
+    {
+        if (!info[0].IsArray())
         {
-            Nan::ThrowTypeError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
+            Napi::TypeError::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Null();
         }
 
-        v8::Local<v8::Array> a = info[0].As<v8::Array>();
-        unsigned int array_length = a->Length();
+        Napi::Array arr_in = info[0].As<Napi::Array>();
+        unsigned int array_length = arr_in.Length();
         if (array_length == 2)
         {
-            double x = Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust();
-            double y = Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust();
+            double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
+            double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
             double z = 0;
-            if (!p->this_->backward(x,y,z))
+            if (!proj_transform_->backward(x,y,z))
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << x << "," << y << " from " << p->this_->dest().params() << " to: " << p->this_->source().params();
-                Nan::ThrowError(s.str().c_str());
-                return;
+                  << x << "," << y << " from " << proj_transform_->dest().params() << " to: " << proj_transform_->source().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Array> arr = Nan::New<v8::Array>(2);
-            Nan::Set(arr, 0, Nan::New(x));
-            Nan::Set(arr, 1, Nan::New(y));
-            info.GetReturnValue().Set(arr);
+            Napi::Array arr_out = Napi::Array::New(env, 2);
+            arr_out.Set(0u, Napi::Number::New(env, x));
+            arr_out.Set(1u, Napi::Number::New(env, y));
+            return scope.Escape(arr_out);
         }
         else if (array_length == 4)
         {
-            mapnik::box2d<double> box(Nan::To<double>(Nan::Get(a, 0).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 1).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 2).ToLocalChecked()).FromJust(),
-                                      Nan::To<double>(Nan::Get(a, 3).ToLocalChecked()).FromJust());
-            if (!p->this_->backward(box))
+            mapnik::box2d<double> box(arr_in.Get(0u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(1u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(2u).As<Napi::Number>().DoubleValue(),
+                                      arr_in.Get(3u).As<Napi::Number>().DoubleValue());
+            if (!proj_transform_->backward(box))
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << box << " from " << p->this_->source().params() << " to " << p->this_->dest().params();
-                Nan::ThrowError(s.str().c_str());
-                return;
+                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
+                return env.Null();
             }
-            v8::Local<v8::Array> arr = Nan::New<v8::Array>(4);
-            Nan::Set(arr, 0, Nan::New(box.minx()));
-            Nan::Set(arr, 1, Nan::New(box.miny()));
-            Nan::Set(arr, 2, Nan::New(box.maxx()));
-            Nan::Set(arr, 3, Nan::New(box.maxy()));
-            info.GetReturnValue().Set(arr);
+            Napi::Array arr_out = Napi::Array::New(env, 4);
+            arr_out.Set(0u, Napi::Number::New(env, box.minx()));
+            arr_out.Set(1u, Napi::Number::New(env, box.miny()));
+            arr_out.Set(2u, Napi::Number::New(env, box.maxx()));
+            arr_out.Set(3u, Napi::Number::New(env, box.maxy()));
+            return scope.Escape(arr_out);
         }
         else
         {
-            Nan::ThrowError("Must provide an array of either [x,y] or [minx,miny,maxx,maxy]");
-            return;
+            Napi::Error::New(env, "Must provide an array of either [x,y] or [minx,miny,maxx,maxy]")
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
         }
     }
 }

@@ -1,14 +1,23 @@
 #include "mapnik_color.hpp"
 
-#include "utils.hpp"                    // for ATTR, TOSTR
+Napi::FunctionReference Color::constructor;
 
-// mapnik
-#include <mapnik/color.hpp>             // for color
-
-// stl
-#include <exception>                    // for exception
-
-Nan::Persistent<v8::FunctionTemplate> Color::constructor;
+Napi::Object Color::Initialize(Napi::Env env, Napi::Object exports)
+{
+    Napi::Function func = DefineClass(env, "Color", {
+            InstanceMethod<&Color::hex>("hex"),
+            InstanceMethod<&Color::toString>("toString"),
+            InstanceAccessor<&Color::red, &Color::red>("r"),
+            InstanceAccessor<&Color::green, &Color::green>("g"),
+            InstanceAccessor<&Color::blue, &Color::blue>("b"),
+            InstanceAccessor<&Color::alpha, &Color::alpha>("a"),
+            InstanceAccessor<&Color::premultiplied, &Color::premultiplied>("premultiplied")
+        });
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Color", func);
+    return exports;
+}
 
 /**
  * **`mapnik.Color`**
@@ -29,203 +38,185 @@ Nan::Persistent<v8::FunctionTemplate> Color::constructor;
  * // premultiplied
  * var c = new mapnik.Color(0, 128, 0, 255, true);
  */
-void Color::Initialize(v8::Local<v8::Object> target) {
 
-    Nan::HandleScope scope;
-
-    v8::Local<v8::FunctionTemplate> lcons = Nan::New<v8::FunctionTemplate>(Color::New);
-    lcons->InstanceTemplate()->SetInternalFieldCount(1);
-    lcons->SetClassName(Nan::New("Color").ToLocalChecked());
-
-    // methods
-    Nan::SetPrototypeMethod(lcons, "hex", hex);
-    Nan::SetPrototypeMethod(lcons, "toString", toString);
-
-    // properties
-    ATTR(lcons, "r", get_prop, set_prop);
-    ATTR(lcons, "g", get_prop, set_prop);
-    ATTR(lcons, "b", get_prop, set_prop);
-    ATTR(lcons, "a", get_prop, set_prop);
-    ATTR(lcons, "premultiplied", get_premultiplied, set_premultiplied);
-
-    Nan::Set(target, Nan::New("Color").ToLocalChecked(), Nan::GetFunction(lcons).ToLocalChecked());
-    constructor.Reset(lcons);
-}
-
-Color::Color() :
-    Nan::ObjectWrap(),
-    this_() {}
-
-Color::~Color()
+Color::Color(Napi::CallbackInfo const& info)
+    : Napi::ObjectWrap<Color>(info)
 {
+    Napi::Env env = info.Env();
+    if (info.Length() == 1 && info[0].IsExternal())
+    {
+        auto ext = info[0].As<Napi::External<mapnik::color>>();
+        if (ext) color_ = *ext.Data();
+        return;
+    }
+    else if (info.Length() == 1 && info[0].IsString())
+    {
+        try
+        {
+            color_ = mapnik::color{info[0].As<Napi::String>()};
+        }
+        catch (std::exception const& ex)
+        {
+            Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+        }
+    }
+    else if (info.Length() == 2 && info[0].IsString() && info[1].IsBoolean())
+    {
+        try
+        {
+            color_ = {info[0].As<Napi::String>()};
+            color_.set_premultiplied(info[1].As<Napi::Boolean>());
+            // FIXME: operator=(rhs) is broken in mapnik
+        }
+        catch (std::exception const& ex)
+        {
+            Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
+        }
+    }
+    else if (info.Length() == 3 && info[0].IsNumber() && info[1].IsNumber() &&
+             info[2].IsNumber())
+    {
+         int r = info[0].As<Napi::Number>().Int32Value();
+         int g = info[1].As<Napi::Number>().Int32Value();
+         int b = info[2].As<Napi::Number>().Int32Value();
+         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+         {
+             Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
+         }
+         color_ = mapnik::color(r, g, b);
+    }
+    else if (info.Length() == 4 && info[0].IsNumber() &&
+             info[1].IsNumber() && info[2].IsNumber() &&
+             info[3].IsBoolean())
+    {
+        int r = info[0].As<Napi::Number>().Int32Value();
+        int g = info[1].As<Napi::Number>().Int32Value();
+        int b = info[2].As<Napi::Number>().Int32Value();
+        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+        {
+            Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
+        }
+        color_ = mapnik::color(r, g, b, 255);
+        color_.set_premultiplied(info[3].As<Napi::Boolean>());
+    }
+    else if (info.Length() == 4 && info[0].IsNumber() &&
+             info[1].IsNumber() && info[2].IsNumber() &&
+             info[3].IsNumber())
+    {
+        int r = info[0].As<Napi::Number>().Int32Value();
+        int g = info[1].As<Napi::Number>().Int32Value();
+        int b = info[2].As<Napi::Number>().Int32Value();
+        int a = info[3].As<Napi::Number>().Int32Value();
+        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
+        {
+            Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
+        }
+        color_ = mapnik::color(r, g, b, a);
+    }
+    else if (info.Length() == 5 && info[0].IsNumber() &&
+             info[1].IsNumber() && info[2].IsNumber() &&
+             info[3].IsNumber() && info[4].IsBoolean())
+    {
+        int r = info[0].As<Napi::Number>().Int32Value();
+        int g = info[1].As<Napi::Number>().Int32Value();
+        int b = info[2].As<Napi::Number>().Int32Value();
+        int a = info[3].As<Napi::Number>().Int32Value();
+        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
+        {
+            Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
+        }
+        color_ = mapnik::color(r, g, b, a);
+        color_.set_premultiplied(info[4].As<Napi::Boolean>());
+    }
+    else
+    {
+        Napi::TypeError::New(env, "invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values")
+            .ThrowAsJavaScriptException();
+    }
 }
 
-NAN_METHOD(Color::New)
+Napi::Value Color::red(Napi::CallbackInfo const& info)
 {
-    if (!info.IsConstructCall())
-    {
-        Nan::ThrowError("Cannot call constructor as function, you need to use 'new' keyword");
-        return;
-    }
-
-    if (info[0]->IsExternal())
-    {
-        v8::Local<v8::External> ext = info[0].As<v8::External>();
-        void* ptr = ext->Value();
-        Color* c = static_cast<Color*>(ptr);
-        c->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-        return;
-    }
-
-    color_ptr c_p;
-    try
-    {
-        if (info.Length() == 1 &&
-            info[0]->IsString())
-        {
-            c_p = std::make_shared<mapnik::color>(TOSTR(info[0]));
-        }
-        else if (info.Length() == 2 &&
-                 info[0]->IsString() &&
-                 info[1]->IsBoolean())
-        {
-            c_p = std::make_shared<mapnik::color>(TOSTR(info[0]),Nan::To<bool>(info[1]).FromJust());
-        }
-        else if (info.Length() == 3 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber())
-        {
-            int r = Nan::To<int>(info[0]).FromJust();
-            int g = Nan::To<int>(info[1]).FromJust();
-            int b = Nan::To<int>(info[2]).FromJust();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-            {
-                Nan::ThrowTypeError("color value out of range");
-                return;
-            }
-            c_p = std::make_shared<mapnik::color>(r,g,b);
-        }
-        else if (info.Length() == 4 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsBoolean())
-        {
-            int r = Nan::To<int>(info[0]).FromJust();
-            int g = Nan::To<int>(info[1]).FromJust();
-            int b = Nan::To<int>(info[2]).FromJust();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-            {
-                Nan::ThrowTypeError("color value out of range");
-                return;
-            }
-            c_p = std::make_shared<mapnik::color>(r,g,b,255,Nan::To<bool>(info[3]).FromJust());
-        }
-        else if (info.Length() == 4 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsNumber())
-        {
-            int r = Nan::To<int>(info[0]).FromJust();
-            int g = Nan::To<int>(info[1]).FromJust();
-            int b = Nan::To<int>(info[2]).FromJust();
-            int a = Nan::To<int>(info[3]).FromJust();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
-            {
-                Nan::ThrowTypeError("color value out of range");
-                return;
-            }
-            c_p = std::make_shared<mapnik::color>(r,g,b,a);
-        }
-        else if (info.Length() == 5 &&
-                 info[0]->IsNumber() &&
-                 info[1]->IsNumber() &&
-                 info[2]->IsNumber() &&
-                 info[3]->IsNumber() &&
-                 info[4]->IsBoolean())
-        {
-            int r = Nan::To<int>(info[0]).FromJust();
-            int g = Nan::To<int>(info[1]).FromJust();
-            int b = Nan::To<int>(info[2]).FromJust();
-            int a = Nan::To<int>(info[3]).FromJust();
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255)
-            {
-                Nan::ThrowTypeError("color value out of range");
-                return;
-            }
-            c_p = std::make_shared<mapnik::color>(r,g,b,a,Nan::To<bool>(info[4]).FromJust());
-        }
-        else
-        {
-            Nan::ThrowTypeError("invalid arguments: colors can be created from a string, integer r,g,b values, or integer r,g,b,a values");
-            return;
-        }
-        // todo allow int,int,int and int,int,int,int contructor
-
-    }
-    catch (std::exception const& ex)
-    {
-        Nan::ThrowError(ex.what());
-        return;
-    }
-
-    Color* c = new Color();
-    c->Wrap(info.This());
-    c->this_ = c_p;
-    info.GetReturnValue().Set(info.This());
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, color_.red());
 }
 
-v8::Local<v8::Value> Color::NewInstance(mapnik::color const& color) {
-    Nan::EscapableHandleScope scope;
-    Color* c = new Color();
-    c->this_ = std::make_shared<mapnik::color>(color);
-    v8::Local<v8::Value> ext = Nan::New<v8::External>(c);
-    Nan::MaybeLocal<v8::Object> maybe_local = Nan::NewInstance(Nan::GetFunction(Nan::New(constructor)).ToLocalChecked(), 1, &ext);
-    if (maybe_local.IsEmpty()) Nan::ThrowError("Could not create new Color instance");
-    return scope.Escape(maybe_local.ToLocalChecked());
-}
-
-NAN_GETTER(Color::get_prop)
+void Color::red(Napi::CallbackInfo const& info, Napi::Value const& val)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    std::string a = TOSTR(property);
-    if (a == "a")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->alpha()));
-    else if (a == "r")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->red()));
-    else if (a == "g")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->green()));
-    else //if (a == "b")
-        info.GetReturnValue().Set(Nan::New<v8::Integer>(c->get()->blue()));
+    Napi::Env env = info.Env();
+    if (!val.IsNumber())
+    {
+        Napi::TypeError::New(env, "color channel value must be an integer").ThrowAsJavaScriptException();
+    }
+    int r = val.As<Napi::Number>().Int32Value();
+    if (r < 0 || r > 255)
+    {
+        Napi::TypeError::New(env, "Value out of range for color channel").ThrowAsJavaScriptException();
+    }
+    color_.set_red(r);
 }
 
-NAN_SETTER(Color::set_prop)
+Napi::Value Color::green(Napi::CallbackInfo const& info)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    std::string a = TOSTR(property);
-    if (!value->IsNumber())
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, color_.green());
+}
+
+void Color::green(Napi::CallbackInfo const& info, Napi::Value const& val)
+{
+    Napi::Env env = info.Env();
+    if (!val.IsNumber())
     {
-        Nan::ThrowTypeError("color channel value must be an integer");
-        return;
+        Napi::TypeError::New(env, "color channel value must be an integer").ThrowAsJavaScriptException();
     }
-    int val = Nan::To<int>(value).FromJust();
-    if (val < 0 || val > 255)
+    int g = val.As<Napi::Number>().Int32Value();
+    if (g < 0 || g > 255)
     {
-        Nan::ThrowTypeError("Value out of range for color channel");
-        return;
+        Napi::TypeError::New(env, "Value out of range for color channel").ThrowAsJavaScriptException();
     }
-    if (a == "a") {
-        c->get()->set_alpha(val);
-    } else if (a == "r") {
-        c->get()->set_red(val);
-    } else if (a == "g") {
-        c->get()->set_green(val);
-    } else if (a == "b") {
-        c->get()->set_blue(val);
+    color_.set_green(g);
+}
+
+Napi::Value Color::blue(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, color_.blue());
+}
+
+void Color::blue(Napi::CallbackInfo const& info, Napi::Value const& val)
+{
+    Napi::Env env = info.Env();
+    if (!val.IsNumber())
+    {
+        Napi::TypeError::New(env, "color channel value must be an integer").ThrowAsJavaScriptException();
     }
+    int b = val.As<Napi::Number>().Int32Value();
+    if (b < 0 || b > 255)
+    {
+        Napi::TypeError::New(env, "Value out of range for color channel").ThrowAsJavaScriptException();
+    }
+    color_.set_blue(b);
+}
+
+Napi::Value Color::alpha(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::Number::New(env, color_.alpha());
+}
+
+void Color::alpha(Napi::CallbackInfo const& info, Napi::Value const& val)
+{
+    Napi::Env env = info.Env();
+    if (!val.IsNumber())
+    {
+        Napi::TypeError::New(env, "color channel value must be an integer").ThrowAsJavaScriptException();
+    }
+    int a = val.As<Napi::Number>().Int32Value();
+    if (a < 0 || a > 255)
+    {
+        Napi::TypeError::New(env, "Value out of range for color channel").ThrowAsJavaScriptException();
+    }
+    color_.set_alpha(a);
 }
 
 
@@ -237,12 +228,13 @@ NAN_SETTER(Color::set_prop)
  * @instance
  * @returns {boolean} premultiplied
  */
-NAN_GETTER(Color::get_premultiplied)
+
+Napi::Value Color::premultiplied(Napi::CallbackInfo const& info)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::Boolean>(c->get()->get_premultiplied()));
-    return;
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, color_.get_premultiplied());
 }
+
 
 /**
  * Set whether this color should be premultiplied
@@ -256,15 +248,15 @@ NAN_GETTER(Color::get_premultiplied)
  * c.set_premultiplied(true);
  * @throws {TypeError} given a non-boolean argument
  */
-NAN_SETTER(Color::set_premultiplied)
+
+void Color::premultiplied(Napi::CallbackInfo const& info, Napi::Value const& val)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    if (!value->IsBoolean())
+    Napi::Env env = info.Env();
+    if (!val.IsBoolean())
     {
-        Nan::ThrowTypeError("Value set to premultiplied must be a boolean");
-        return;
+        Napi::TypeError::New(env, "Value set to premultiplied must be a boolean").ThrowAsJavaScriptException();
     }
-    c->get()->set_premultiplied(Nan::To<bool>(value).FromJust());
+    color_.set_premultiplied(val.As<Napi::Boolean>());
 }
 
 /**
@@ -279,10 +271,11 @@ NAN_SETTER(Color::set_premultiplied)
  * green.toString()
  * // 'rgb(0,128,0)'
  */
-NAN_METHOD(Color::toString)
+
+Napi::Value Color::toString(Napi::CallbackInfo const& info)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    info.GetReturnValue().Set(Nan::New<v8::String>(c->get()->to_string()).ToLocalChecked());
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, color_.to_string());
 }
 
 /**
@@ -297,9 +290,9 @@ NAN_METHOD(Color::toString)
  * c.hex();
  * // '#008000'
  */
-NAN_METHOD(Color::hex)
+
+Napi::Value Color::hex(Napi::CallbackInfo const& info)
 {
-    Color* c = Nan::ObjectWrap::Unwrap<Color>(info.Holder());
-    std::string hex = c->get()->to_hex_string();
-    info.GetReturnValue().Set(Nan::New<v8::String>(hex).ToLocalChecked());
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, color_.to_hex_string());
 }

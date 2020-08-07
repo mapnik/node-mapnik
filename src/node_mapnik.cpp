@@ -1,4 +1,6 @@
 // Vector Tile
+#define _USE_MATH_DEFINES
+#include <cmath> // M_PI
 #include "vector_tile_config.hpp"
 
 // node-mapnik
@@ -15,7 +17,6 @@
 #include "mapnik_layer.hpp"
 #include "mapnik_datasource.hpp"
 #include "mapnik_featureset.hpp"
-#include "mapnik_memory_datasource.hpp"
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_cairo_surface.hpp"
@@ -24,7 +25,6 @@
 #include "mapnik_grid_view.hpp"
 #endif
 #include "mapnik_expression.hpp"
-#include "utils.hpp"
 #include "blend.hpp"
 
 // mapnik
@@ -48,9 +48,6 @@
 
 namespace node_mapnik {
 
-
-
-
 static std::string format_version(int version)
 {
     std::ostringstream s;
@@ -58,31 +55,32 @@ static std::string format_version(int version)
     return s.str();
 }
 
-static NAN_METHOD(clearCache)
+static Napi::Value clearCache(Napi::CallbackInfo const& info)
 {
-    Nan::HandleScope scope;
+    Napi::Env env = info.Env();
 #if defined(MAPNIK_MEMORY_MAPPED_FILE)
+    Napi::HandleScope scope(env);
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #endif
-    return;
+    return env.Undefined();
 }
-
+}
 /**
  * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
  * set of bindings to `mapnik` for node.js.
  *
  * ### Plugins
- * 
+ *
  * Node Mapnik relies on a set of datasource input plugins that must be configured prior to using the API.
  * These plugins are either built into Mapnik, such as the "geojson" plugin
- * or rely on exeternal dependencies, such as GDAL. All plugin methods exist on the `mapnik` 
+ * or rely on exeternal dependencies, such as GDAL. All plugin methods exist on the `mapnik`
  * class level.
  *
  * Plugins are referenced based on the location of the bindings on your system. These paths are generated
  * in the lib/binding/{build}/mapnik_settings.js file. These settings can be referenced by the `mapnik.settings` object. We recommend using the `require('path')`
  * object when building these paths:
- * 
+ *
  * ```
  * path.resolve(mapnik.settings.paths.input_plugins, 'geojson.input')
  * ```
@@ -95,154 +93,25 @@ static NAN_METHOD(clearCache)
  * grid, svg, cairo, cairo_pdf, cairo_svg, png, jpeg, tiff, webp, proj4, threadsafe
  * @property {Object} versions diagnostic object with versions of
  * node, v8, boost, boost_number, mapnik, mapnik_number, mapnik_git_describe, cairo
- * @property {Object} settings - object that defines local paths for particular plugins and addons. 
- * 
+ * @property {Object} settings - object that defines local paths for particular plugins and addons.
+ *
  * ```
  * // mapnik.settings on OSX
- * { 
- *   paths: { 
+ * {
+ *   paths: {
  *     fonts: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/mapnik/fonts',
- *     input_plugins: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/mapnik/input' 
+ *     input_plugins: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/mapnik/input'
  *   },
- *   env: { 
+ *   env: {
  *     ICU_DATA: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/icu',
  *     GDAL_DATA: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/gdal',
- *     PROJ_LIB: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/proj' 
+ *     PROJ_LIB: '/Users/username/mapnik/node_modules/mapnik/lib/binding/node-v46-darwin-x64/share/mapnik/proj'
  *   }
  * }
  * ```
  * @example
  * var mapnik = require('mapnik');
  */
-extern "C" {
-
-    static void InitMapnik (v8::Local<v8::Object> target)
-    {
-        Nan::HandleScope scope;
-
-        // module level functions
-        Nan::SetMethod(target, "blend",node_mapnik::Blend);
-        Nan::SetMethod(target, "rgb2hsl", rgb2hsl);
-        Nan::SetMethod(target, "hsl2rgb", hsl2rgb);
-        // back compat
-        Nan::SetMethod(target, "registerFonts", node_mapnik::register_fonts);
-        Nan::SetMethod(target, "registerDatasource", node_mapnik::register_datasource);
-        Nan::SetMethod(target, "registerDatasources", node_mapnik::register_datasources);
-        Nan::SetMethod(target, "register_fonts", node_mapnik::register_fonts);
-        Nan::SetMethod(target, "register_datasource", node_mapnik::register_datasource);
-        Nan::SetMethod(target, "register_datasources", node_mapnik::register_datasources);
-        Nan::SetMethod(target, "datasources", node_mapnik::available_input_plugins);
-        Nan::SetMethod(target, "fonts", node_mapnik::available_font_faces);
-        Nan::SetMethod(target, "fontFiles", node_mapnik::available_font_files);
-        Nan::SetMethod(target, "memoryFonts", node_mapnik::memory_fonts);
-        Nan::SetMethod(target, "clearCache", clearCache);
-
-        // Classes
-        VectorTile::Initialize(target);
-        Map::Initialize(target);
-        Color::Initialize(target);
-        Geometry::Initialize(target);
-        Feature::Initialize(target);
-        Image::Initialize(target);
-        ImageView::Initialize(target);
-        Palette::Initialize(target);
-        Projection::Initialize(target);
-        ProjTransform::Initialize(target);
-        Layer::Initialize(target);
-#if defined(GRID_RENDERER)
-        Grid::Initialize(target);
-        GridView::Initialize(target);
-#endif
-        Datasource::Initialize(target);
-        Featureset::Initialize(target);
-        Logger::Initialize(target);
-        // Not production safe, so disabling indefinitely
-        //JSDatasource::Initialize(target);
-        MemoryDatasource::Initialize(target);
-        Expression::Initialize(target);
-        CairoSurface::Initialize(target);
-
-        // versions of deps
-        v8::Local<v8::Object> versions = Nan::New<v8::Object>();
-        Nan::Set(versions, Nan::New("node").ToLocalChecked(), Nan::New<v8::String>(&NODE_VERSION[1]).ToLocalChecked()); // NOTE: +1 strips the v in v0.10.26
-        Nan::Set(versions, Nan::New("v8").ToLocalChecked(), Nan::New<v8::String>(v8::V8::GetVersion()).ToLocalChecked());
-        Nan::Set(versions, Nan::New("boost").ToLocalChecked(), Nan::New<v8::String>(format_version(BOOST_VERSION)).ToLocalChecked());
-        Nan::Set(versions, Nan::New("boost_number").ToLocalChecked(), Nan::New(BOOST_VERSION));
-        Nan::Set(versions, Nan::New("mapnik").ToLocalChecked(), Nan::New<v8::String>(format_version(MAPNIK_VERSION)).ToLocalChecked());
-        Nan::Set(versions, Nan::New("mapnik_number").ToLocalChecked(), Nan::New(MAPNIK_VERSION));
-        Nan::Set(versions, Nan::New("mapnik_git_describe").ToLocalChecked(), Nan::New<v8::String>(MAPNIK_GIT_REVISION).ToLocalChecked());
-#if defined(HAVE_CAIRO)
-        Nan::Set(versions, Nan::New("cairo").ToLocalChecked(), Nan::New<v8::String>(CAIRO_VERSION_STRING).ToLocalChecked());
-#endif
-        Nan::Set(target, Nan::New("versions").ToLocalChecked(), versions);
-
-        v8::Local<v8::Object> supports = Nan::New<v8::Object>();
-#ifdef GRID_RENDERER
-        Nan::Set(supports, Nan::New("grid").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("grid").ToLocalChecked(), Nan::False());
-#endif
-
-#ifdef SVG_RENDERER
-        Nan::Set(supports, Nan::New("svg").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("svg").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(HAVE_CAIRO)
-        Nan::Set(supports, Nan::New("cairo").ToLocalChecked(), Nan::True());
-        #ifdef CAIRO_HAS_PDF_SURFACE
-        Nan::Set(supports, Nan::New("cairo_pdf").ToLocalChecked(), Nan::True());
-        #else
-        Nan::Set(supports, Nan::New("cairo_pdf").ToLocalChecked(), Nan::False());
-        #endif
-        #ifdef CAIRO_HAS_SVG_SURFACE
-        Nan::Set(supports, Nan::New("cairo_svg").ToLocalChecked(), Nan::True());
-        #else
-        Nan::Set(supports, Nan::New("cairo_svg").ToLocalChecked(), Nan::False());
-        #endif
-#else
-        Nan::Set(supports, Nan::New("cairo").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(HAVE_PNG)
-        Nan::Set(supports, Nan::New("png").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("png").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(HAVE_JPEG)
-        Nan::Set(supports, Nan::New("jpeg").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("jpeg").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(HAVE_TIFF)
-        Nan::Set(supports, Nan::New("tiff").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("tiff").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(HAVE_WEBP)
-        Nan::Set(supports, Nan::New("webp").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("webp").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(MAPNIK_USE_PROJ4)
-        Nan::Set(supports, Nan::New("proj4").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("proj4").ToLocalChecked(), Nan::False());
-#endif
-
-#if defined(MAPNIK_THREADSAFE)
-        Nan::Set(supports, Nan::New("threadsafe").ToLocalChecked(), Nan::True());
-#else
-        Nan::Set(supports, Nan::New("threadsafe").ToLocalChecked(), Nan::False());
-#endif
-
-        Nan::Set(target, Nan::New("supports").ToLocalChecked(), supports);
-
 
 /**
  * Image type constants representing color and grayscale encodings.
@@ -289,44 +158,49 @@ extern "C" {
  * @static
  * @class
  */
-        v8::Local<v8::Object> composite_ops = Nan::New<v8::Object>();
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "clear", mapnik::clear)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src", mapnik::src)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst", mapnik::dst)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_over", mapnik::src_over)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_over", mapnik::dst_over)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_in", mapnik::src_in)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_in", mapnik::dst_in)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_out", mapnik::src_out)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_out", mapnik::dst_out)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "src_atop", mapnik::src_atop)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "dst_atop", mapnik::dst_atop)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "xor", mapnik::_xor)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "plus", mapnik::plus)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "minus", mapnik::minus)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "multiply", mapnik::multiply)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "screen", mapnik::screen)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "overlay", mapnik::overlay)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "darken", mapnik::darken)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "lighten", mapnik::lighten)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color_dodge", mapnik::color_dodge)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color_burn", mapnik::color_burn)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hard_light", mapnik::hard_light)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "soft_light", mapnik::soft_light)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "difference", mapnik::difference)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "exclusion", mapnik::exclusion)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "contrast", mapnik::contrast)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert", mapnik::invert)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "invert-rgb", mapnik::invert_rgb)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_merge", mapnik::grain_merge)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "grain_extract", mapnik::grain_extract)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "hue", mapnik::hue)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "saturation", mapnik::saturation)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "color", mapnik::_color)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_dodge", mapnik::linear_dodge)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "linear_burn", mapnik::linear_burn)
-        NODE_MAPNIK_DEFINE_CONSTANT(composite_ops, "divide", mapnik::divide)
-        Nan::Set(target, Nan::New("compositeOp").ToLocalChecked(), composite_ops);
+
+void init_image_comp_op(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object composite_ops = Napi::Object::New(env);
+    composite_ops.Set("clear", Napi::Number::New(env, mapnik::clear));
+    composite_ops.Set("src", Napi::Number::New(env, mapnik::src));
+    composite_ops.Set("dst", Napi::Number::New(env, mapnik::dst));
+    composite_ops.Set("src_over", Napi::Number::New(env, mapnik::src_over));
+    composite_ops.Set("dst_over", Napi::Number::New(env, mapnik::dst_over));
+    composite_ops.Set("src_in", Napi::Number::New(env, mapnik::src_in));
+    composite_ops.Set("dst_in", Napi::Number::New(env, mapnik::dst_in));
+    composite_ops.Set("src_out", Napi::Number::New(env, mapnik::src_out));
+    composite_ops.Set("dst_out", Napi::Number::New(env, mapnik::dst_out));
+    composite_ops.Set("src_atop", Napi::Number::New(env, mapnik::src_atop));
+    composite_ops.Set("dst_atop", Napi::Number::New(env, mapnik::dst_atop));
+    composite_ops.Set("xor", Napi::Number::New(env, mapnik::_xor));
+    composite_ops.Set("plus", Napi::Number::New(env, mapnik::plus));
+    composite_ops.Set("minus", Napi::Number::New(env, mapnik::minus));
+    composite_ops.Set("multiply", Napi::Number::New(env, mapnik::multiply));
+    composite_ops.Set("screen", Napi::Number::New(env, mapnik::screen));
+    composite_ops.Set("overlay", Napi::Number::New(env, mapnik::overlay));
+    composite_ops.Set("darken", Napi::Number::New(env, mapnik::darken));
+    composite_ops.Set("lighten", Napi::Number::New(env, mapnik::lighten));
+    composite_ops.Set("color_dodge", Napi::Number::New(env, mapnik::color_dodge));
+    composite_ops.Set("color_burn", Napi::Number::New(env, mapnik::color_burn));
+    composite_ops.Set("hard_light", Napi::Number::New(env, mapnik::hard_light));
+    composite_ops.Set("soft_light", Napi::Number::New(env, mapnik::soft_light));
+    composite_ops.Set("difference", Napi::Number::New(env, mapnik::difference));
+    composite_ops.Set("exclusion", Napi::Number::New(env, mapnik::exclusion));
+    composite_ops.Set("contrast", Napi::Number::New(env, mapnik::contrast));
+    composite_ops.Set("invert", Napi::Number::New(env, mapnik::invert));
+    composite_ops.Set("invert-rgb", Napi::Number::New(env, mapnik::invert_rgb));
+    composite_ops.Set("grain_merge", Napi::Number::New(env, mapnik::grain_merge));
+    composite_ops.Set("grain_extract", Napi::Number::New(env, mapnik::grain_extract));
+    composite_ops.Set("hue", Napi::Number::New(env, mapnik::hue));
+    composite_ops.Set("saturation", Napi::Number::New(env, mapnik::saturation));
+    composite_ops.Set("color", Napi::Number::New(env, mapnik::_color));
+    composite_ops.Set("linear_dodge", Napi::Number::New(env, mapnik::linear_dodge));
+    composite_ops.Set("linear_burn", Napi::Number::New(env, mapnik::linear_burn));
+    composite_ops.Set("divide", Napi::Number::New(env, mapnik::divide));
+    exports.Set("compositeOp", composite_ops);
+}
+
 /**
  * Image type constants representing color and grayscale encodings.
  *
@@ -346,20 +220,25 @@ extern "C" {
  * @property {number} gray64s
  * @property {number} gray64f
  */
-        v8::Local<v8::Object> image_types = Nan::New<v8::Object>();
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "null", mapnik::image_dtype_null)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "rgba8", mapnik::image_dtype_rgba8)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8", mapnik::image_dtype_gray8)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray8s", mapnik::image_dtype_gray8s)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray16", mapnik::image_dtype_gray16)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray16s", mapnik::image_dtype_gray16s)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32", mapnik::image_dtype_gray32)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32s", mapnik::image_dtype_gray32s)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray32f", mapnik::image_dtype_gray32f)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64", mapnik::image_dtype_gray64)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64s", mapnik::image_dtype_gray64s)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_types, "gray64f", mapnik::image_dtype_gray64f)
-        Nan::Set(target, Nan::New("imageType").ToLocalChecked(), image_types);
+
+void init_image_types(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object image_types = Napi::Object::New(env);
+    image_types.Set("null",    Napi::Number::New(env, mapnik::image_dtype_null));
+    image_types.Set("rgba8",   Napi::Number::New(env, mapnik::image_dtype_rgba8));
+    image_types.Set("gray8",   Napi::Number::New(env, mapnik::image_dtype_gray8));
+    image_types.Set("gray8s",  Napi::Number::New(env, mapnik::image_dtype_gray8s));
+    image_types.Set("gray16",  Napi::Number::New(env, mapnik::image_dtype_gray16));
+    image_types.Set("gray16s", Napi::Number::New(env, mapnik::image_dtype_gray16s));
+    image_types.Set("gray32",  Napi::Number::New(env, mapnik::image_dtype_gray32));
+    image_types.Set("gray32s", Napi::Number::New(env, mapnik::image_dtype_gray32s));
+    image_types.Set("gray32f", Napi::Number::New(env, mapnik::image_dtype_gray32f));
+    image_types.Set("gray64",  Napi::Number::New(env, mapnik::image_dtype_gray64));
+    image_types.Set("gray64s", Napi::Number::New(env, mapnik::image_dtype_gray64s));
+    image_types.Set("gray64f", Napi::Number::New(env, mapnik::image_dtype_gray64f));
+    exports.Set("imageType", image_types);
+}
+
 
 /**
  * Image scaling type constants representing color and grayscale encodings.
@@ -386,25 +265,29 @@ extern "C" {
  * @property {number} lanczos
  * @property {number} blackman
  */
-        v8::Local<v8::Object> image_scaling_types = Nan::New<v8::Object>();
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "near", mapnik::SCALING_NEAR)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bilinear", mapnik::SCALING_BILINEAR)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bicubic", mapnik::SCALING_BICUBIC)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline16", mapnik::SCALING_SPLINE16)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "spline36", mapnik::SCALING_SPLINE36)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hanning", mapnik::SCALING_HANNING)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hamming", mapnik::SCALING_HAMMING)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "hermite", mapnik::SCALING_HERMITE)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "kaiser", mapnik::SCALING_KAISER)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "quadric", mapnik::SCALING_QUADRIC)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "catrom", mapnik::SCALING_CATROM)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "gaussian", mapnik::SCALING_GAUSSIAN)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "bessel", mapnik::SCALING_BESSEL)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "mitchell", mapnik::SCALING_MITCHELL)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "sinc", mapnik::SCALING_SINC)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "lanczos", mapnik::SCALING_LANCZOS)
-        NODE_MAPNIK_DEFINE_CONSTANT(image_scaling_types, "blackman", mapnik::SCALING_BLACKMAN)
-        Nan::Set(target, Nan::New("imageScaling").ToLocalChecked(), image_scaling_types);
+
+void init_image_scalings(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object image_scaling_types = Napi::Object::New(env);
+    image_scaling_types.Set("near", Napi::Number::New(env, mapnik::SCALING_NEAR));
+    image_scaling_types.Set("bilinear", Napi::Number::New(env, mapnik::SCALING_BILINEAR));
+    image_scaling_types.Set("bicubic", Napi::Number::New(env, mapnik::SCALING_BICUBIC));
+    image_scaling_types.Set("spline16", Napi::Number::New(env, mapnik::SCALING_SPLINE16));
+    image_scaling_types.Set("spline36", Napi::Number::New(env, mapnik::SCALING_SPLINE36));
+    image_scaling_types.Set("hanning", Napi::Number::New(env, mapnik::SCALING_HANNING));
+    image_scaling_types.Set("hamming", Napi::Number::New(env, mapnik::SCALING_HAMMING));
+    image_scaling_types.Set("hermite", Napi::Number::New(env, mapnik::SCALING_HERMITE));
+    image_scaling_types.Set("kaiser", Napi::Number::New(env, mapnik::SCALING_KAISER));
+    image_scaling_types.Set("quadric", Napi::Number::New(env, mapnik::SCALING_QUADRIC));
+    image_scaling_types.Set("catrom", Napi::Number::New(env, mapnik::SCALING_CATROM));
+    image_scaling_types.Set("gaussian", Napi::Number::New(env, mapnik::SCALING_GAUSSIAN));
+    image_scaling_types.Set("bessel", Napi::Number::New(env, mapnik::SCALING_BESSEL));
+    image_scaling_types.Set("mitchell",Napi::Number::New(env, mapnik::SCALING_MITCHELL));
+    image_scaling_types.Set("sinc", Napi::Number::New(env, mapnik::SCALING_SINC));
+    image_scaling_types.Set("lanczos", Napi::Number::New(env, mapnik::SCALING_LANCZOS));
+    image_scaling_types.Set("blackman", Napi::Number::New(env, mapnik::SCALING_BLACKMAN));
+    exports.Set("imageScaling", image_scaling_types);
+}
 
 /**
  * Constants representing fill types understood by [Clipper during vector tile encoding](http://www.angusj.com/delphi/clipper/documentation/Docs/Units/ClipperLib/Types/PolyFillType.htm).
@@ -418,12 +301,15 @@ extern "C" {
  * @property {number} positive
  * @property {number} negative
  */
-        v8::Local<v8::Object> polygon_fill_types = Nan::New<v8::Object>();
-        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "evenOdd", mapnik::vector_tile_impl::even_odd_fill)
-        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "nonZero", mapnik::vector_tile_impl::non_zero_fill)
-        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "positive", mapnik::vector_tile_impl::positive_fill)
-        NODE_MAPNIK_DEFINE_CONSTANT(polygon_fill_types, "negative", mapnik::vector_tile_impl::negative_fill)
-        Nan::Set(target, Nan::New("polygonFillType").ToLocalChecked(), polygon_fill_types);
+void init_polygon_fill_types(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object polygon_fill_types = Napi::Object::New(env);
+    polygon_fill_types.Set("evenOdd", Napi::Number::New(env, mapnik::vector_tile_impl::even_odd_fill));
+    polygon_fill_types.Set("nonZero", Napi::Number::New(env, mapnik::vector_tile_impl::non_zero_fill));
+    polygon_fill_types.Set("positive", Napi::Number::New(env, mapnik::vector_tile_impl::positive_fill));
+    polygon_fill_types.Set("negative", Napi::Number::New(env, mapnik::vector_tile_impl::negative_fill));
+    exports.Set("polygonFillType", polygon_fill_types);
+}
 
 /**
  * Constants representing `std::async` threading mode (aka [launch policy](http://en.cppreference.com/w/cpp/thread/launch)).
@@ -435,47 +321,140 @@ extern "C" {
  * @property {number} async
  * @property {number} deferred
  */
-        v8::Local<v8::Object> threading_mode = Nan::New<v8::Object>();
-        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "async", static_cast<unsigned>(std::launch::async))
-        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "deferred", static_cast<unsigned>(std::launch::deferred))
-        NODE_MAPNIK_DEFINE_CONSTANT(threading_mode, "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred))
-        Nan::Set(target, Nan::New("threadingMode").ToLocalChecked(), threading_mode);
-
-    }
+void init_threading_mode_types(Napi::Env env, Napi::Object exports)
+{
+    Napi::Object threading_mode_types = Napi::Object::New(env);
+    threading_mode_types.Set( "async", static_cast<unsigned>(std::launch::async));
+    threading_mode_types.Set( "deferred", static_cast<unsigned>(std::launch::deferred));
+    threading_mode_types.Set( "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred));
+    exports.Set("threadingMode", threading_mode_types);
 }
 
-} // namespace node_mapnik
+Napi::Object init(Napi::Env env, Napi::Object exports)
+{
+    // methods
+    exports.Set("registerDatasource", Napi::Function::New(env, node_mapnik::register_datasource));
+    exports.Set("register_datasource", Napi::Function::New(env, node_mapnik::register_datasource));
+    exports.Set("registerDatasources", Napi::Function::New(env, node_mapnik::register_datasources));
+    exports.Set("register_datasources", Napi::Function::New(env, node_mapnik::register_datasources));
+    exports.Set("datasources", Napi::Function::New(env, node_mapnik::available_input_plugins));
+    exports.Set("registerFonts", Napi::Function::New(env, node_mapnik::register_fonts));
+    exports.Set("register_fonts", Napi::Function::New(env, node_mapnik::register_fonts));
+    exports.Set("fonts", Napi::Function::New(env, node_mapnik::available_font_faces));
+    exports.Set("fontFiles", Napi::Function::New(env, node_mapnik::available_font_files));
+    exports.Set("memoryFonts", Napi::Function::New(env, node_mapnik::memory_fonts));
+    exports.Set("clearCache", Napi::Function::New(env, node_mapnik::clearCache));
+    exports.Set("blend", Napi::Function::New(env, node_mapnik::blend));
+    exports.Set("rgb2hsl", Napi::Function::New(env, node_mapnik::rgb2hsl));
+    exports.Set("hsl2rgb", Napi::Function::New(env, node_mapnik::hsl2rgb));
+    // classes
+    Color::Initialize(env, exports);
+    Image::Initialize(env, exports);
+    ImageView::Initialize(env, exports);
+    Palette::Initialize(env, exports);
+    Datasource::Initialize(env, exports);
+    Projection::Initialize(env, exports);
+    ProjTransform::Initialize(env, exports);
+    Geometry::Initialize(env, exports);
+    Feature::Initialize(env, exports);
+    Featureset::Initialize(env, exports);
+    Layer::Initialize(env, exports);
+    Map::Initialize(env, exports);
+    Expression::Initialize(env, exports);
+    Logger::Initialize(env, exports);
+    CairoSurface::Initialize(env, exports);
+#if defined(GRID_RENDERER)
+    Grid::Initialize(env, exports);
+    GridView::Initialize(env, exports);
+#endif
+    VectorTile::Initialize(env, exports);
+    // enums
+    init_image_types(env, exports);
+    init_image_scalings(env, exports);
+    init_image_comp_op(env, exports);
+    init_polygon_fill_types(env, exports);
+    init_threading_mode_types(env, exports);
 
-// TODO - remove this hack at node v0.12.x
-// https://github.com/joyent/node/commit/bd8a5755dceda415eee147bc06574f5a30abb0d0#commitcomment-5686345
-#if NODE_VERSION_AT_LEAST(0, 9, 0)
+    // versions
+    // versions of deps
+    Napi::Object versions = Napi::Object::New(env);
+    versions.Set("boost", node_mapnik::format_version(BOOST_VERSION));
+    versions.Set("boost_number", BOOST_VERSION);
+    versions.Set("mapnik", node_mapnik::format_version(MAPNIK_VERSION));
+    versions.Set("mapnik_number", MAPNIK_VERSION);
+    versions.Set("mapnik_git_describe", MAPNIK_GIT_REVISION);
+#if defined(HAVE_CAIRO)
+    versions.Set("cairo", CAIRO_VERSION_STRING);
+#endif
+    exports.Set("versions", versions);
 
-#define NODE_MAPNIK_MODULE(modname, regfunc)                          \
-  extern "C" {                                                        \
-    MAPNIK_EXP node::node_module_struct modname ## _module =          \
-    {                                                                 \
-      NODE_STANDARD_MODULE_STUFF,                                     \
-      (node::addon_register_func)regfunc,                             \
-      NODE_STRINGIFY(modname)                                         \
-    };                                                                \
-  }
-
+// supports
+    Napi::Object supports = Napi::Object::New(env);
+#ifdef GRID_RENDERER
+    supports.Set("grid", Napi::Boolean::New(env,true));
 #else
-
-#define NODE_MAPNIK_MODULE(modname, regfunc)                          \
-  extern "C" {                                                        \
-    MAPNIK_EXP node::node_module_struct modname ## _module =          \
-    {                                                                 \
-      NODE_STANDARD_MODULE_STUFF,                                     \
-      regfunc,                                                        \
-      NODE_STRINGIFY(modname)                                         \
-    };                                                                \
-  }
-
+    supports.Set("grid", Napi::Boolean::New(env,false));
 #endif
 
-#if NODE_MODULE_VERSION > 0x000B
-NODE_MODULE(mapnik, node_mapnik::InitMapnik)
+#ifdef SVG_RENDERER
+    supports.Set("svg", Napi::Boolean::New(env,true));
 #else
-NODE_MAPNIK_MODULE(mapnik, node_mapnik::InitMapnik)
+    supports.Set("svg", Napi::Boolean::New(env,false));
 #endif
+
+#if defined(HAVE_CAIRO)
+    supports.Set("cairo", Napi::Boolean::New(env,true));
+#ifdef CAIRO_HAS_PDF_SURFACE
+    supports.Set("cairo_pdf", Napi::Boolean::New(env,true));
+#else
+    supports.Set("cairo_pdf", Napi::Boolean::New(env,false));
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+    supports.Set("cairo_svg", Napi::Boolean::New(env,true));
+#else
+    supports.Set("cairo_svg", Napi::Boolean::New(env,false));
+#endif
+#else
+    supports.Set("cairo", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_PNG)
+    supports.Set("png", Napi::Boolean::New(env,true));
+#else
+    supports.Set("png", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_JPEG)
+    supports.Set("jpeg", Napi::Boolean::New(env,true));
+#else
+    supports.Set("jpeg", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_TIFF)
+    supports.Set("tiff", Napi::Boolean::New(env,true));
+#else
+    supports.Set("tiff", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(HAVE_WEBP)
+    supports.Set("webp", Napi::Boolean::New(env,true));
+#else
+    supports.Set("webp", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(MAPNIK_USE_PROJ4)
+    supports.Set("proj4", Napi::Boolean::New(env,true));
+#else
+    supports.Set("proj4", Napi::Boolean::New(env,false));
+#endif
+
+#if defined(MAPNIK_THREADSAFE)
+    supports.Set("threadsafe", Napi::Boolean::New(env,true));
+#else
+    supports.Set("threadsafe", Napi::Boolean::New(env,false));
+#endif
+    exports.Set("supports", supports);
+    return exports;
+}
+
+NODE_API_MODULE(NODE_GYP_MODULE_NAME, init)

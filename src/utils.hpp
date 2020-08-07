@@ -1,11 +1,7 @@
-#ifndef __NODE_MAPNIK_UTILS_H__
-#define __NODE_MAPNIK_UTILS_H__
+#pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <nan.h>
-#pragma GCC diagnostic pop
+#include <napi.h>
+
 
 // stl
 #include <string>
@@ -18,87 +14,60 @@
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
 
-#define TOSTR(obj) (*Nan::Utf8String(obj))
-
-#define FUNCTION_ARG(I, VAR)                                            \
-    if (info.Length() <= (I) || !info[I]->IsFunction()) {               \
-        Nan::ThrowTypeError("Argument " #I " must be a function");      \
-        return;                                                         \
-    }                                                                   \
-    v8::Local<v8::Function> VAR = info[I].As<v8::Function>();
-
-#define ATTR(t, name, get, set)                                         \
-    Nan::SetAccessor(t->InstanceTemplate(), Nan::New<v8::String>(name).ToLocalChecked(), get, set);
-
-#define NODE_MAPNIK_DEFINE_CONSTANT(target, name, constant)             \
-    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(), Nan::New<v8::Integer>(constant));
-
-#define NODE_MAPNIK_DEFINE_64_BIT_CONSTANT(target, name, constant)      \
-    Nan::Set((target), Nan::New<v8::String>(name).ToLocalChecked(),  Nan::New<v8::Number>(constant));
-
-
-
+inline Napi::Value CallbackError(Napi::Env env, std::string const& message, Napi::Function const& func)
+{
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set("message", message);
+    return func.Call({obj});
+}
 
 namespace node_mapnik {
 
-typedef mapnik::value_integer value_integer;
+using value_integer = mapnik::value_integer;
 
 // adapted to work for both mapnik features and mapnik parameters
 struct value_converter
 {
-    v8::Local<v8::Value> operator () ( value_integer val ) const
+    explicit value_converter(Napi::Env env)
+        : env_(env) {}
+
+    Napi::Value operator () ( value_integer val ) const
     {
-        return Nan::New<v8::Number>(val);
+        return Napi::Number::New(env_, val);
     }
 
-    v8::Local<v8::Value> operator () (mapnik::value_bool val ) const
+    Napi::Value operator () (mapnik::value_bool val ) const
     {
-        return Nan::New<v8::Boolean>(val);
+        return Napi::Boolean::New(env_, val);
     }
 
-    v8::Local<v8::Value> operator () ( double val ) const
+    Napi::Value operator () ( double val ) const
     {
-        return Nan::New<v8::Number>(val);
+        return Napi::Number::New(env_, val);
     }
 
-    v8::Local<v8::Value> operator () ( std::string const& val ) const
+    Napi::Value operator () ( std::string const& val ) const
     {
-        return Nan::New<v8::String>(val.c_str()).ToLocalChecked();
+        return Napi::String::New(env_, val.c_str());
     }
 
-    v8::Local<v8::Value> operator () ( mapnik::value_unicode_string const& val) const
+    Napi::Value operator () ( mapnik::value_unicode_string const& val) const
     {
         std::string buffer;
         mapnik::to_utf8(val,buffer);
-        return Nan::New<v8::String>(buffer.c_str()).ToLocalChecked();
+        return Napi::String::New(env_, buffer.c_str());
     }
 
-    v8::Local<v8::Value> operator () ( mapnik::value_null const& ) const
+    Napi::Value operator () ( mapnik::value_null const& ) const
     {
-        return Nan::Null();
+        return env_.Null();
     }
+private:
+    Napi::Env env_;
 };
 
-inline void params_to_object(v8::Local<v8::Object>& ds, std::string const& key, mapnik::value_holder const& val)
+inline void params_to_object(Napi::Env env, Napi::Object& params, std::string const& key, mapnik::value_holder const& val)
 {
-    Nan::Set(ds, Nan::New<v8::String>(key.c_str()).ToLocalChecked(), mapnik::util::apply_visitor(value_converter(), val));
+    params.Set(key, mapnik::util::apply_visitor(value_converter(env), val));
 }
-
-inline Nan::MaybeLocal<v8::Object> NewBufferFrom(std::unique_ptr<std::string> && ptr)
-{
-    Nan::MaybeLocal<v8::Object> res = Nan::NewBuffer(
-            &(*ptr)[0],
-            ptr->size(),
-            [](char*, void* hint) {
-                delete static_cast<std::string*>(hint);
-            },
-            ptr.get());
-    if (!res.IsEmpty())
-    {
-        ptr.release();
-    }
-    return res;
-}
-
 } // end ns
-#endif
