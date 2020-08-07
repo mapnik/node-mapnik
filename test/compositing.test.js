@@ -25,6 +25,42 @@ for (var name in mapnik.compositeOp) {
   })(name); // jshint ignore:line
 }
 
+test.only('should stitch input images correctly', (assert) => {
+  var input = [ [mapnik.Image.open('test/support/a.png'), 0,     0],
+                [mapnik.Image.open('test/support/b.png'), 256,   0],
+                [mapnik.Image.open('test/support/a.png'), 256, 256],
+                [mapnik.Image.open('test/support/b.png'), 0,   256]];
+
+  var output_image = new mapnik.Image(512, 512);
+  output_image.premultiply();
+  input.forEach(function (item, index) {
+    item[0].premultiply();
+    output_image.composite(item[0], {dx: item[1], dy: item[2]}, function(err) {
+      if (err) throw err;
+      assert.ok(output_image);
+    });
+  });
+  var views = [output_image.view(0, 0, 256, 256),
+               output_image.view(256, 0, 256, 256),
+               output_image.view(256, 256, 256, 256),
+               output_image.view(0, 256, 256, 256)];
+
+  views.forEach(function(view, index) {
+    var equals = true;
+    for (var x = 0; x < view.width(); ++x) {
+      for (var y = 0; y < view.height(); ++y) {
+        if (view.getPixel(x, y) != input[index][0].getPixel(x, y)) {
+          equals = false;
+          break;
+        }
+      }
+    }
+    output_image.save("output.png");
+    assert.equal(equals, true);
+  });
+  assert.end();
+});
+
 test('should fail with bad parameters', (assert) => {
   var im1 = mapnik.Image.open('test/support/a.png');
   im1.premultiply();

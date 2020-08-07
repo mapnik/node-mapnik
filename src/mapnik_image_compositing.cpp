@@ -12,7 +12,7 @@ struct AsyncComposite : Napi::AsyncWorker
     using Base = Napi::AsyncWorker;
     AsyncComposite(image_ptr const& src, image_ptr const& dst,
                    mapnik::composite_mode_e mode,
-                   int dx, int dy,float opacity,
+                   int dx, int dy, float opacity,
                    std::vector<mapnik::filter::filter_type> const& filters,
                    Napi::Function const& callback)
         : Base(callback),
@@ -51,7 +51,7 @@ struct AsyncComposite : Napi::AsyncWorker
     {
         Napi::Value arg = Napi::External<image_ptr>::New(env, &dst_);
         Napi::Object obj = Image::constructor.New({arg});
-        return {env.Null(), napi_value(obj)};
+        return {env.Undefined(), napi_value(obj)};
     }
 
 private:
@@ -228,7 +228,7 @@ Napi::Value Image::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new detail::AsyncComposite(image_, source_image, mode, opacity, dx, dy,
+    auto * worker = new detail::AsyncComposite(source_image, image_, mode, dx, dy, opacity,
                                                filters, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
