@@ -477,7 +477,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
         // defaults
         int buffer_size = 0;
         double scale_factor = 1.0;
-        double scale_denominator = 1.0;
+        double scale_denominator = 0.0;
         unsigned offset_x = 0;
         unsigned offset_y = 0;
 
