@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.2
+- Fixed default `scale_denominator` value in Map::render(..)` (#952)
+- Set JS objects properties `napi_writable` for backward compatibility with sinon usage (#954)
+
 ## 4.5.1
 - Fixed 'scale_denominator' default value in `VectorTile::render(..)`(#952)
 - Fixed wrong arguments order in AsyncComposite + added test (#953)
