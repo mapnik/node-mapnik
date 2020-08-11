@@ -206,9 +206,7 @@ test('should return a type name for a broken geometry', (assert) => {
   };
   var f = new mapnik.Feature.fromJSON(JSON.stringify(input));
   var geom = f.geometry();
-  //geom.type = function() { return 777; }
-  assert.throws(function() { geom.type = function() { return 777; }});
-  //assert.equal(geom.typeName(), 'Unknown');
-  // ^^ FIXME: geom.type is read-only property so mutating it doesn't work (??)
+  geom.type = function() { return 777; }
+  assert.equal(geom.typeName(), 'Unknown');
   assert.end();
 });
