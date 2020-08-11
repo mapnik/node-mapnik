@@ -114,22 +114,22 @@ private:
 
 Napi::FunctionReference Grid::constructor;
 
-Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
 
     Napi::Function func = DefineClass(env, "Grid", {
-            InstanceAccessor<&Grid::key, &Grid::key>("key"),
-            InstanceMethod<&Grid::encodeSync>("encodeSync"),
-            InstanceMethod<&Grid::encode>("encode"),
-            InstanceMethod<&Grid::clearSync>("clearSync"),
-            InstanceMethod<&Grid::clear>("clear"),
-            InstanceMethod<&Grid::painted>("painted"),
-            InstanceMethod<&Grid::fields>("fields"),
-            InstanceMethod<&Grid::addField>("addField"),
-            InstanceMethod<&Grid::view>("view"),
-            InstanceMethod<&Grid::width>("width"),
-            InstanceMethod<&Grid::height>("height"),
+            InstanceAccessor<&Grid::key, &Grid::key>("key", prop_attr),
+            InstanceMethod<&Grid::encodeSync>("encodeSync", prop_attr),
+            InstanceMethod<&Grid::encode>("encode", prop_attr),
+            InstanceMethod<&Grid::clearSync>("clearSync", prop_attr),
+            InstanceMethod<&Grid::clear>("clear", prop_attr),
+            InstanceMethod<&Grid::painted>("painted", prop_attr),
+            InstanceMethod<&Grid::fields>("fields", prop_attr),
+            InstanceMethod<&Grid::addField>("addField", prop_attr),
+            InstanceMethod<&Grid::view>("view", prop_attr),
+            InstanceMethod<&Grid::width>("width", prop_attr),
+            InstanceMethod<&Grid::height>("height", prop_attr),
             StaticValue("base_mask", Napi::Number::New(env, mapnik::grid::base_mask))
         });
     constructor = Napi::Persistent(func);

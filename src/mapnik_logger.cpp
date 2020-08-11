@@ -4,11 +4,11 @@
 
 Napi::FunctionReference Logger::constructor;
 
-Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "Logger", {
-            StaticMethod<&Logger::get_severity>("getSeverity"),
-            StaticMethod<&Logger::set_severity>("setSeverity"),
+            StaticMethod<&Logger::get_severity>("getSeverity", prop_attr),
+            StaticMethod<&Logger::set_severity>("setSeverity", prop_attr),
             StaticValue("NONE", Napi::Number::New(env, mapnik::logger::severity_type::none), napi_enumerable),
             StaticValue("ERROR", Napi::Number::New(env, mapnik::logger::severity_type::error), napi_enumerable),
             StaticValue("DEBUG", Napi::Number::New(env, mapnik::logger::severity_type::debug), napi_enumerable),

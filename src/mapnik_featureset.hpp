@@ -12,7 +12,7 @@ class Featureset : public Napi::ObjectWrap<Featureset>
     friend struct detail::AsyncQueryPoint;
 public:
     // initialiser
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
     explicit Featureset(Napi::CallbackInfo const& info);
     // methods

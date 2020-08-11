@@ -11,23 +11,6 @@
 #endif
 
 #include "mapnik_vector_tile.hpp"
-//#include "vector_tile_compression.hpp"
-//#include "vector_tile_composite.hpp"
-//#include "vector_tile_processor.hpp"
-//#include "vector_tile_projection.hpp"
-//#include "vector_tile_datasource_pbf.hpp"
-//#include "vector_tile_geometry_decoder.hpp"
-//#include "vector_tile_load_tile.hpp"
-//#include "object_to_container.hpp"
-
-// mapnik
-//#include <mapnik/agg_renderer.hpp>      // for agg_renderer
-//#include <mapnik/feature_kv_iterator.hpp>
-//#include <mapnik/geometry/is_simple.hpp>
-//#include <mapnik/geometry/is_valid.hpp>
-//#include <mapnik/geometry/reprojection.hpp>
-//#include <mapnik/util/feature_to_geojson.hpp>
-//#include <mapnik/hit_test_filter.hpp>
 #include <mapnik/image_any.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/map.hpp>
@@ -55,58 +38,55 @@
 #include <exception>                    // for exception
 #include <vector>                       // for vector
 
-// protozero
-//#include <protozero/pbf_reader.hpp>
-
 
 Napi::FunctionReference VectorTile::constructor;
 
-Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "VectorTile", {
-            InstanceAccessor<&VectorTile::get_tile_x, &VectorTile::set_tile_x>("x"),
-            InstanceAccessor<&VectorTile::get_tile_y, &VectorTile::set_tile_y>("y"),
-            InstanceAccessor<&VectorTile::get_tile_z, &VectorTile::set_tile_z>("z"),
-            InstanceAccessor<&VectorTile::get_tile_size, &VectorTile::set_tile_size>("tileSize"),
-            InstanceAccessor<&VectorTile::get_buffer_size, &VectorTile::set_buffer_size>("bufferSize"),
-            InstanceMethod<&VectorTile::render>("render"),
-            InstanceMethod<&VectorTile::setData>("setData"),
-            InstanceMethod<&VectorTile::setDataSync>("setDataSync"),
-            InstanceMethod<&VectorTile::getData>("getData"),
-            InstanceMethod<&VectorTile::getDataSync>("getDataSync"),
-            InstanceMethod<&VectorTile::addData>("addData"),
-            InstanceMethod<&VectorTile::addDataSync>("addDataSync"),
-            InstanceMethod<&VectorTile::composite>("composite"),
-            InstanceMethod<&VectorTile::compositeSync>("compositeSync"),
-            InstanceMethod<&VectorTile::query>("query"),
-            InstanceMethod<&VectorTile::queryMany>("queryMany"),
-            InstanceMethod<&VectorTile::extent>("extent"),
-            InstanceMethod<&VectorTile::bufferedExtent>("bufferedExtent"),
-            InstanceMethod<&VectorTile::names>("names"),
-            InstanceMethod<&VectorTile::layer>("layer"),
-            InstanceMethod<&VectorTile::emptyLayers>("emptyLayers"),
-            InstanceMethod<&VectorTile::paintedLayers>("paintedLayers"),
-            InstanceMethod<&VectorTile::toJSON>("toJSON"),
-            InstanceMethod<&VectorTile::toGeoJSON>("toGeoJSON"),
-            InstanceMethod<&VectorTile::toGeoJSONSync>("toGeoJSONSync"),
-            InstanceMethod<&VectorTile::addGeoJSON>("addGeoJSON"),
-            InstanceMethod<&VectorTile::addImage>("addImage"),
-            InstanceMethod<&VectorTile::addImageSync>("addImageSync"),
-            InstanceMethod<&VectorTile::addImageBuffer>("addImageBuffer"),
-            InstanceMethod<&VectorTile::addImageBufferSync>("addImageBufferSync"),
+            InstanceAccessor<&VectorTile::get_tile_x, &VectorTile::set_tile_x>("x", prop_attr),
+            InstanceAccessor<&VectorTile::get_tile_y, &VectorTile::set_tile_y>("y", prop_attr),
+            InstanceAccessor<&VectorTile::get_tile_z, &VectorTile::set_tile_z>("z", prop_attr),
+            InstanceAccessor<&VectorTile::get_tile_size, &VectorTile::set_tile_size>("tileSize", prop_attr),
+            InstanceAccessor<&VectorTile::get_buffer_size, &VectorTile::set_buffer_size>("bufferSize", prop_attr),
+            InstanceMethod<&VectorTile::render>("render", prop_attr),
+            InstanceMethod<&VectorTile::setData>("setData", prop_attr),
+            InstanceMethod<&VectorTile::setDataSync>("setDataSync", prop_attr),
+            InstanceMethod<&VectorTile::getData>("getData", prop_attr),
+            InstanceMethod<&VectorTile::getDataSync>("getDataSync", prop_attr),
+            InstanceMethod<&VectorTile::addData>("addData", prop_attr),
+            InstanceMethod<&VectorTile::addDataSync>("addDataSync", prop_attr),
+            InstanceMethod<&VectorTile::composite>("composite", prop_attr),
+            InstanceMethod<&VectorTile::compositeSync>("compositeSync", prop_attr),
+            InstanceMethod<&VectorTile::query>("query", prop_attr),
+            InstanceMethod<&VectorTile::queryMany>("queryMany", prop_attr),
+            InstanceMethod<&VectorTile::extent>("extent", prop_attr),
+            InstanceMethod<&VectorTile::bufferedExtent>("bufferedExtent", prop_attr),
+            InstanceMethod<&VectorTile::names>("names", prop_attr),
+            InstanceMethod<&VectorTile::layer>("layer", prop_attr),
+            InstanceMethod<&VectorTile::emptyLayers>("emptyLayers", prop_attr),
+            InstanceMethod<&VectorTile::paintedLayers>("paintedLayers", prop_attr),
+            InstanceMethod<&VectorTile::toJSON>("toJSON", prop_attr),
+            InstanceMethod<&VectorTile::toGeoJSON>("toGeoJSON", prop_attr),
+            InstanceMethod<&VectorTile::toGeoJSONSync>("toGeoJSONSync", prop_attr),
+            InstanceMethod<&VectorTile::addGeoJSON>("addGeoJSON", prop_attr),
+            InstanceMethod<&VectorTile::addImage>("addImage", prop_attr),
+            InstanceMethod<&VectorTile::addImageSync>("addImageSync", prop_attr),
+            InstanceMethod<&VectorTile::addImageBuffer>("addImageBuffer", prop_attr),
+            InstanceMethod<&VectorTile::addImageBufferSync>("addImageBufferSync", prop_attr),
 #if BOOST_VERSION >= 105600
-            InstanceMethod<&VectorTile::reportGeometrySimplicity>("reportGeometrySimplicity"),
-            InstanceMethod<&VectorTile::reportGeometrySimplicitySync>("reportGeometrySimplicitySync"),
-            InstanceMethod<&VectorTile::reportGeometryValidity>("reportGeometryValidity"),
-            InstanceMethod<&VectorTile::reportGeometryValiditySync>("reportGeometryValiditySync"),
+            InstanceMethod<&VectorTile::reportGeometrySimplicity>("reportGeometrySimplicity", prop_attr),
+            InstanceMethod<&VectorTile::reportGeometrySimplicitySync>("reportGeometrySimplicitySync", prop_attr),
+            InstanceMethod<&VectorTile::reportGeometryValidity>("reportGeometryValidity", prop_attr),
+            InstanceMethod<&VectorTile::reportGeometryValiditySync>("reportGeometryValiditySync", prop_attr),
 #endif
-            InstanceMethod<&VectorTile::painted>("painted"),
-            InstanceMethod<&VectorTile::clear>("clear"),
-            InstanceMethod<&VectorTile::clearSync>("clearSync"),
-            InstanceMethod<&VectorTile::empty>("empty"),
+            InstanceMethod<&VectorTile::painted>("painted", prop_attr),
+            InstanceMethod<&VectorTile::clear>("clear", prop_attr),
+            InstanceMethod<&VectorTile::clearSync>("clearSync", prop_attr),
+            InstanceMethod<&VectorTile::empty>("empty", prop_attr),
             // static methods
-            StaticMethod<&VectorTile::info>("info")
+            StaticMethod<&VectorTile::info>("info", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

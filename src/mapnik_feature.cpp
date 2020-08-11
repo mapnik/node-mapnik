@@ -12,17 +12,17 @@
 
 Napi::FunctionReference Feature::constructor;
 
-Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
 
     Napi::Function func = DefineClass(env, "Feature", {
-            InstanceMethod<&Feature::id>("id"),
-            InstanceMethod<&Feature::extent>("extent"),
-            InstanceMethod<&Feature::attributes>("attributes"),
-            InstanceMethod<&Feature::geometry>("geometry"),
-            InstanceMethod<&Feature::toJSON>("toJSON"),
-            StaticMethod<&Feature::fromJSON>("fromJSON")
+            InstanceMethod<&Feature::id>("id", prop_attr),
+            InstanceMethod<&Feature::extent>("extent", prop_attr),
+            InstanceMethod<&Feature::attributes>("attributes", prop_attr),
+            InstanceMethod<&Feature::geometry>("geometry", prop_attr),
+            InstanceMethod<&Feature::toJSON>("toJSON", prop_attr),
+            StaticMethod<&Feature::fromJSON>("fromJSON", prop_attr)
         });
 
     constructor = Napi::Persistent(func);

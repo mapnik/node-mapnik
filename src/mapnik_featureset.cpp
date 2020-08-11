@@ -3,10 +3,10 @@
 
 Napi::FunctionReference Featureset::constructor;
 
-Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "Featureset", {
-            InstanceMethod<&Featureset::next>("next")
+            InstanceMethod<&Featureset::next>("next", prop_attr)
         });
 
     constructor = Napi::Persistent(func);

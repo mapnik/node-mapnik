@@ -11,7 +11,7 @@ class Geometry : public Napi::ObjectWrap<Geometry>
     friend class Feature;
 public:
     // initializer
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
     explicit Geometry(Napi::CallbackInfo const& info);
     // methods

@@ -4,12 +4,12 @@
 
 Napi::FunctionReference CairoSurface::constructor;
 
-Napi::Object CairoSurface::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object CairoSurface::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "CairoSurface", {
-            InstanceMethod<&CairoSurface::width>("width"),
-            InstanceMethod<&CairoSurface::height>("height"),
-            InstanceMethod<&CairoSurface::getData>("getData")
+            InstanceMethod<&CairoSurface::width>("width", prop_attr),
+            InstanceMethod<&CairoSurface::height>("height", prop_attr),
+            InstanceMethod<&CairoSurface::getData>("getData", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

@@ -18,14 +18,14 @@
 
 Napi::FunctionReference Datasource::constructor;
 
-Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "Datasource", {
-            InstanceMethod<&Datasource::parameters>("parameters"),
-            InstanceMethod<&Datasource::describe>("describe"),
-            InstanceMethod<&Datasource::featureset>("featureset"),
-            InstanceMethod<&Datasource::extent>("extent"),
-            InstanceMethod<&Datasource::fields>("fields")
+            InstanceMethod<&Datasource::parameters>("parameters", prop_attr),
+            InstanceMethod<&Datasource::describe>("describe", prop_attr),
+            InstanceMethod<&Datasource::featureset>("featureset", prop_attr),
+            InstanceMethod<&Datasource::extent>("extent", prop_attr),
+            InstanceMethod<&Datasource::fields>("fields", prop_attr)
 
         });
 
