@@ -7,7 +7,7 @@
 class Expression : public Napi::ObjectWrap<Expression>
 {
 public:
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     explicit Expression(Napi::CallbackInfo const& info);
     Napi::Value toString(Napi::CallbackInfo const& info);
     Napi::Value evaluate(Napi::CallbackInfo const& info);

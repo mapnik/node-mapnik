@@ -80,16 +80,16 @@ private:
 Napi::FunctionReference Geometry::constructor;
 
 
-Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Geometry", {
-            InstanceMethod<&Geometry::extent>("extent"),
-            InstanceMethod<&Geometry::type>("type"),
-            InstanceMethod<&Geometry::toWKB>("toWKB"),
-            InstanceMethod<&Geometry::toWKT>("toWKT"),
-            InstanceMethod<&Geometry::toJSON>("toJSON"),
-            InstanceMethod<&Geometry::toJSON>("toJSONSync"),
+            InstanceMethod<&Geometry::extent>("extent", prop_attr),
+            InstanceMethod<&Geometry::type>("type", prop_attr),
+            InstanceMethod<&Geometry::toWKB>("toWKB", prop_attr),
+            InstanceMethod<&Geometry::toWKT>("toWKT", prop_attr),
+            InstanceMethod<&Geometry::toJSON>("toJSON", prop_attr),
+            InstanceMethod<&Geometry::toJSON>("toJSONSync", prop_attr),
             StaticValue("Unknown", Napi::Number::New(env, mapnik::geometry::geometry_types::Unknown), napi_enumerable),
             StaticValue("Point", Napi::Number::New(env, mapnik::geometry::geometry_types::Point), napi_enumerable),
             StaticValue("LineString", Napi::Number::New(env, mapnik::geometry::geometry_types::LineString), napi_enumerable),

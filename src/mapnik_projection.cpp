@@ -9,12 +9,12 @@
 Napi::FunctionReference Projection::constructor;
 
 
-Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Projection", {
-            InstanceMethod<&Projection::forward>("forward"),
-            InstanceMethod<&Projection::inverse>("inverse")
+            InstanceMethod<&Projection::forward>("forward", prop_attr),
+            InstanceMethod<&Projection::inverse>("inverse", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
@@ -228,13 +228,13 @@ Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
 
 Napi::FunctionReference ProjTransform::constructor;
 
-Napi::Object ProjTransform::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object ProjTransform::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
 
     Napi::Function func = DefineClass(env, "ProjTransform", {
-            InstanceMethod<&ProjTransform::forward>("forward"),
-            InstanceMethod<&ProjTransform::backward>("backward")
+            InstanceMethod<&ProjTransform::forward>("forward", prop_attr),
+            InstanceMethod<&ProjTransform::backward>("backward", prop_attr)
          });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

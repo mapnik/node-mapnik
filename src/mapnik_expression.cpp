@@ -11,11 +11,11 @@
 
 Napi::FunctionReference Expression::constructor;
 
-Napi::Object Expression::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Expression::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "Expression", {
-            InstanceMethod<&Expression::evaluate>("evaluate"),
-            InstanceMethod<&Expression::toString>("toString")
+            InstanceMethod<&Expression::evaluate>("evaluate", prop_attr),
+            InstanceMethod<&Expression::toString>("toString", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

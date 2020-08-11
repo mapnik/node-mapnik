@@ -11,20 +11,20 @@
 
 Napi::FunctionReference Layer::constructor;
 
-Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Layer", {
-            InstanceMethod<&Layer::describe>("describe"),
-            InstanceAccessor<&Layer::name, &Layer::name>("name"),
-            InstanceAccessor<&Layer::active, &Layer::active>("active"),
-            InstanceAccessor<&Layer::srs, &Layer::srs>("srs"),
-            InstanceAccessor<&Layer::styles, &Layer::styles>("styles"),
-            InstanceAccessor<&Layer::datasource, &Layer::datasource>("datasource"),
-            InstanceAccessor<&Layer::minimum_scale_denominator, &Layer::minimum_scale_denominator>("minimum_scale_denominator"),
-            InstanceAccessor<&Layer::maximum_scale_denominator, &Layer::maximum_scale_denominator>("maximum_scale_denominator"),
-            InstanceAccessor<&Layer::queryable, &Layer::queryable>("queryable"),
-            InstanceAccessor<&Layer::clear_label_cache, &Layer::clear_label_cache>("clear_label_cache")
+            InstanceMethod<&Layer::describe>("describe", prop_attr),
+            InstanceAccessor<&Layer::name, &Layer::name>("name", prop_attr),
+            InstanceAccessor<&Layer::active, &Layer::active>("active", prop_attr),
+            InstanceAccessor<&Layer::srs, &Layer::srs>("srs", prop_attr),
+            InstanceAccessor<&Layer::styles, &Layer::styles>("styles", prop_attr),
+            InstanceAccessor<&Layer::datasource, &Layer::datasource>("datasource", prop_attr),
+            InstanceAccessor<&Layer::minimum_scale_denominator, &Layer::minimum_scale_denominator>("minimum_scale_denominator", prop_attr),
+            InstanceAccessor<&Layer::maximum_scale_denominator, &Layer::maximum_scale_denominator>("maximum_scale_denominator", prop_attr),
+            InstanceAccessor<&Layer::queryable, &Layer::queryable>("queryable", prop_attr),
+            InstanceAccessor<&Layer::clear_label_cache, &Layer::clear_label_cache>("clear_label_cache", prop_attr)
         });
 
     constructor = Napi::Persistent(func);

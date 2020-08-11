@@ -7,12 +7,12 @@
 
 Napi::FunctionReference Palette::constructor;
 
-Napi::Object Palette::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Palette::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
 
      Napi::Function func = DefineClass(env, "Palette", {
-             InstanceMethod<&Palette::toBuffer>("toBuffer"),
-             InstanceMethod<&Palette::toString>("toString")
+             InstanceMethod<&Palette::toBuffer>("toBuffer", prop_attr),
+             InstanceMethod<&Palette::toString>("toString", prop_attr)
          });
 
      constructor = Napi::Persistent(func);

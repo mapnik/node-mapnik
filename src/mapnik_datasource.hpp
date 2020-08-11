@@ -12,7 +12,7 @@ class Datasource : public Napi::ObjectWrap<Datasource>
     friend class Layer;
 public:
     //initilizer
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
     explicit Datasource(Napi::CallbackInfo const& info);
     // methods

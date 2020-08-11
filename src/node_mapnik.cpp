@@ -48,6 +48,9 @@
 
 namespace node_mapnik {
 
+// napi property attributes
+napi_property_attributes const prop_attr =  napi_writable;
+
 static std::string format_version(int version)
 {
     std::ostringstream s;
@@ -348,26 +351,26 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     exports.Set("rgb2hsl", Napi::Function::New(env, node_mapnik::rgb2hsl));
     exports.Set("hsl2rgb", Napi::Function::New(env, node_mapnik::hsl2rgb));
     // classes
-    Color::Initialize(env, exports);
-    Image::Initialize(env, exports);
-    ImageView::Initialize(env, exports);
-    Palette::Initialize(env, exports);
-    Datasource::Initialize(env, exports);
-    Projection::Initialize(env, exports);
-    ProjTransform::Initialize(env, exports);
-    Geometry::Initialize(env, exports);
-    Feature::Initialize(env, exports);
-    Featureset::Initialize(env, exports);
-    Layer::Initialize(env, exports);
-    Map::Initialize(env, exports);
-    Expression::Initialize(env, exports);
-    Logger::Initialize(env, exports);
-    CairoSurface::Initialize(env, exports);
+    Color::Initialize(env, exports, node_mapnik::prop_attr);
+    Image::Initialize(env, exports, node_mapnik::prop_attr);
+    ImageView::Initialize(env, exports, node_mapnik::prop_attr);
+    Palette::Initialize(env, exports, node_mapnik::prop_attr);
+    Datasource::Initialize(env, exports, node_mapnik::prop_attr);
+    Projection::Initialize(env, exports, node_mapnik::prop_attr);
+    ProjTransform::Initialize(env, exports, node_mapnik::prop_attr);
+    Geometry::Initialize(env, exports, node_mapnik::prop_attr);
+    Feature::Initialize(env, exports, node_mapnik::prop_attr);
+    Featureset::Initialize(env, exports, node_mapnik::prop_attr);
+    Layer::Initialize(env, exports, node_mapnik::prop_attr);
+    Map::Initialize(env, exports, node_mapnik::prop_attr);
+    Expression::Initialize(env, exports, node_mapnik::prop_attr);
+    Logger::Initialize(env, exports, node_mapnik::prop_attr);
+    CairoSurface::Initialize(env, exports, node_mapnik::prop_attr);
 #if defined(GRID_RENDERER)
-    Grid::Initialize(env, exports);
-    GridView::Initialize(env, exports);
+    Grid::Initialize(env, exports, node_mapnik::prop_attr);
+    GridView::Initialize(env, exports, node_mapnik::prop_attr);
 #endif
-    VectorTile::Initialize(env, exports);
+    VectorTile::Initialize(env, exports, node_mapnik::prop_attr);
     // enums
     init_image_types(env, exports);
     init_image_scalings(env, exports);

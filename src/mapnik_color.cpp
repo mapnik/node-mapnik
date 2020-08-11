@@ -2,16 +2,16 @@
 
 Napi::FunctionReference Color::constructor;
 
-Napi::Object Color::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object Color::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::Function func = DefineClass(env, "Color", {
-            InstanceMethod<&Color::hex>("hex"),
-            InstanceMethod<&Color::toString>("toString"),
-            InstanceAccessor<&Color::red, &Color::red>("r"),
-            InstanceAccessor<&Color::green, &Color::green>("g"),
-            InstanceAccessor<&Color::blue, &Color::blue>("b"),
-            InstanceAccessor<&Color::alpha, &Color::alpha>("a"),
-            InstanceAccessor<&Color::premultiplied, &Color::premultiplied>("premultiplied")
+            InstanceMethod<&Color::hex>("hex", prop_attr),
+            InstanceMethod<&Color::toString>("toString", prop_attr),
+            InstanceAccessor<&Color::red, &Color::red>("r", prop_attr),
+            InstanceAccessor<&Color::green, &Color::green>("g", prop_attr),
+            InstanceAccessor<&Color::blue, &Color::blue>("b", prop_attr),
+            InstanceAccessor<&Color::alpha, &Color::alpha>("a", prop_attr),
+            InstanceAccessor<&Color::premultiplied, &Color::premultiplied>("premultiplied", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

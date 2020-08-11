@@ -15,8 +15,8 @@ class Projection : public Napi::ObjectWrap<Projection>
     friend class ProjTransform;
 public:
     // initializer
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
-    // ctor
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
+    // ctorx
     explicit Projection(Napi::CallbackInfo const& info);
     // methods
     Napi::Value inverse(Napi::CallbackInfo const& info);
@@ -33,7 +33,7 @@ class ProjTransform : public Napi::ObjectWrap<ProjTransform>
     friend class Geometry;
 public:
     // initializer
-    static Napi::Object Initialize(Napi::Env env, Napi::Object exports);
+    static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
     explicit ProjTransform(Napi::CallbackInfo const& info);
     // methods

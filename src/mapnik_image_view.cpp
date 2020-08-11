@@ -47,18 +47,18 @@ private:
 
 Napi::FunctionReference ImageView::constructor;
 
-Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "ImageView", {
-            InstanceMethod<&ImageView::width>("width"),
-            InstanceMethod<&ImageView::height>("height"),
-            InstanceMethod<&ImageView::encodeSync>("encodeSync"),
-            InstanceMethod<&ImageView::encode>("encode"),
-            InstanceMethod<&ImageView::saveSync>("saveSync"),
-            InstanceMethod<&ImageView::isSolidSync>("isSolidSync"),
-            InstanceMethod<&ImageView::isSolid>("isSolid"),
-            InstanceMethod<&ImageView::getPixel>("getPixel")
+            InstanceMethod<&ImageView::width>("width", prop_attr),
+            InstanceMethod<&ImageView::height>("height", prop_attr),
+            InstanceMethod<&ImageView::encodeSync>("encodeSync", prop_attr),
+            InstanceMethod<&ImageView::encode>("encode", prop_attr),
+            InstanceMethod<&ImageView::saveSync>("saveSync", prop_attr),
+            InstanceMethod<&ImageView::isSolidSync>("isSolidSync", prop_attr),
+            InstanceMethod<&ImageView::isSolid>("isSolid", prop_attr),
+            InstanceMethod<&ImageView::getPixel>("getPixel", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();

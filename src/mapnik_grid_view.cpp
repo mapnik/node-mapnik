@@ -129,19 +129,19 @@ private:
 
 Napi::FunctionReference GridView::constructor;
 
-Napi::Object GridView::Initialize(Napi::Env env, Napi::Object exports)
+Napi::Object GridView::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
 
     Napi::Function func = DefineClass(env, "GridView", {
-            InstanceMethod<&GridView::encodeSync>("encodeSync"),
-            InstanceMethod<&GridView::encode>("encode"),
-            InstanceMethod<&GridView::fields>("fields"),
-            InstanceMethod<&GridView::width>("width"),
-            InstanceMethod<&GridView::height>("height"),
-            InstanceMethod<&GridView::isSolid>("isSolid"),
-            InstanceMethod<&GridView::isSolidSync>("isSolidSync"),
-            InstanceMethod<&GridView::getPixel>("getPixel")
+            InstanceMethod<&GridView::encodeSync>("encodeSync", prop_attr),
+            InstanceMethod<&GridView::encode>("encode", prop_attr),
+            InstanceMethod<&GridView::fields>("fields", prop_attr),
+            InstanceMethod<&GridView::width>("width", prop_attr),
+            InstanceMethod<&GridView::height>("height", prop_attr),
+            InstanceMethod<&GridView::isSolid>("isSolid", prop_attr),
+            InstanceMethod<&GridView::isSolidSync>("isSolidSync", prop_attr),
+            InstanceMethod<&GridView::getPixel>("getPixel", prop_attr)
         });
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
