@@ -349,7 +349,7 @@ struct AsyncRenderTile : Napi::AsyncWorker
             new_c->set_data(c->data());
             return {env.Undefined(), napi_value(obj)};
         }
-        return Base::GetResult(env);;
+        return Base::GetResult(env);
     }
 private:
     Map * map_obj_;
