@@ -12,27 +12,25 @@ template <typename T>
 struct AsyncFill : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncFill(image_ptr const& image, T const& val, Napi::Function const& callback)
+    AsyncFill(Image * image, T const& val, Napi::Function const& callback)
         : Base(callback),
           image_(image),
           val_(val) {}
 
     void Execute() override
     {
-        mapnik::fill(*image_, val_);
+        mapnik::fill(*image_->impl(), val_);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (image_)
+        if (image_ != nullptr && !image_->IsEmpty())
         {
-            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
-            return {env.Null(), napi_value(obj)};
+            return {env.Null(), image_->Value()};
         }
         return Base::GetResult(env);
     }
-    image_ptr image_;
+    Image * image_;
     T val_;
 };
 } // ns
@@ -139,7 +137,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
     if (info[0].IsNumber())
     {
         val = info[0].As<Napi::Number>().DoubleValue();
-        auto* worker = new detail::AsyncFill<double>(image_, val, callback);
+        auto* worker = new detail::AsyncFill<double>(this, val, callback);
         worker->Queue();
         return env.Undefined();
     }
@@ -154,7 +152,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
         else
         {
             Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
-            auto* worker = new detail::AsyncFill<mapnik::color>(image_, color->color_, callback);
+            auto* worker = new detail::AsyncFill<mapnik::color>(this, color->color_, callback);
             worker->Queue();
         }
     }

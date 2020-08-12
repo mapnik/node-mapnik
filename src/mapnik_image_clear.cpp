@@ -12,27 +12,25 @@ namespace detail {
 struct AsyncClear : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncClear(image_ptr const& image, Napi::Function const& callback)
+    AsyncClear(Image * image, Napi::Function const& callback)
         : Base(callback),
           image_(image)
     {}
 
     void Execute() override
     {
-        mapnik::fill(*image_, 0);
+        mapnik::fill(*image_->impl(), 0);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (image_)
+        if (image_ != nullptr && !image_->IsEmpty())
         {
-            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
-            return {env.Null(), napi_value(obj)};
+            return {env.Null(), image_->Value()};
         }
         return Base::GetResult(env);
     }
-    image_ptr image_;
+    Image * image_;
 };
 } // ns
 
@@ -96,7 +94,7 @@ Napi::Value Image::clear(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new detail::AsyncClear{image_, callback_val.As<Napi::Function>()};
+    auto * worker = new detail::AsyncClear{this, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

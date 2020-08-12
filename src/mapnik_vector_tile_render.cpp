@@ -321,33 +321,26 @@ struct AsyncRenderTile : Napi::AsyncWorker
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (surface_.is<Image *>())
+        if (surface_.is<Image*>())
         {
-            image_ptr image =  mapnik::util::get<Image *>(surface_)->impl();
-            Napi::Value arg = Napi::External<image_ptr>::New(env, &image);
-            Napi::Object obj = Image::constructor.New({arg});
-            return {env.Undefined(), napi_value(obj)};
+            Image * image = mapnik::util::get<Image*>(surface_);
+            if (image != nullptr && !image->IsEmpty()) return {env.Undefined(), image->Value()};
         }
 #if defined(GRID_RENDERER)
-        else if (surface_.is<Grid *>())
+        else if (surface_.is<Grid*>())
         {
-            grid_ptr grid =  mapnik::util::get<Grid *>(surface_)->impl();
-            Napi::Value arg = Napi::External<grid_ptr>::New(env, &grid);
-            Napi::Object obj = Grid::constructor.New({arg});
-            return {env.Undefined(), napi_value(obj)};
+            Grid * grid =  mapnik::util::get<Grid*>(surface_);
+            if (grid != nullptr && !grid->IsEmpty()) return {env.Undefined(), grid->Value()};
         }
 #endif
-        else if (surface_.is<CairoSurface *>())
+        else if (surface_.is<CairoSurface*>())
         {
-            CairoSurface * c = mapnik::util::get<CairoSurface*>(surface_);
-            c->flush();
-            Napi::Value width = Napi::Number::New(env, c->width());
-            Napi::Value height = Napi::Number::New(env, c->height());
-            Napi::Value format = Napi::String::New(env, c->format());
-            Napi::Object obj = CairoSurface::constructor.New({format, width, height});
-            CairoSurface * new_c = Napi::ObjectWrap<CairoSurface>::Unwrap(obj);
-            new_c->set_data(c->data());
-            return {env.Undefined(), napi_value(obj)};
+            CairoSurface * cairo = mapnik::util::get<CairoSurface*>(surface_);
+            if (cairo != nullptr && !cairo->IsEmpty())
+            {
+                cairo->flush();
+                return {env.Undefined(), cairo->Value()};
+            }
         }
         return Base::GetResult(env);
     }

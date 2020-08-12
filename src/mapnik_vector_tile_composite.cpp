@@ -335,7 +335,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
     vtiles_vec.reserve(num_tiles);
     for (std::size_t j=0; j < num_tiles; ++j)
     {
-        Napi::Value val = (vtiles).Get(j);
+        Napi::Value val = vtiles.Get(j);
         if (!val.IsObject())
         {
             Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
@@ -383,7 +383,8 @@ namespace {
 
 struct AsyncCompositeVectorTile : Napi::AsyncWorker
 {
-    AsyncCompositeVectorTile(tile_type const& tile,
+    using Base =  Napi::AsyncWorker;
+    AsyncCompositeVectorTile(VectorTile * tile,
                              std::vector<tile_type> const& vtiles,
                              double scale_factor,
                              unsigned offset_x,
@@ -401,31 +402,31 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
                              mapnik::scaling_method_e scaling_method,
                              std::launch threading_mode,
                              Napi::Function const& callback)
-        : Napi::AsyncWorker(callback),
-          tile_(tile),
-          vtiles_(vtiles),
-          scale_factor_(scale_factor),
-          offset_x_(offset_x),
-          offset_y_(offset_y),
-          area_threshold_(area_threshold),
-          strictly_simple_(strictly_simple),
-          multi_polygon_union_(multi_polygon_union),
-          fill_type_(fill_type),
-          scale_denominator_(scale_denominator),
-          reencode_(reencode),
-          max_extent_(max_extent),
-          simplify_distance_(simplify_distance),
-          process_all_rings_(process_all_rings),
-          image_format_(image_format),
-          scaling_method_(scaling_method),
-          threading_mode_(threading_mode)
+    : Base(callback),
+      tile_(tile),
+      vtiles_(vtiles),
+      scale_factor_(scale_factor),
+      offset_x_(offset_x),
+      offset_y_(offset_y),
+      area_threshold_(area_threshold),
+      strictly_simple_(strictly_simple),
+      multi_polygon_union_(multi_polygon_union),
+      fill_type_(fill_type),
+      scale_denominator_(scale_denominator),
+      reencode_(reencode),
+      max_extent_(max_extent),
+      simplify_distance_(simplify_distance),
+      process_all_rings_(process_all_rings),
+      image_format_(image_format),
+      scaling_method_(scaling_method),
+      threading_mode_(threading_mode)
     {}
 
     void Execute() override
     {
         try
         {
-            _composite(tile_,
+            _composite(tile_->impl(),
                        vtiles_,
                        scale_factor_,
                        offset_x_,
@@ -450,12 +451,14 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
     }
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &tile_);
-        Napi::Object obj = VectorTile::constructor.New({arg});
-        return {env.Undefined(), napi_value(obj)};
+        if (tile_ != nullptr && !tile_->IsEmpty())
+        {
+            return {env.Undefined(), tile_->Value()};
+        }
+        return Base::GetResult(env);
     }
 private:
-    tile_type tile_;
+    VectorTile *tile_;
     std::vector<tile_type> vtiles_;
     double scale_factor_;
     unsigned offset_x_;
@@ -816,7 +819,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         vtiles_vec.push_back(Napi::ObjectWrap<VectorTile>::Unwrap(tile_obj)->tile_);
     }
 
-    auto * worker = new AsyncCompositeVectorTile{tile_,
+    auto * worker = new AsyncCompositeVectorTile{this,
                                                  vtiles_vec,
                                                  scale_factor,
                                                  offset_x,

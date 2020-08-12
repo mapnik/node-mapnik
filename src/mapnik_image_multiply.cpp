@@ -11,28 +11,26 @@ template <bool pre = true>
 struct AsyncMultiply : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncMultiply(image_ptr const& image, Napi::Function const& callback)
+    AsyncMultiply(Image * image, Napi::Function const& callback)
         : Base(callback),
           image_(image)
     {}
 
     void Execute() override
     {
-        if (pre) mapnik::premultiply_alpha(*image_);
-        else mapnik::demultiply_alpha(*image_);
+        if (pre) mapnik::premultiply_alpha(*image_->impl());
+        else mapnik::demultiply_alpha(*image_->impl());
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (image_)
+        if (image_ != nullptr && !image_->IsEmpty())
         {
-            Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
-            return {env.Null(), napi_value(obj)};
+            return {env.Null(), image_->Value()};
         }
         return Base::GetResult(env);
     }
-    image_ptr image_;
+    Image * image_;
 };
 
 } // ns
@@ -89,7 +87,7 @@ Napi::Value Image::premultiply(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncPremultiply{image_, callback_val.As<Napi::Function>()};
+    auto * worker = new AsyncPremultiply{this, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }
@@ -133,7 +131,7 @@ Napi::Value Image::demultiply(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncDemultiply{image_, callback_val.As<Napi::Function>()};
+    auto * worker = new AsyncDemultiply{this, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

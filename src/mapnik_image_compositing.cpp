@@ -10,7 +10,7 @@ namespace detail {
 struct AsyncComposite : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncComposite(image_ptr const& src, image_ptr const& dst,
+    AsyncComposite(image_ptr const& src, Image * dst,
                    mapnik::composite_mode_e mode,
                    int dx, int dy, float opacity,
                    std::vector<mapnik::filter::filter_type> const& filters,
@@ -39,7 +39,7 @@ struct AsyncComposite : Napi::AsyncWorker
                 }
                 mapnik::premultiply_alpha(*src_);
             }
-            mapnik::composite(*dst_,*src_, mode_, opacity_, dx_, dy_);
+            mapnik::composite(*dst_->impl(), *src_, mode_, opacity_, dx_, dy_);
         }
         catch (std::exception const& ex)
         {
@@ -49,14 +49,12 @@ struct AsyncComposite : Napi::AsyncWorker
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        Napi::Value arg = Napi::External<image_ptr>::New(env, &dst_);
-        Napi::Object obj = Image::constructor.New({arg});
-        return {env.Undefined(), napi_value(obj)};
+        return {env.Undefined(), dst_->Value()};
     }
 
 private:
     image_ptr src_;
-    image_ptr dst_;
+    Image * dst_;
     mapnik::composite_mode_e mode_;
     int dx_;
     int dy_;
@@ -228,7 +226,7 @@ Napi::Value Image::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new detail::AsyncComposite(source_image, image_, mode, dx, dy, opacity,
+    auto * worker = new detail::AsyncComposite(source_image, this, mode, dx, dy, opacity,
                                                filters, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
