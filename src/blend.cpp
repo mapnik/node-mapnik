@@ -473,14 +473,14 @@ struct AsyncBlend : Napi::AsyncWorker
             std::string & str = *output_buffer_;
             auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
                                                   [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                      if (str_ptr != nullptr) {
-                                                          Napi::MemoryManagement::AdjustExternalMemory
-                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                      }
+                                                      //if (str_ptr != nullptr) {
+                                                      //    Napi::MemoryManagement::AdjustExternalMemory
+                                                      //        (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                      //}
                                                       delete str_ptr;
                                                   },
                                                   output_buffer_.release());
-            Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+            //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
             return {env.Null(), buffer};
         }
         return Base::GetResult(env);

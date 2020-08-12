@@ -100,13 +100,13 @@ struct AsyncGetData : Napi::AsyncWorker
                 &data[0],
                 data.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                    if (str_ptr != nullptr) {
-                        Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
-                    }
+                    //if (str_ptr != nullptr) {
+                        //Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                    //}
                     delete str_ptr;
                 },
                 data_.release());
-            Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
+            //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
             return {env.Undefined(), buffer};
         }
         else
@@ -120,13 +120,13 @@ struct AsyncGetData : Napi::AsyncWorker
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
-                            Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
-                        }
+                        //if (str_ptr != nullptr) {
+                        //    Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                        // }
                         delete str_ptr;
                     },
                     ptr.release());
-                Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
+                //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
                 return {env.Undefined(), buffer};
             }
             else
@@ -505,13 +505,13 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                         &data[0],
                         data.size(),
                         [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                            if (str_ptr != nullptr) {
-                                Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
-                            }
+                            //if (str_ptr != nullptr) {
+                            //    Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                            //}
                             delete str_ptr;
                         },
                         ptr.release());
-                    Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
+                    //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
                     return scope.Escape(buffer);
                 }
                 else
@@ -535,13 +535,13 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
-                            Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
-                        }
+                        //if (str_ptr != nullptr) {
+                        //    Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                        //}
                         delete str_ptr;
                     },
                     compressed.release());
-                Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
+                //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(data.size()));
                 return scope.Escape(buffer);
             }
         }

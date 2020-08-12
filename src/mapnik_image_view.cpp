@@ -293,14 +293,14 @@ struct AsyncEncode : Napi::AsyncWorker
             std::string & str = *result_;
             auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
                                                   [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                      if (str_ptr != nullptr) {
-                                                          Napi::MemoryManagement::AdjustExternalMemory
-                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                      }
+                                                      //if (str_ptr != nullptr) {
+                                                      //    Napi::MemoryManagement::AdjustExternalMemory
+                                                      //        (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                      //}
                                                       delete str_ptr;
                                                   },
                                                   result_.release());
-            Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+            //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
             return {env.Null(), buffer};
         }
         return Base::GetResult(env);
@@ -330,14 +330,14 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
         std::string & str = *result;
         auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
                                               [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                  if (str_ptr != nullptr) {
-                                                      Napi::MemoryManagement::AdjustExternalMemory
-                                                          (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                  }
+                                                  //if (str_ptr != nullptr) {
+                                                  //    Napi::MemoryManagement::AdjustExternalMemory
+                                                  //        (env_, -static_cast<std::int64_t>(str_ptr->size()));
+                                                  //}
                                                   delete str_ptr;
                                               },
                                               result.release());
-        Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
+        //Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
         return scope.Escape(buffer);
     }
     catch (std::exception const& ex)
