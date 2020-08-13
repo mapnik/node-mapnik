@@ -62,7 +62,6 @@ static Napi::Value clearCache(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
 #if defined(MAPNIK_MEMORY_MAPPED_FILE)
-    Napi::HandleScope scope(env);
     mapnik::marker_cache::instance().clear();
     mapnik::mapped_memory_cache::instance().clear();
 #endif

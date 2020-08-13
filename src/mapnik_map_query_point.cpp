@@ -173,7 +173,6 @@ Napi::Value Map::queryPoint(Napi::CallbackInfo const& info)
 Napi::Value Map::query_point_impl(Napi::CallbackInfo const& info, bool geo_coords)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (info.Length() < 3)
     {
         Napi::Error::New(env, "requires at least three arguments, a x,y query and a callback")

@@ -63,8 +63,6 @@ private:
 Napi::Value Map::load(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() < 2)
     {
         Napi::Error::New(env, "please provide a stylesheet path, options, and callback").ThrowAsJavaScriptException();
@@ -142,8 +140,6 @@ Napi::Value Map::load(Napi::CallbackInfo const& info)
 Napi::Value Map::loadSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet").ThrowAsJavaScriptException();

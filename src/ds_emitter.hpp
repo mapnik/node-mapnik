@@ -13,7 +13,6 @@ namespace node_mapnik {
 
 static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_ptr ds)
 {
-    Napi::HandleScope scope(env);
     mapnik::layer_descriptor ld = ds->get_descriptor();
     // field names and types
     auto const& desc = ld.get_descriptors();
@@ -40,7 +39,6 @@ static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_
 
 static void describe_datasource(Napi::Env env, Napi::Object description, mapnik::datasource_ptr ds)
 {
-    Napi::HandleScope scope(env);
     // type
     if (ds->type() == mapnik::datasource::Raster)
     {

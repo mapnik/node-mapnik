@@ -43,7 +43,6 @@ Napi::FunctionReference VectorTile::constructor;
 
 Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "VectorTile", {
             InstanceAccessor<&VectorTile::get_tile_x, &VectorTile::set_tile_x>("x", prop_attr),
             InstanceAccessor<&VectorTile::get_tile_y, &VectorTile::set_tile_y>("y", prop_attr),

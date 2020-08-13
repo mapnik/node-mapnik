@@ -15,7 +15,6 @@ Napi::FunctionReference Map::constructor;
 
 Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Map", {
             InstanceMethod<&Map::fonts>("fonts", prop_attr),
             InstanceMethod<&Map::fontFiles>("fontFiles", prop_attr),
@@ -122,8 +121,6 @@ Map::Map(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Map>(info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() == 1 && info[0].IsExternal())
     {
         auto ext = info[0].As<Napi::External<map_ptr>>();
@@ -188,7 +185,6 @@ Napi::Value Map::extent(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-
     mapnik::box2d<double> const& e = map_->get_current_extent();
     Napi::Array arr = Napi::Array::New(env, 4u);
     arr.Set(0u, Napi::Number::New(env, e.minx()));
@@ -201,7 +197,6 @@ Napi::Value Map::extent(Napi::CallbackInfo const& info)
 void Map::extent(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (!value.IsArray())
     {
         Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
@@ -235,7 +230,6 @@ Napi::Value Map::maximumExtent(Napi::CallbackInfo const& info)
 void Map::maximumExtent(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (!value.IsArray())
     {
         Napi::Error::New(env, "Must provide an array of: [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
@@ -405,8 +399,6 @@ Napi::Value Map::parameters(Napi::CallbackInfo const& info)
 void Map::parameters(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (!value.IsObject())
     {
         Napi::TypeError::New(env, "object expected for map.parameters").ThrowAsJavaScriptException();
@@ -636,7 +628,6 @@ Napi::Value Map::layers(Napi::CallbackInfo const& info)
 Napi::Value Map::add_layer(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (!info[0].IsObject())
     {
         Napi::TypeError::New(env, "mapnik.Layer expected").ThrowAsJavaScriptException();

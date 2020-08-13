@@ -13,7 +13,6 @@ Napi::FunctionReference Layer::constructor;
 
 Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Layer", {
             InstanceMethod<&Layer::describe>("describe", prop_attr),
             InstanceAccessor<&Layer::name, &Layer::name>("name", prop_attr),
@@ -122,7 +121,6 @@ Napi::Value Layer::styles(Napi::CallbackInfo const& info)
 void Layer::styles(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (!value.IsArray())
     {
         Napi::TypeError::New(env, "Must provide an array of style names").ThrowAsJavaScriptException();

@@ -131,8 +131,6 @@ Napi::FunctionReference GridView::constructor;
 
 Napi::Object GridView::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
     Napi::Function func = DefineClass(env, "GridView", {
             InstanceMethod<&GridView::encodeSync>("encodeSync", prop_attr),
             InstanceMethod<&GridView::encode>("encode", prop_attr),

@@ -49,7 +49,6 @@ Napi::FunctionReference ImageView::constructor;
 
 Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "ImageView", {
             InstanceMethod<&ImageView::width>("width", prop_attr),
             InstanceMethod<&ImageView::height>("height", prop_attr),
@@ -350,8 +349,6 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     std::string format = "png";
     palette_ptr palette;
 

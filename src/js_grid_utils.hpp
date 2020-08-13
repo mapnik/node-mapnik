@@ -85,7 +85,6 @@ static void write_features(Napi::Env env, T const& grid_type,
                            Napi::Object& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    Napi::HandleScope scope(env);
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {

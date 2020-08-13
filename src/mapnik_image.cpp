@@ -18,8 +18,6 @@ Napi::FunctionReference Image::constructor;
 
 Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
     Napi::Function func = DefineClass(env, "Image", {
             InstanceAccessor<&Image::offset, &Image::offset>("offset", prop_attr),
             InstanceAccessor<&Image::scaling, &Image::scaling>("scaling", prop_attr),
