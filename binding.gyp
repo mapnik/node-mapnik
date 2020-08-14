@@ -70,7 +70,7 @@
         './mason_packages/.link/include/cairo',
         './mason_packages/.link/include/mapnik',
         './src',
-        "<!@(node -p \"require('node-addon-api').include.slice(1,-1)\")",
+        "<!@(node -p \"require('node-addon-api').include\")",
         # TODO: move these to mason packages once we have a minimal windows client for mason (@springmeyer)
         # https://github.com/mapbox/mason/issues/396
         "./deps/geometry/include/",

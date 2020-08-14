@@ -46,7 +46,7 @@ struct AsyncOpen : Napi::AsyncWorker
         if (image_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Null(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -99,7 +99,7 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
                     mapnik::set_premultiplied_alpha(*imagep, true);
                 }
                 Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-                Napi::Object obj = constructor.New({arg});
+                Napi::Object obj = NewInstance(env, arg);
                 return scope.Escape(napi_value(obj)).ToObject();
             }
         }

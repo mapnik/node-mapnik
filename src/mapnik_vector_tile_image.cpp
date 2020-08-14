@@ -59,7 +59,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
 
     std::string layer_name = info[1].As<Napi::String>();
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (!obj.InstanceOf(Image::constructor.Value()))
+    if (!obj.InstanceOf(Image::Constructor(env)))
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
         return scope.Escape(env.Undefined());
@@ -253,7 +253,7 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
     }
     std::string layer_name = info[1].As<Napi::String>();
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (!obj.InstanceOf(Image::constructor.Value()))
+    if (!obj.InstanceOf(Image::Constructor(env)))
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
         return env.Undefined();

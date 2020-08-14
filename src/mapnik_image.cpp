@@ -14,8 +14,6 @@
 #include <sstream>                      // for basic_ostringstream, etc
 #include <cstdlib>
 
-Napi::FunctionReference Image::constructor;
-
 Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
     Napi::HandleScope scope(env);
@@ -66,10 +64,17 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_propert
             StaticMethod<&Image::fromSVGBytesSync>("fromSVGBytesSync", prop_attr),
             StaticMethod<&Image::fromSVGBytes>("fromSVGBytes", prop_attr)
         });
-    constructor = Napi::Persistent(func);
-    constructor.SuppressDestruct();
+    Napi::FunctionReference* constructor = new Napi::FunctionReference();
+    *constructor = Napi::Persistent(func);
     exports.Set("Image", func);
+    env.SetInstanceData<Napi::FunctionReference>(constructor);
     return exports;
+}
+
+Napi::Object Image::NewInstance(Napi::Env env, Napi::Value arg)
+{
+    Napi::Object obj = env.GetInstanceData<Napi::FunctionReference>()->New({arg});
+    return obj;
 }
 
 /**
@@ -426,7 +431,7 @@ Napi::Value Image::compare(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (!obj.InstanceOf(Image::constructor.Value()))
+    if (!obj.InstanceOf(Image::Constructor(env)))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
         return env.Undefined();

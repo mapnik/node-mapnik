@@ -36,7 +36,7 @@ struct AsyncCopy : Napi::AsyncWorker
         if (image_out_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Undefined(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -265,7 +265,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
             mapnik::image_copy(*image_, type, offset, scaling)
             );
         Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out);
-        Napi::Object obj = Image::constructor.New({arg});
+        Napi::Object obj = Image::NewInstance(env, arg);
         return scope.Escape(obj);
     }
     catch (std::exception const& ex)

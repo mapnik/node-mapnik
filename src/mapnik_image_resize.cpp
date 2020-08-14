@@ -177,7 +177,7 @@ struct AsyncResize : Napi::AsyncWorker
         if (image_out_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Null(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -594,7 +594,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
                              corrected_offset_y);
         mapnik::util::apply_visitor(visit, *image_out);
         Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out);
-        Napi::Object obj = Image::constructor.New({arg});
+        Napi::Object obj = Image::NewInstance(env, arg);
         return scope.Escape(obj);
     }
     catch (std::exception const& ex)

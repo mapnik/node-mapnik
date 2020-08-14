@@ -15,6 +15,8 @@ class Image : public Napi::ObjectWrap<Image>
 public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes attr);
+    static Napi::Object NewInstance(Napi::Env env, Napi::Value arg);
+    static Napi::Function Constructor(Napi::Env env) { return env.GetInstanceData<Napi::FunctionReference>()->Value();}
     // ctor
     explicit Image(Napi::CallbackInfo const& info);
     // methods
@@ -70,7 +72,6 @@ public:
     Napi::Value offset(Napi::CallbackInfo const& info);
     void offset(Napi::CallbackInfo const& info, Napi::Value const& value);
     inline image_ptr impl() const { return image_; }
-    static Napi::FunctionReference constructor;
 private:
     static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     static Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file);

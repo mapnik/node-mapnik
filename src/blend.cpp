@@ -850,7 +850,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
         else if (buffer.IsObject())
         {
             Napi::Object obj = buffer.As<Napi::Object>();
-            if (obj.InstanceOf(Image::constructor.Value()))
+            if (obj.InstanceOf(Image::Constructor(env)))
             {
                 Image * im = Napi::ObjectWrap<Image>::Unwrap(obj);
 
@@ -876,7 +876,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
                     else if (buffer.IsObject())
                     {
                         Napi::Object possible_im = buffer.As<Napi::Object>();
-                        if (possible_im.InstanceOf(Image::constructor.Value()))
+                        if (possible_im.InstanceOf(Image::Constructor(env)))
                         {
                             Image * im =  Napi::ObjectWrap<Image>::Unwrap(possible_im);
                             if (im->impl()->get_dtype() == mapnik::image_dtype_rgba8)

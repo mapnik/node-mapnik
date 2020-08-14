@@ -126,7 +126,7 @@ struct AsyncFromSVG : Napi::AsyncWorker
         if (image_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Null(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -245,7 +245,7 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
         if (image_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Null(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -432,7 +432,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
 
         image_ptr imagep = std::make_shared<mapnik::image_any>(im);
         Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-        Napi::Object obj = Image::constructor.New({arg});
+        Napi::Object obj = Image::NewInstance(env, arg);
         return scope.Escape(napi_value(obj)).ToObject();
     }
     catch (std::exception const& ex)

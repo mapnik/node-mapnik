@@ -111,7 +111,7 @@ Napi::Value Image::composite(Napi::CallbackInfo const& info)
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
-    if (!obj.InstanceOf(Image::constructor.Value()))
+    if (!obj.InstanceOf(Image::Constructor(env)))
     {
         Napi::TypeError::New(env, "mapnik.Image expected as first arg").ThrowAsJavaScriptException();
         return env.Undefined();

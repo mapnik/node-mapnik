@@ -51,7 +51,7 @@ struct AsyncFromBytes : Napi::AsyncWorker
         if (image_)
         {
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-            Napi::Object obj = Image::constructor.New({arg});
+            Napi::Object obj = Image::NewInstance(env, arg);
             return {env.Null(), napi_value(obj)};
         }
         return Base::GetResult(env);
@@ -111,7 +111,7 @@ Napi::Value Image::fromBytesSync(Napi::CallbackInfo const& info)
                 mapnik::set_premultiplied_alpha(*imagep, true);
             }
             Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-            Napi::Object obj = constructor.New({arg});
+            Napi::Object obj = NewInstance(env, arg);
             return scope.Escape(napi_value(obj)).ToObject();
         }
         // The only way this is ever reached is if the reader factory in
@@ -337,7 +337,8 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
         mapnik::image_rgba8 im_wrapper(width, height, reinterpret_cast<unsigned char*>(obj.As<Napi::Buffer<char>>().Data()), premultiplied, painted);
         image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
         Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-        Napi::Object image_obj = constructor.New({arg});
+        Napi::FunctionReference* constructor = env.GetInstanceData<Napi::FunctionReference>();
+        Napi::Object image_obj = constructor->New({arg});
         image_obj.Set("_buffer", obj);
         return scope.Escape(napi_value(image_obj)).ToObject();
     }

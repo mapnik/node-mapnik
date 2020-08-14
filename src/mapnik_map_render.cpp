@@ -132,7 +132,7 @@ struct AsyncRenderImage : AsyncRender
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
         Napi::Value arg = Napi::External<image_ptr>::New(env, &image_);
-        Napi::Object obj = Image::constructor.New({arg});
+        Napi::Object obj = Image::NewInstance(env, arg);
         return {env.Null(), napi_value(obj)};
     }
 
@@ -550,7 +550,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
 
         Napi::Object obj = info[0].As<Napi::Object>();
 
-        if (obj.InstanceOf(Image::constructor.Value()))
+        if (obj.InstanceOf(Image::Constructor(env)))
         {
             image_ptr image = Napi::ObjectWrap<Image>::Unwrap(obj)->impl();
             mapnik::attributes variables;

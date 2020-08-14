@@ -569,7 +569,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     unsigned height = 0;
     surface_type surface;
     bool use_cairo = false;
-    if (im_obj.InstanceOf(Image::constructor.Value()))
+    if (im_obj.InstanceOf(Image::Constructor(env)))
     {
         Image* im = Napi::ObjectWrap<Image>::Unwrap(im_obj);
         width = im->impl()->width();
