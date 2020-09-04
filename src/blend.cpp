@@ -113,7 +113,6 @@ Napi::Value hsl2rgb(Napi::CallbackInfo const& info)
     return scope.Escape(rgb);
 }
 
-//namespace {
 
 static bool parseTintOps(Napi::CallbackInfo const& info, Napi::Object const& tint, Tinter & tinter)
 {
@@ -520,7 +519,7 @@ static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, b
         else if (worker->format_ == BLEND_FORMAT_WEBP)
         {
 #if defined(HAVE_WEBP)
-
+            if (worker->quality_ == 0) worker->quality_ = 80;
             WebPConfig config;
             // Default values set here will be lossless=0 and quality=75 (as least as of webp v0.3.1)
             if (!WebPConfigInit(&config))
@@ -581,9 +580,6 @@ static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, b
         worker->SetError(ex.what());
     }
 }
-
-
-//}
 
 /**
  * **`mapnik.Blend`**
