@@ -29,24 +29,66 @@
  ],
  "data": {
   "24": {
+   "AREA": 909351,
+   "FIPS": "CA",
+   "ISO2": "CA",
+   "ISO3": "CAN",
+   "LAT": 59.081,
+   "LON": -109.433,
    "NAME": "Canada"
   },
   "51": {
+   "AREA": 6889,
+   "FIPS": "EI",
+   "ISO2": "IE",
+   "ISO3": "IRL",
+   "LAT": 53.177,
+   "LON": -8.152,
    "NAME": "Ireland"
   },
   "65": {
+   "AREA": 55010,
+   "FIPS": "FR",
+   "ISO2": "FR",
+   "ISO3": "FRA",
+   "LAT": 46.565,
+   "LON": 2.55,
    "NAME": "France"
   },
   "71": {
+   "AREA": 41045,
+   "FIPS": "GL",
+   "ISO2": "GL",
+   "ISO3": "GRL",
+   "LAT": 74.719,
+   "LON": -41.391,
    "NAME": "Greenland"
   },
   "82": {
+   "AREA": 10025,
+   "FIPS": "IC",
+   "ISO2": "IS",
+   "ISO3": "ISL",
+   "LAT": 64.764,
+   "LON": -18.48,
    "NAME": "Iceland"
   },
   "205": {
+   "AREA": 24193,
+   "FIPS": "UK",
+   "ISO2": "GB",
+   "ISO3": "GBR",
+   "LAT": 53,
+   "LON": -1.6,
    "NAME": "United Kingdom"
   },
   "207": {
+   "AREA": 915896,
+   "FIPS": "US",
+   "ISO2": "US",
+   "ISO3": "USA",
+   "LAT": 39.622,
+   "LON": -98.606,
    "NAME": "United States"
   }
  }

@@ -13,7 +13,7 @@ var reference__id__2 = './test/support/grid__id__2.json';
 var reference__id__3 = './test/support/grid__id__3.json';
 
 function _c(grid1,grid2) {
-  return grid2.replace(/\r/g, '') == grid2.replace(/\r/g, '');
+  return grid1.replace(/\r/g, '') == grid2.replace(/\r/g, '');
 }
 
 if (mapnik.supports.grid) {
@@ -104,13 +104,13 @@ if (mapnik.supports.grid) {
       var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
 
       var options = {'layer': 0,
-                     'fields': ['NAME']
+                     'fields': ['NAME', 'LAT', 'LON', 'AREA', 'ISO2', 'ISO3', 'FIPS']
                     };
       map.render(grid, options, function(err, grid) {
         if (err) throw err;
         grid.encode({resolution: 4}, function(err,utf) {
           var equal = _c(JSON.stringify(utf,null,1),fs.readFileSync(reference,'utf8'));
-          assert.ok(equal);
+          assert.ok(equal, 'Result should match fixture');
           assert.end();
         });
       });
@@ -125,14 +125,14 @@ if (mapnik.supports.grid) {
       var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
 
       var options = {'layer': 0,
-                     'fields': ['NAME']
+                     'fields': ['NAME', 'LAT', 'LON', 'AREA', 'ISO2', 'ISO3', 'FIPS']
                     };
       map.render(grid, options, function(err, grid) {
         assert.ok(!err);
         var gv = grid.view(0, 0, 256, 256);
         gv.encode({resolution: 4}, function(err,gv_utf1) {
           var equal = _c(JSON.stringify(gv_utf1,null,1),fs.readFileSync(reference,'utf8'));
-          assert.ok(equal);
+          assert.ok(equal, 'Result should match fixture');
           assert.end();
         });
       });
@@ -147,7 +147,7 @@ if (mapnik.supports.grid) {
       var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
 
       var options = {'layer': 0,
-                     'fields': ['NAME']
+                     'fields': ['NAME', 'LAT', 'LON', 'AREA', 'ISO2', 'ISO3', 'FIPS']
                     };
       map.render(grid, options, function(err, grid) {
         assert.ok(!err);
@@ -160,7 +160,7 @@ if (mapnik.supports.grid) {
             fs.writeFileSync(reference_view,JSON.stringify(gv_utf2,null,1));
           } else {
             var equal = _c(JSON.stringify(gv_utf2,null,1),fs.readFileSync(reference_view,'utf8'));
-            assert.ok(equal);
+            assert.ok(equal, 'Result should match fixture');
           }
           assert.end();
         });
