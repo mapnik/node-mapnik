@@ -91,11 +91,10 @@ struct AsyncGridEncode : Napi::AsyncWorker
         // Create the return hash.
         Napi::Object json = Napi::Object::New(env);
         Napi::Array grid_array = Napi::Array::New(env, lines_.size());
-        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution_));
         for (std::size_t j = 0;j < lines_.size(); ++j)
         {
             node_mapnik::grid_line_type const & line = lines_[j];
-            grid_array.Set(j, Napi::String::New(env, (char*)line.get(), array_size));
+            grid_array.Set(j, Napi::String::New(env, (char*)line.get()));
         }
         json.Set("grid", grid_array);
         json.Set("keys", keys_a);
@@ -432,8 +431,6 @@ Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
             keys_a.Set(i, Napi::String::New(env, *it));
         }
 
-        mapnik::grid const& grid_type = *grid_;
-
         // gather feature data
         Napi::Object feature_data = Napi::Object::New(env);
         if (add_features)
@@ -446,12 +443,10 @@ Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
         // Create the return hash.
         Napi::Object json = Napi::Object::New(env);
         Napi::Array grid_array = Napi::Array::New(env, lines.size());
-        unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
         for (std::size_t j = 0; j < lines.size(); ++j)
         {
             node_mapnik::grid_line_type const & line = lines[j];
-            char16_t const* data = (char16_t*)line.get();
-            grid_array.Set(j, Napi::String::New(env, data, array_size));
+            grid_array.Set(j, Napi::String::New(env, (char*)line.get()));
         }
         json.Set("grid", grid_array);
         json.Set("keys", keys_a);

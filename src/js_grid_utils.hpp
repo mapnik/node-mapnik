@@ -6,6 +6,7 @@
 #include <mapnik/grid/grid.hpp>         // for grid
 
 #include "utils.hpp"
+#include "utf8.hpp"
 
 // stl
 #include <cmath> // ceil
@@ -16,7 +17,7 @@
 
 namespace node_mapnik {
 
-typedef std::unique_ptr<uint16_t[]> grid_line_type;
+typedef std::unique_ptr<char[]> grid_line_type;
 
 template <typename T>
 static void grid2utf(T const& grid_type,
@@ -24,7 +25,7 @@ static void grid2utf(T const& grid_type,
                      std::vector<typename T::lookup_type>& key_order,
                      unsigned int resolution)
 {
-    typedef std::map< typename T::lookup_type, typename T::value_type> keys_type;
+    typedef std::map<typename T::lookup_type, typename T::value_type> keys_type;
     typedef typename keys_type::const_iterator keys_iterator;
 
     typename T::feature_key_type const& feature_keys = grid_type.get_feature_keys();
@@ -32,13 +33,14 @@ static void grid2utf(T const& grid_type,
 
     keys_type keys;
     // start counting at utf8 codepoint 32, aka space character
-    uint16_t codepoint = 32;
+    node_mapnik::utf8_int32_t codepoint = 32;
 
     unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
     for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
     {
-        uint16_t idx = 0;
-        grid_line_type line(new uint16_t[array_size]);
+        grid_line_type line(new char[array_size * 4 + 1]()); // utf8 has up to 4 bytes per character
+        void* p = (char *)line.get();
+
         typename T::value_type const* row = grid_type.get_row(y);
         for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
         {
@@ -65,12 +67,15 @@ static void grid2utf(T const& grid_type,
                         keys[val] = codepoint;
                         key_order.push_back(val);
                     }
-                    line[idx++] = static_cast<uint16_t>(codepoint);
+
+                    node_mapnik::utf8_int32_t cp = codepoint;
+                    p = node_mapnik::utf8catcodepoint(p, cp, 4);
                     ++codepoint;
                 }
                 else
                 {
-                    line[idx++] = static_cast<uint16_t>(key_pos->second);
+                    node_mapnik::utf8_int32_t cp = static_cast<node_mapnik::utf8_int32_t>(key_pos->second);
+                    p = node_mapnik::utf8catcodepoint(p, cp, 4);
                 }
             }
             // else, shouldn't get here...
