@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.3
+- Set default `quality` value for webp format to 80 (ref #957)
+- Fixes utfgrid support (ref #959)
+
 ## 4.5.2
 - Fixed default `scale_denominator` value in Map::render(..)` (#952)
 - Set JS objects properties `napi_writable` for backward compatibility with sinon usage (#954)
