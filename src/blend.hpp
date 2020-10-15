@@ -33,7 +33,7 @@ struct BImage {
     Tinter tint;
     std::unique_ptr<mapnik::image_rgba8> im_ptr;
     mapnik::image_rgba8 * im_raw_ptr;
-    Image * im_obj;
+    image_ptr im_obj;
 };
 
 typedef std::shared_ptr<BImage> ImagePtr;

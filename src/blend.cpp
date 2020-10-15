@@ -324,8 +324,8 @@ struct AsyncBlend : Napi::AsyncWorker
 
             if (image->im_obj)
             {
-                unsigned layer_width = image->im_obj->impl()->width();
-                unsigned layer_height = image->im_obj->impl()->height();
+                unsigned layer_width = image->im_obj->width();
+                unsigned layer_height = image->im_obj->height();
                 if (layer_width == 0 || layer_height == 0)
                 {
                     SetError("zero width/height image encountered");
@@ -345,7 +345,7 @@ struct AsyncBlend : Napi::AsyncWorker
                 }
                 image->width = layer_width;
                 image->height = layer_height;
-                image->im_raw_ptr = &image->im_obj->impl()->get<mapnik::image_rgba8>();
+                image->im_raw_ptr = &image->im_obj->get<mapnik::image_rgba8>();
             }
             else
             {
@@ -410,7 +410,7 @@ struct AsyncBlend : Napi::AsyncWorker
                 }
 
                 // allocate image for decoded pixels
-                std::unique_ptr<mapnik::image_rgba8> im_ptr(new mapnik::image_rgba8(layer_width,layer_height));
+                auto im_ptr = std::make_unique<mapnik::image_rgba8>(layer_width,layer_height);
                 // actually decode pixels now
                 try
                 {
@@ -852,7 +852,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
 
                 if (im->impl()->get_dtype() == mapnik::image_dtype_rgba8)
                 {
-                    image->im_obj = im;
+                    image->im_obj = im->impl();
                 }
                 else
                 {
@@ -877,7 +877,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
                             Image * im =  Napi::ObjectWrap<Image>::Unwrap(possible_im);
                             if (im->impl()->get_dtype() == mapnik::image_dtype_rgba8)
                             {
-                                image->im_obj = im;
+                                image->im_obj = im->impl();
                             }
                             else
                             {
