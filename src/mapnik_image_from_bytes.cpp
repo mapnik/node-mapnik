@@ -112,7 +112,7 @@ Napi::Value Image::fromBytesSync(Napi::CallbackInfo const& info)
             }
             Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
             Napi::Object obj = constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         // The only way this is ever reached is if the reader factory in
         // mapnik was not providing an image type it should. This should never
@@ -339,7 +339,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
         Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
         Napi::Object image_obj = constructor.New({arg});
         image_obj.Set("_buffer", obj);
-        return scope.Escape(napi_value(image_obj)).ToObject();
+        return scope.Escape(image_obj);
     }
     catch (std::exception const& ex)
     {

@@ -354,7 +354,7 @@ Napi::Value Grid::view(Napi::CallbackInfo const& info)
     Napi::Number h = info[3].As<Napi::Number>();
     Napi::Value grid_obj = Napi::External<grid_ptr>::New(env, &grid_);
     Napi::Object obj = GridView::constructor.New({grid_obj, x, y, w, h });
-    return scope.Escape(napi_value(obj)).ToObject();
+    return scope.Escape(obj);
 }
 
 /**

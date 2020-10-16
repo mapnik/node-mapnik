@@ -433,7 +433,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         image_ptr imagep = std::make_shared<mapnik::image_any>(im);
         Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
         Napi::Object obj = Image::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     catch (std::exception const& ex)
     {

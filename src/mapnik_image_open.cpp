@@ -100,7 +100,7 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
                 }
                 Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
                 Napi::Object obj = constructor.New({arg});
-                return scope.Escape(napi_value(obj)).ToObject();
+                return scope.Escape(obj);
             }
         }
         Napi::TypeError::New(env, ("Unsupported image format:" + filename)).ThrowAsJavaScriptException();

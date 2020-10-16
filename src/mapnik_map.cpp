@@ -362,7 +362,7 @@ Napi::Value Map::background(Napi::CallbackInfo const& info)
     {
         Napi::Value arg = Napi::External<mapnik::color>::New(env, &(*col));
         Napi::Object obj = Color::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     return env.Undefined();
 }
@@ -722,7 +722,7 @@ Napi::Value Map::get_layer(Napi::CallbackInfo const& info)
             auto layer = std::make_shared<mapnik::layer>(layers[index]);
             Napi::Value arg = Napi::External<layer_ptr>::New(env, &layer);
             Napi::Object obj = Layer::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         else
         {
@@ -741,7 +741,7 @@ Napi::Value Map::get_layer(Napi::CallbackInfo const& info)
                 auto layer = std::make_shared<mapnik::layer>(layers[index]);
                 Napi::Value arg = Napi::External<layer_ptr>::New(env, &layer);
                 Napi::Object obj = Layer::constructor.New({arg});
-                return scope.Escape(napi_value(obj)).ToObject();
+                return scope.Escape(obj);
             }
             ++index;
         }
@@ -815,7 +815,7 @@ Napi::Value Map::clone(Napi::CallbackInfo const& info)
         auto map = std::make_shared<mapnik::Map>(*map_);
         Napi::Value arg = Napi::External<map_ptr>::New(env, &map);
         Napi::Object obj = Map::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     catch (...)
     {

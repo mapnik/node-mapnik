@@ -148,7 +148,7 @@ Napi::Value Layer::datasource(Napi::CallbackInfo const& info)
     {
         Napi::Value arg = Napi::External<mapnik::datasource_ptr>::New(env, &ds);
         Napi::Object obj = Datasource::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     return env.Null();
 }

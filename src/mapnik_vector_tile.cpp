@@ -344,7 +344,7 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
     }
      Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &new_tile);
      Napi::Object obj = VectorTile::constructor.New({arg});
-     return scope.Escape(napi_value(obj));
+     return scope.Escape(obj);
 
 }
 

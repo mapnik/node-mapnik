@@ -94,7 +94,7 @@ Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
         }
         Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
         Napi::Object obj = Feature::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     catch (std::exception const& ex)
     {
@@ -180,7 +180,7 @@ Napi::Value Feature::geometry(Napi::CallbackInfo const& info)
     Napi::EscapableHandleScope scope(env);
     Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature_);
     Napi::Object obj = Geometry::constructor.New({arg});
-    return scope.Escape(napi_value(obj)).ToObject();
+    return scope.Escape(obj);
 }
 
 /**

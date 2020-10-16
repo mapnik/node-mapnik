@@ -196,7 +196,7 @@ Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
             mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_view_, x, y);
             Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
             Napi::Object obj = Color::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         else
         {

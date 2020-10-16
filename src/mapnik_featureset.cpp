@@ -74,7 +74,7 @@ Napi::Value Featureset::next(Napi::CallbackInfo const& info)
         {
             Napi::Value arg = Napi::External<mapnik::feature_ptr>::New(env, &feature);
             Napi::Object obj = Feature::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
     }
     return env.Null(); // Loop termination condition

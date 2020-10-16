@@ -309,7 +309,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
             mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_, x, y);
             Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
             Napi::Object obj = Color::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         else
         {
@@ -644,7 +644,7 @@ Napi::Value Image::view(Napi::CallbackInfo const& info)
     Napi::Number h = info[3].As<Napi::Number>();
     Napi::Value image_obj = Napi::External<image_ptr>::New(env, &image_);
     Napi::Object obj = ImageView::constructor.New({image_obj, x, y, w, h });
-    return scope.Escape(napi_value(obj)).ToObject();
+    return scope.Escape(obj);
 }
 
 Napi::Value Image::offset(Napi::CallbackInfo const& info)

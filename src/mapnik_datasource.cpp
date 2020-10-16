@@ -270,7 +270,7 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
     {
         Napi::Value arg = Napi::External<mapnik::featureset_ptr>::New(env, &fs);
         Napi::Object obj = Featureset::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();;
+        return scope.Escape(obj);
     }
     return env.Null(); // an empty Featureset
 }
