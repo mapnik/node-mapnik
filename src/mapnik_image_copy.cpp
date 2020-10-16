@@ -197,7 +197,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
             if (type >= mapnik::image_dtype::IMAGE_DTYPE_MAX)
             {
                 Napi::TypeError::New(env, "Image 'type' must be a valid image type").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         else if (info[0].IsObject())
@@ -207,7 +207,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "Unknown parameters passed").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
     if (info.Length() >= 2)
@@ -219,7 +219,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "Expected options object as second argument").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -234,7 +234,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "scaling argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -249,7 +249,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "offset argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -271,6 +271,6 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 }

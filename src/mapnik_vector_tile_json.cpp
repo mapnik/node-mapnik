@@ -804,14 +804,14 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
     if (info.Length() == 0)
     {
         Napi::Error::New(env, "first argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     Napi::Value layer_id = info[0];
     if (! (layer_id.IsString() || layer_id.IsNumber()) )
     {
         Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     std::string result;
@@ -834,7 +834,7 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
                 {
                     std::string error_msg("Layer name '" + layer_name + "' not found");
                     Napi::TypeError::New(env, error_msg.c_str()).ThrowAsJavaScriptException();
-                    return scope.Escape(env.Undefined());
+                    return env.Undefined();
                 }
             }
         }
@@ -844,18 +844,18 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
             if (layer_idx < 0)
             {
                 Napi::TypeError::New(env, "A layer index can not be negative").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             else if (layer_idx >= static_cast<int>(tile_->get_layers().size()))
             {
                 Napi::TypeError::New(env, "Layer index exceeds the number of layers in the vector tile.").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             if (!write_geojson_layer_index(result, layer_idx, tile_))
             {
                 // LCOV_EXCL_START
                 Napi::TypeError::New(env, "Layer could not be retrieved (should have not reached here)").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
                 // LCOV_EXCL_STOP
             }
         }
@@ -865,7 +865,7 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
     return scope.Escape(Napi::String::New(env, result));

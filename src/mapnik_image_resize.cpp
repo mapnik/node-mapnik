@@ -430,7 +430,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             if (width_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Width parameter must be an integer greater then zero").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             width = static_cast<std::size_t>(width_tmp);
         }
@@ -438,7 +438,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         {
             Napi::TypeError::New(env, "Width must be a number").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         if (info[1].IsNumber())
         {
@@ -446,20 +446,20 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             if (height_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Height parameter must be an integer greater then zero").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             height = static_cast<std::size_t>(height_tmp);
         }
         else
         {
             Napi::TypeError::New(env, "Height must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
     else
     {
         Napi::TypeError::New(env, "Resize requires at least a width and height parameter").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     if (info.Length() >= 3)
@@ -540,7 +540,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "scaling_method argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -554,19 +554,19 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "filter_factor argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
     if (image_->is<mapnik::image_null>())
     {
         Napi::TypeError::New(env, "Can not resize a null image").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     if (offset_width <= 0 || offset_height <= 0)
     {
         Napi::TypeError::New(env, "Image width or height is zero or less then zero.").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     try
     {

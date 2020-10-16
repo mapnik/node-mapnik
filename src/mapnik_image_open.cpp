@@ -77,12 +77,12 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
     if (info.Length() < 1)
     {
         Napi::Error::New(env, "must provide a string argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     if (!info[0].IsString())
     {
         Napi::TypeError::New(env, "Argument must be a string").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     try
     {
@@ -105,12 +105,12 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
         }
         Napi::TypeError::New(env, ("Unsupported image format:" + filename)).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 }
 

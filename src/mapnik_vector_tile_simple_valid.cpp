@@ -726,7 +726,7 @@ Napi::Value VectorTile::reportGeometryValiditySync(Napi::CallbackInfo const& inf
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
     }
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 
 /**

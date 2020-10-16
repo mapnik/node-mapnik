@@ -98,5 +98,5 @@ Napi::Value Image::isSolidSync(Napi::CallbackInfo const& info)
         return scope.Escape(Napi::Boolean::New(env, mapnik::is_solid(*image_)));
     }
     Napi::Error::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }

@@ -89,14 +89,14 @@ Napi::Value Image::fromBytesSync(Napi::CallbackInfo const& info)
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     try
@@ -118,12 +118,12 @@ Napi::Value Image::fromBytesSync(Napi::CallbackInfo const& info)
         // mapnik was not providing an image type it should. This should never
         // be occuring so marking this out from coverage
         Napi::TypeError::New(env, "Failed to load from buffer").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 }
 
@@ -257,7 +257,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
     if (info.Length() < 3 || !info[0].IsNumber() || !info[1].IsNumber() || !info[2].IsObject())
     {
         Napi::TypeError::New(env, "must provide a width, height, and buffer argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     std::int32_t width = info[0].As<Napi::Number>().Int32Value();
@@ -266,14 +266,14 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
     if (width <= 0 || height <= 0)
     {
         Napi::TypeError::New(env, "width and height must be greater then zero").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     Napi::Object obj = info[2].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "third argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     // TODO - support other image types?
@@ -281,7 +281,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
     if (im_size != obj.As<Napi::Buffer<char>>().Length())
     {
         Napi::TypeError::New(env, "invalid image size").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     bool premultiplied = false;
@@ -295,7 +295,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
             if (options.Has("type"))
             {
                 Napi::TypeError::New(env, "'type' option not supported (only rgba images currently viable)").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             if (options.Has("premultiplied"))
             {
@@ -307,7 +307,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
                 else
                 {
                     Napi::TypeError::New(env, "premultiplied option must be a boolean").ThrowAsJavaScriptException();
-                    return scope.Escape(env.Undefined());
+                    return env.Undefined();
                 }
             }
 
@@ -321,14 +321,14 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
                 else
                 {
                     Napi::TypeError::New(env, "painted option must be a boolean").ThrowAsJavaScriptException();
-                    return scope.Escape(env.Undefined());
+                    return env.Undefined();
                 }
             }
         }
         else
         {
             Napi::TypeError::New(env, "Options parameter must be an object").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -346,7 +346,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
         // There is no known way for this exception to be reached currently.
         // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
 }

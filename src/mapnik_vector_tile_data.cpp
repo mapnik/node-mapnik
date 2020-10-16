@@ -393,7 +393,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
         if (!info[0].IsObject())
         {
             Napi::TypeError::New(env, "first arg must be a options object").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
 
         options = info[0].As<Napi::Object>();
@@ -404,7 +404,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'compression' must be a string, either 'gzip', or 'none' (default)").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             compress = (std::string("gzip") == param_val.As<Napi::String>().Utf8Value());
         }
@@ -414,7 +414,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'release' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             release = param_val.As<Napi::Boolean>();
         }
@@ -424,13 +424,13 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             level = param_val.As<Napi::Number>().Int32Value();
             if (level < 0 || level > 9)
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("strategy"))
@@ -439,7 +439,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             std::string str =  param_val.As<Napi::String>().Utf8Value();
             if (std::string("FILTERED") == str)
@@ -465,7 +465,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             else
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
     }
@@ -490,7 +490,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
 
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
                 // LCOV_EXCL_STOP
             }
             */
@@ -553,10 +553,10 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
         // in test coverage.
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 /*
 typedef struct
@@ -728,19 +728,19 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
     if (buffer_size <= 0)
     {
         Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     bool upgrade = false;
@@ -752,7 +752,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
         {
             Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         options = info[1].As<Napi::Object>();
         if (options.Has("validate"))
@@ -761,7 +761,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             validate = param_val.As<Napi::Boolean>();
         }
@@ -771,7 +771,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             upgrade = param_val.As<Napi::Boolean>();
         }
@@ -784,7 +784,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     return env.Undefined();
 }

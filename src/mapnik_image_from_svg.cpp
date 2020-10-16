@@ -271,13 +271,13 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
     if (!from_file && (info.Length() < 1 || !info[0].IsObject()))
     {
         Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     if (from_file && (info.Length() < 1 || !info[0].IsString()))
     {
         Napi::TypeError::New(env, "must provide a filename argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     double scale = 1.0;
     std::size_t max_size = 2048;
@@ -288,7 +288,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         {
             Napi::TypeError::New(env, "optional second arg must be an options object").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         Napi::Object options = info[1].As<Napi::Object>();
         if (options.Has("scale"))
@@ -297,13 +297,13 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             if (!scale_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'scale' must be a number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             scale = scale_opt.As<Napi::Number>().DoubleValue();
             if (scale <= 0)
             {
                 Napi::TypeError::New(env, "'scale' must be a positive non zero number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("max_size"))
@@ -312,13 +312,13 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             if (!opt.IsNumber())
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             auto max_size_val = opt.As<Napi::Number>().Int32Value();
             if (max_size_val < 0 || max_size_val > 65535)
             {
                 Napi::TypeError::New(env, "'max_size' must be a positive integer between 0 and 65535").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             max_size = static_cast<std::size_t>(max_size_val);
         }
@@ -328,7 +328,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             if (!opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "'strict' must be a boolean value").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             strict = opt.As<Napi::Boolean>();
         }
@@ -352,7 +352,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
                     errorMessage <<  error << std::endl;
                 }
                 Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         else
@@ -361,7 +361,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             if (!obj.IsBuffer())
             {
                 Napi::TypeError::New(env, "first argument is invalid, must be a Buffer").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             std::string svg_buffer(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length());
             p.parse_from_string(svg_buffer);
@@ -373,7 +373,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
                     errorMessage <<  error << std::endl;
                 }
                 Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
 
@@ -395,7 +395,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         if (svg_width <= 0 || svg_height <= 0)
         {
             Napi::TypeError::New(env, "image created from svg must have a width and height greater then zero").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
 
         if (svg_width > static_cast<double>(max_size) || svg_height > static_cast<double>(max_size))
@@ -403,7 +403,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             std::stringstream s;
             s << "image created from svg must be " << max_size << " pixels or fewer on each side";
             Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
 
         mapnik::image_rgba8 im(static_cast<int>(std::round(svg_width)),
@@ -442,7 +442,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         // it is a good idea to keep this. Therefore, any exceptions thrown will fail gracefully.
         // LCOV_EXCL_START
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
 }

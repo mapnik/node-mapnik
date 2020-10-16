@@ -136,7 +136,7 @@ Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
     }
 
     Napi::TypeError::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 
 Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
