@@ -27,10 +27,10 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     install cairo 1.14.8
     install webp 0.6.0
     install libgdal 2.1.3
-    install boost 1.73.0
-    install boost_libsystem 1.73.0
-    install boost_libfilesystem 1.73.0
-    install boost_libregex_icu57 1.73.0
+    install boost 1.74.0
+    install boost_libsystem 1.74.0
+    install boost_libfilesystem 1.74.0
+    install boost_libregex_icu57 1.74.0
     install freetype 2.7.1
     install harfbuzz 1.4.2-ft
 
@@ -38,5 +38,5 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # NOTE: sync this version with the `mapnik_version` in package.json (which is used for windows builds)
     # In the future we could pull from that version automatically if mason were to support knowing the right dep
     # versions to install automatically. Until then there is not much point since the deps are still hardcoded here.
-    install mapnik 26d3084ea
+    install mapnik c6fc956a7
 fi
