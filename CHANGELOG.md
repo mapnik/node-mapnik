@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.5.4
+- Ensure `mapnik.Image` data is valid during `AsyncWorker::Execute()` (ref #960)
+
 ## 4.5.3
 - Set default `quality` value for webp format to 80 (ref #957)
 - Fixes utfgrid support (ref #959)
