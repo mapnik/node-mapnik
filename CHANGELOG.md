@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.5 (dev)
+- Replace bogus Object->Value->Object conversions e.g scope.Escape(napi_value(obj)).ToObject() => scope.Escape(obj) (ref #961)
+- Remove `escape`from `env.Undefined()` (ref #961)
+
 ## 4.5.4
 - Ensure `mapnik.Image` data is valid during `AsyncWorker::Execute()` (ref #960)
 
