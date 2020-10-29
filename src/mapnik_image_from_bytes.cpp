@@ -334,7 +334,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
 
     try
     {
-        mapnik::image_rgba8 im_wrapper(width, height, reinterpret_cast<unsigned char*>(obj.As<Napi::Buffer<char>>().Data()), premultiplied, painted);
+        mapnik::image_rgba8 im_wrapper(width, height, obj.As<Napi::Buffer<unsigned char>>().Data(), premultiplied, painted);
         image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
         Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
         Napi::Object image_obj = constructor.New({arg});

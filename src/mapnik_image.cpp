@@ -707,7 +707,7 @@ void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
 Napi::Value Image::data(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<char>::Copy(env, reinterpret_cast<char const*>(image_->bytes()), image_->size());
+    if (image_) return Napi::Buffer<unsigned char>::Copy(env, image_->bytes(), image_->size());
     return info.Env().Null();
 }
 
@@ -730,6 +730,6 @@ Napi::Value Image::data(Napi::CallbackInfo const& info)
 Napi::Value Image::buffer(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<char>::New(env, reinterpret_cast<char*>(image_->bytes()), image_->size());
+    if (image_) return Napi::Buffer<unsigned char>::New(env, image_->bytes(), image_->size());
     return info.Env().Null();
 }
