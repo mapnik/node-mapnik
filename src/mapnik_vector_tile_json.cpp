@@ -989,7 +989,6 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
 Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::Error::New(env, "first argument must be a GeoJSON string").ThrowAsJavaScriptException();

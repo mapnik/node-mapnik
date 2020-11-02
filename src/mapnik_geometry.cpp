@@ -82,7 +82,6 @@ Napi::FunctionReference Geometry::constructor;
 
 Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
     Napi::Function func = DefineClass(env, "Geometry", {
             InstanceMethod<&Geometry::extent>("extent", prop_attr),
             InstanceMethod<&Geometry::type>("type", prop_attr),

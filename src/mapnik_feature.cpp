@@ -14,8 +14,6 @@ Napi::FunctionReference Feature::constructor;
 
 Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
     Napi::Function func = DefineClass(env, "Feature", {
             InstanceMethod<&Feature::id>("id", prop_attr),
             InstanceMethod<&Feature::extent>("extent", prop_attr),

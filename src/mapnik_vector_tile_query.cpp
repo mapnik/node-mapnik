@@ -9,15 +9,8 @@
 #include <mapnik/proj_transform.hpp>
 // mapnik-vector-tile
 #include "mapnik_vector_tile.hpp"
-//#include "vector_tile_compression.hpp"
-//#include "vector_tile_composite.hpp"
-//#include "vector_tile_processor.hpp"
 #include "vector_tile_projection.hpp"
-//#define MAPNIK_VECTOR_TILE_LIBRARY
 #include "vector_tile_datasource_pbf.hpp"
-//#include "vector_tile_geometry_decoder.hpp"
-//#include "vector_tile_load_tile.hpp"
-//#include "object_to_container.hpp"
 
 namespace detail
 {
@@ -594,7 +587,6 @@ private:
 Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsNumber())
     {
         Napi::Error::New(env, "expects lon,lat info").ThrowAsJavaScriptException();

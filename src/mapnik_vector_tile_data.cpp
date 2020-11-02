@@ -214,8 +214,6 @@ private:
 Napi::Value VectorTile::setDataSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
@@ -722,8 +720,6 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();

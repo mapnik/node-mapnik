@@ -58,7 +58,6 @@ struct AsyncFill : Napi::AsyncWorker
 Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (info.Length() < 1 )
     {
         Napi::TypeError::New(env, "expects one argument: Color object or a number").ThrowAsJavaScriptException();

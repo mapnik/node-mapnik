@@ -117,8 +117,6 @@ Napi::Value hsl2rgb(Napi::CallbackInfo const& info)
 static bool parseTintOps(Napi::CallbackInfo const& info, Napi::Object const& tint, Tinter & tinter)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     Napi::Value hue = tint.Get("h");
     if (hue.IsArray())
     {
@@ -607,8 +605,6 @@ static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, b
 Napi::Value blend(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     Images images;
     int quality = 0;
     int width = 0;

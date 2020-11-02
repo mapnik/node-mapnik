@@ -115,8 +115,6 @@ Napi::FunctionReference Grid::constructor;
 
 Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
     Napi::Function func = DefineClass(env, "Grid", {
             InstanceAccessor<&Grid::key, &Grid::key>("key", prop_attr),
             InstanceMethod<&Grid::encodeSync>("encodeSync", prop_attr),

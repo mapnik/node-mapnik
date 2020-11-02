@@ -13,7 +13,6 @@ namespace node_mapnik {
 
 static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_ptr ds)
 {
-    Napi::HandleScope scope(env);
     mapnik::layer_descriptor ld = ds->get_descriptor();
     // field names and types
     auto const& desc = ld.get_descriptors();
@@ -40,26 +39,25 @@ static void get_fields(Napi::Env env, Napi::Object & fields, mapnik::datasource_
 
 static void describe_datasource(Napi::Env env, Napi::Object description, mapnik::datasource_ptr ds)
 {
-    Napi::HandleScope scope(env);
     // type
     if (ds->type() == mapnik::datasource::Raster)
     {
-        (description).Set(Napi::String::New(env, "type"), Napi::String::New(env, "raster"));
+        description.Set(Napi::String::New(env, "type"), Napi::String::New(env, "raster"));
     }
     else
     {
-        (description).Set(Napi::String::New(env, "type"), Napi::String::New(env, "vector"));
+        description.Set(Napi::String::New(env, "type"), Napi::String::New(env, "vector"));
     }
 
     mapnik::layer_descriptor ld = ds->get_descriptor();
 
     // encoding
-    (description).Set(Napi::String::New(env, "encoding"), Napi::String::New(env, ld.get_encoding().c_str()));
+    description.Set(Napi::String::New(env, "encoding"), Napi::String::New(env, ld.get_encoding().c_str()));
 
     // field names and types
     Napi::Object fields = Napi::Object::New(env);
     node_mapnik::get_fields(env, fields, ds);
-    (description).Set(Napi::String::New(env, "fields"), fields);
+    description.Set(Napi::String::New(env, "fields"), fields);
 
     Napi::String js_type = Napi::String::New(env, "unknown");
     if (ds->type() == mapnik::datasource::Raster)

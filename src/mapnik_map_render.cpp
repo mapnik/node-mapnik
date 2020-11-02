@@ -446,7 +446,6 @@ private:
 Napi::Value Map::render(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
 
     // ensure at least 2 args
     if (info.Length() < 2)
@@ -1016,7 +1015,6 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
 Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
 
     if (info.Length() < 1 || !info[0].IsString())
     {
@@ -1178,7 +1176,7 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
+
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "first argument must be a path to a file to save").ThrowAsJavaScriptException();
