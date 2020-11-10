@@ -1,7 +1,7 @@
 #include "mapnik_map.hpp"
 
-#include <mapnik/load_map.hpp>          // for load_map, load_map_string
-#include <mapnik/map.hpp>               // for Map, etc
+#include <mapnik/load_map.hpp> // for load_map, load_map_string
+#include <mapnik/map.hpp>      // for Map, etc
 
 namespace detail {
 
@@ -39,14 +39,14 @@ struct AsyncMapLoad : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     map_ptr map_;
     std::string stylesheet_;
     std::string base_path_;
     bool strict_;
 };
 
-} // ns
+} // namespace detail
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik
@@ -123,7 +123,6 @@ Napi::Value Map::load(Napi::CallbackInfo const& info)
     worker->Queue();
     return env.Undefined();
 }
-
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik

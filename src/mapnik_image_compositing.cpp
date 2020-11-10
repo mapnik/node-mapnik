@@ -1,7 +1,7 @@
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include <mapnik/image_filter_types.hpp>
-#include <mapnik/image_filter.hpp>      // filter_visitor
+#include <mapnik/image_filter.hpp> // filter_visitor
 #include <mapnik/image_compositing.hpp>
 #include "mapnik_image.hpp"
 
@@ -23,7 +23,8 @@ struct AsyncComposite : Napi::AsyncWorker
           dy_(dy),
           opacity_(opacity),
           filters_(filters)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -39,7 +40,7 @@ struct AsyncComposite : Napi::AsyncWorker
                 }
                 mapnik::premultiply_alpha(*src_);
             }
-            mapnik::composite(*dst_,*src_, mode_, opacity_, dx_, dy_);
+            mapnik::composite(*dst_, *src_, mode_, opacity_, dx_, dy_);
         }
         catch (std::exception const& ex)
         {
@@ -54,7 +55,7 @@ struct AsyncComposite : Napi::AsyncWorker
         return {env.Undefined(), napi_value(obj)};
     }
 
-private:
+  private:
     image_ptr src_;
     image_ptr dst_;
     mapnik::composite_mode_e mode_;
@@ -64,7 +65,7 @@ private:
     std::vector<mapnik::filter::filter_type> filters_;
 };
 
-} // ns
+} // namespace detail
 
 /**
  * Overlay this image with another image, creating a layered composite as
@@ -228,8 +229,8 @@ Napi::Value Image::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new detail::AsyncComposite(source_image, image_, mode, dx, dy, opacity,
-                                               filters, callback_val.As<Napi::Function>());
+    auto* worker = new detail::AsyncComposite(source_image, image_, mode, dx, dy, opacity,
+                                              filters, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

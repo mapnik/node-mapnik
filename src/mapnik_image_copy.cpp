@@ -1,5 +1,5 @@
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include <mapnik/image_copy.hpp>
 
 #include "mapnik_image.hpp"
@@ -15,15 +15,15 @@ struct AsyncCopy : Napi::AsyncWorker
           offset_{offset},
           scaling_{scaling},
           type_{type}
-    {}
+    {
+    }
 
     void Execute() override
     {
         try
         {
             image_out_ = std::make_shared<mapnik::image_any>(
-                mapnik::image_copy(*image_in_, type_, offset_, scaling_)
-                );
+                mapnik::image_copy(*image_in_, type_, offset_, scaling_));
         }
         catch (std::exception const& ex)
         {
@@ -42,7 +42,7 @@ struct AsyncCopy : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     image_ptr image_in_;
     image_ptr image_out_;
     double offset_;
@@ -50,7 +50,7 @@ private:
     mapnik::image_dtype type_;
 };
 
-}
+} // namespace detail
 
 /**
  * Copy an image into a new image by creating a clone
@@ -262,8 +262,7 @@ Napi::Value Image::copySync(Napi::CallbackInfo const& info)
     try
     {
         image_ptr image_out = std::make_shared<mapnik::image_any>(
-            mapnik::image_copy(*image_, type, offset, scaling)
-            );
+            mapnik::image_copy(*image_, type, offset, scaling));
         Napi::Value arg = Napi::External<image_ptr>::New(env, &image_out);
         Napi::Object obj = Image::constructor.New({arg});
         return scope.Escape(obj);

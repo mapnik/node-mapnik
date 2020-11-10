@@ -31,7 +31,7 @@ struct AsyncSetData : Napi::AsyncWorker
             tile_->clear();
             merge_from_compressed_buffer(*tile_, data_, length_, validate_, upgrade_);
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
             SetError(ex.what());
         }
@@ -41,7 +41,7 @@ struct AsyncSetData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
@@ -65,7 +65,8 @@ struct AsyncGetData : Napi::AsyncWorker
           release_(release),
           level_(level),
           strategy_(strategy)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -100,7 +101,8 @@ struct AsyncGetData : Napi::AsyncWorker
                 &data[0],
                 data.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                    if (str_ptr != nullptr) {
+                    if (str_ptr != nullptr)
+                    {
                         Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                     }
                     delete str_ptr;
@@ -120,7 +122,8 @@ struct AsyncGetData : Napi::AsyncWorker
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
+                        if (str_ptr != nullptr)
+                        {
                             Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                         }
                         delete str_ptr;
@@ -137,7 +140,7 @@ struct AsyncGetData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     bool compress_;
     bool release_;
@@ -173,7 +176,7 @@ struct AsyncAddData : Napi::AsyncWorker
         {
             merge_from_compressed_buffer(*tile_, data_, length_, validate_, upgrade_);
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
             SetError(ex.what());
         }
@@ -183,7 +186,7 @@ struct AsyncAddData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
@@ -192,8 +195,7 @@ private:
     bool upgrade_;
 };
 
-
-}
+} // namespace
 /**
  * Replace the data in this vector tile with new raw data (synchronous). This function validates
  * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
@@ -351,7 +353,7 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
-    auto * worker = new AsyncSetData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
+    auto* worker = new AsyncSetData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
     worker->Queue();
     return env.Undefined();
 }
@@ -439,7 +441,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            std::string str =  param_val.As<Napi::String>().Utf8Value();
+            std::string str = param_val.As<Napi::String>().Utf8Value();
             if (std::string("FILTERED") == str)
             {
                 strategy = Z_FILTERED;
@@ -503,7 +505,8 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                         &data[0],
                         data.size(),
                         [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                            if (str_ptr != nullptr) {
+                            if (str_ptr != nullptr)
+                            {
                                 Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                             }
                             delete str_ptr;
@@ -533,7 +536,8 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
+                        if (str_ptr != nullptr)
+                        {
                             Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                         }
                         delete str_ptr;
@@ -595,7 +599,7 @@ typedef struct
  */
 Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 {
-    if (info.Length() == 0 || !info[info.Length()-1].IsFunction())
+    if (info.Length() == 0 || !info[info.Length() - 1].IsFunction())
     {
         return getDataSync(info);
     }
@@ -694,7 +698,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new AsyncGetData(tile_, compress, release, level, strategy, callback.As<Napi::Function>());
+    auto* worker = new AsyncGetData(tile_, compress, release, level, strategy, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }
@@ -860,7 +864,7 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
-    auto * worker = new AsyncAddData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
+    auto* worker = new AsyncAddData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
     worker->Queue();
     return env.Undefined();
 }

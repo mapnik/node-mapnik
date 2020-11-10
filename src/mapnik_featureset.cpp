@@ -5,10 +5,11 @@ Napi::FunctionReference Featureset::constructor;
 
 Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Featureset", {
             InstanceMethod<&Featureset::next>("next", prop_attr)
         });
-
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Featureset", func);
@@ -24,7 +25,7 @@ Napi::Object Featureset::Initialize(Napi::Env env, Napi::Object exports, napi_pr
  */
 
 Featureset::Featureset(Napi::CallbackInfo const& info)
-    :  Napi::ObjectWrap<Featureset>(info)
+    : Napi::ObjectWrap<Featureset>(info)
 {
     Napi::Env env = info.Env();
     if (info.Length() == 1 && info[0].IsExternal())

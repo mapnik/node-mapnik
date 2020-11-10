@@ -1,9 +1,8 @@
 #include "mapnik_image.hpp"
 #include "mapnik_color.hpp"
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 
 namespace detail {
 
@@ -35,9 +34,7 @@ struct AsyncFill : Napi::AsyncWorker
     image_ptr image_;
     T val_;
 };
-} // ns
-
-
+} // namespace detail
 
 /**
  * Fill this image with a given color. Changes all pixel values. (synchronous)
@@ -58,7 +55,7 @@ struct AsyncFill : Napi::AsyncWorker
 Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() < 1 )
+    if (info.Length() < 1)
     {
         Napi::TypeError::New(env, "expects one argument: Color object or a number").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -79,20 +76,18 @@ Napi::Value Image::fillSync(Napi::CallbackInfo const& info)
             }
             else
             {
-                Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
+                Color* color = Napi::ObjectWrap<Color>::Unwrap(obj);
                 mapnik::fill(*image_, color->color_);
             }
         }
         else
         {
             Napi::TypeError::New(env, "A numeric or color value is expected").ThrowAsJavaScriptException();
-
         }
     }
-    catch(std::exception const& ex)
+    catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
     }
     return env.Undefined();
 }
@@ -152,7 +147,7 @@ Napi::Value Image::fill(Napi::CallbackInfo const& info)
         }
         else
         {
-            Color * color = Napi::ObjectWrap<Color>::Unwrap(obj);
+            Color* color = Napi::ObjectWrap<Color>::Unwrap(obj);
             auto* worker = new detail::AsyncFill<mapnik::color>(image_, color->color_, callback);
             worker->Queue();
         }

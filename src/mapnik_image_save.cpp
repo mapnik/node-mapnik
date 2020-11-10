@@ -1,8 +1,8 @@
 // mapnik
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/color.hpp>      // for color
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 
 #include "mapnik_image.hpp"
 
@@ -16,7 +16,8 @@ struct AsyncSave : Napi::AsyncWorker
           image_(image),
           filename_(filename),
           format_(format)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -29,12 +30,13 @@ struct AsyncSave : Napi::AsyncWorker
             SetError(ex.what());
         }
     }
-private:
+
+  private:
     image_ptr image_;
     std::string filename_;
     std::string format_;
 };
-}
+} // namespace
 
 /**
  * Encode this image and save it to disk as a file.
@@ -114,12 +116,12 @@ void Image::save(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "filename required to save file").ThrowAsJavaScriptException();
         return;
     }
-    if (!info[info.Length()-1].IsFunction())
+    if (!info[info.Length() - 1].IsFunction())
     {
         return saveSync(info);
     }
     // ensure callback is a function
-    Napi::Value callback_val = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
 
     std::string filename = info[0].As<Napi::String>();
     std::string format("");

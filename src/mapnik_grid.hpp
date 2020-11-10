@@ -8,12 +8,11 @@
 // stl
 #include <memory>
 
-
-using grid_ptr =  std::shared_ptr<mapnik::grid>;
+using grid_ptr = std::shared_ptr<mapnik::grid>;
 
 class Grid : public Napi::ObjectWrap<Grid>
 {
-public:
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -33,7 +32,8 @@ public:
     void key(Napi::CallbackInfo const& info, const Napi::Value& value);
     inline grid_ptr impl() const { return grid_; }
     static Napi::FunctionReference constructor;
-private:
+
+  private:
     grid_ptr grid_;
 };
 

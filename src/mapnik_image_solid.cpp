@@ -1,7 +1,7 @@
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/image_reader.hpp>      // for get_image_reader, etc
+#include <mapnik/image.hpp>        // for image types
+#include <mapnik/image_any.hpp>    // for image_any
+#include <mapnik/image_util.hpp>   // for save_to_string, guess_type, etc
+#include <mapnik/image_reader.hpp> // for get_image_reader, etc
 
 #include "mapnik_image.hpp"
 #include "pixel_utils.hpp"
@@ -14,14 +14,14 @@ struct AsyncIsSolid : Napi::AsyncWorker
     AsyncIsSolid(image_ptr const& image, Napi::Function const& callback)
         : Base(callback),
           image_(image)
-    {}
+    {
+    }
 
     void Execute() override
     {
         if (image_ && image_->width() > 0 && image_->height() > 0)
         {
             solid_ = mapnik::is_solid(*image_);
-
         }
         else
         {
@@ -35,11 +35,11 @@ struct AsyncIsSolid : Napi::AsyncWorker
         return result;
     }
 
-private:
+  private:
     bool solid_;
     image_ptr image_;
 };
-}
+} // namespace
 /**
  * Test if an image's pixels are all exactly the same
  * @name isSolid
@@ -70,7 +70,7 @@ Napi::Value Image::isSolid(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new AsyncIsSolid(image_, callback_val.As<Napi::Function>());
+    auto* worker = new AsyncIsSolid(image_, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

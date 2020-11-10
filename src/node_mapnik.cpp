@@ -49,12 +49,12 @@
 namespace node_mapnik {
 
 // napi property attributes
-napi_property_attributes const prop_attr =  napi_writable;
+napi_property_attributes const prop_attr = napi_writable;
 
 static std::string format_version(int version)
 {
     std::ostringstream s;
-    s << version/100000 << "." << version/100 % 1000  << "." << version % 100;
+    s << version / 100000 << "." << version / 100 % 1000 << "." << version % 100;
     return s.str();
 }
 
@@ -67,7 +67,7 @@ static Napi::Value clearCache(Napi::CallbackInfo const& info)
 #endif
     return env.Undefined();
 }
-}
+} // namespace node_mapnik
 /**
  * Mapnik is the core of cartographic design and processing. `node-mapnik` provides a
  * set of bindings to `mapnik` for node.js.
@@ -226,21 +226,20 @@ void init_image_comp_op(Napi::Env env, Napi::Object exports)
 void init_image_types(Napi::Env env, Napi::Object exports)
 {
     Napi::Object image_types = Napi::Object::New(env);
-    image_types.Set("null",    Napi::Number::New(env, mapnik::image_dtype_null));
-    image_types.Set("rgba8",   Napi::Number::New(env, mapnik::image_dtype_rgba8));
-    image_types.Set("gray8",   Napi::Number::New(env, mapnik::image_dtype_gray8));
-    image_types.Set("gray8s",  Napi::Number::New(env, mapnik::image_dtype_gray8s));
-    image_types.Set("gray16",  Napi::Number::New(env, mapnik::image_dtype_gray16));
+    image_types.Set("null", Napi::Number::New(env, mapnik::image_dtype_null));
+    image_types.Set("rgba8", Napi::Number::New(env, mapnik::image_dtype_rgba8));
+    image_types.Set("gray8", Napi::Number::New(env, mapnik::image_dtype_gray8));
+    image_types.Set("gray8s", Napi::Number::New(env, mapnik::image_dtype_gray8s));
+    image_types.Set("gray16", Napi::Number::New(env, mapnik::image_dtype_gray16));
     image_types.Set("gray16s", Napi::Number::New(env, mapnik::image_dtype_gray16s));
-    image_types.Set("gray32",  Napi::Number::New(env, mapnik::image_dtype_gray32));
+    image_types.Set("gray32", Napi::Number::New(env, mapnik::image_dtype_gray32));
     image_types.Set("gray32s", Napi::Number::New(env, mapnik::image_dtype_gray32s));
     image_types.Set("gray32f", Napi::Number::New(env, mapnik::image_dtype_gray32f));
-    image_types.Set("gray64",  Napi::Number::New(env, mapnik::image_dtype_gray64));
+    image_types.Set("gray64", Napi::Number::New(env, mapnik::image_dtype_gray64));
     image_types.Set("gray64s", Napi::Number::New(env, mapnik::image_dtype_gray64s));
     image_types.Set("gray64f", Napi::Number::New(env, mapnik::image_dtype_gray64f));
     exports.Set("imageType", image_types);
 }
-
 
 /**
  * Image scaling type constants representing color and grayscale encodings.
@@ -284,7 +283,7 @@ void init_image_scalings(Napi::Env env, Napi::Object exports)
     image_scaling_types.Set("catrom", Napi::Number::New(env, mapnik::SCALING_CATROM));
     image_scaling_types.Set("gaussian", Napi::Number::New(env, mapnik::SCALING_GAUSSIAN));
     image_scaling_types.Set("bessel", Napi::Number::New(env, mapnik::SCALING_BESSEL));
-    image_scaling_types.Set("mitchell",Napi::Number::New(env, mapnik::SCALING_MITCHELL));
+    image_scaling_types.Set("mitchell", Napi::Number::New(env, mapnik::SCALING_MITCHELL));
     image_scaling_types.Set("sinc", Napi::Number::New(env, mapnik::SCALING_SINC));
     image_scaling_types.Set("lanczos", Napi::Number::New(env, mapnik::SCALING_LANCZOS));
     image_scaling_types.Set("blackman", Napi::Number::New(env, mapnik::SCALING_BLACKMAN));
@@ -326,9 +325,9 @@ void init_polygon_fill_types(Napi::Env env, Napi::Object exports)
 void init_threading_mode_types(Napi::Env env, Napi::Object exports)
 {
     Napi::Object threading_mode_types = Napi::Object::New(env);
-    threading_mode_types.Set( "async", static_cast<unsigned>(std::launch::async));
-    threading_mode_types.Set( "deferred", static_cast<unsigned>(std::launch::deferred));
-    threading_mode_types.Set( "auto", static_cast<unsigned>(std::launch::async | std::launch::deferred));
+    threading_mode_types.Set("async", static_cast<unsigned>(std::launch::async));
+    threading_mode_types.Set("deferred", static_cast<unsigned>(std::launch::deferred));
+    threading_mode_types.Set("auto", static_cast<unsigned>(std::launch::async | std::launch::deferred));
     exports.Set("threadingMode", threading_mode_types);
 }
 
@@ -390,70 +389,70 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
 #endif
     exports.Set("versions", versions);
 
-// supports
+    // supports
     Napi::Object supports = Napi::Object::New(env);
 #ifdef GRID_RENDERER
-    supports.Set("grid", Napi::Boolean::New(env,true));
+    supports.Set("grid", Napi::Boolean::New(env, true));
 #else
-    supports.Set("grid", Napi::Boolean::New(env,false));
+    supports.Set("grid", Napi::Boolean::New(env, false));
 #endif
 
 #ifdef SVG_RENDERER
-    supports.Set("svg", Napi::Boolean::New(env,true));
+    supports.Set("svg", Napi::Boolean::New(env, true));
 #else
-    supports.Set("svg", Napi::Boolean::New(env,false));
+    supports.Set("svg", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(HAVE_CAIRO)
-    supports.Set("cairo", Napi::Boolean::New(env,true));
+    supports.Set("cairo", Napi::Boolean::New(env, true));
 #ifdef CAIRO_HAS_PDF_SURFACE
-    supports.Set("cairo_pdf", Napi::Boolean::New(env,true));
+    supports.Set("cairo_pdf", Napi::Boolean::New(env, true));
 #else
-    supports.Set("cairo_pdf", Napi::Boolean::New(env,false));
+    supports.Set("cairo_pdf", Napi::Boolean::New(env, false));
 #endif
 #ifdef CAIRO_HAS_SVG_SURFACE
-    supports.Set("cairo_svg", Napi::Boolean::New(env,true));
+    supports.Set("cairo_svg", Napi::Boolean::New(env, true));
 #else
-    supports.Set("cairo_svg", Napi::Boolean::New(env,false));
+    supports.Set("cairo_svg", Napi::Boolean::New(env, false));
 #endif
 #else
-    supports.Set("cairo", Napi::Boolean::New(env,false));
+    supports.Set("cairo", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(HAVE_PNG)
-    supports.Set("png", Napi::Boolean::New(env,true));
+    supports.Set("png", Napi::Boolean::New(env, true));
 #else
-    supports.Set("png", Napi::Boolean::New(env,false));
+    supports.Set("png", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(HAVE_JPEG)
-    supports.Set("jpeg", Napi::Boolean::New(env,true));
+    supports.Set("jpeg", Napi::Boolean::New(env, true));
 #else
-    supports.Set("jpeg", Napi::Boolean::New(env,false));
+    supports.Set("jpeg", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(HAVE_TIFF)
-    supports.Set("tiff", Napi::Boolean::New(env,true));
+    supports.Set("tiff", Napi::Boolean::New(env, true));
 #else
-    supports.Set("tiff", Napi::Boolean::New(env,false));
+    supports.Set("tiff", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(HAVE_WEBP)
-    supports.Set("webp", Napi::Boolean::New(env,true));
+    supports.Set("webp", Napi::Boolean::New(env, true));
 #else
-    supports.Set("webp", Napi::Boolean::New(env,false));
+    supports.Set("webp", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(MAPNIK_USE_PROJ4)
-    supports.Set("proj4", Napi::Boolean::New(env,true));
+    supports.Set("proj4", Napi::Boolean::New(env, true));
 #else
-    supports.Set("proj4", Napi::Boolean::New(env,false));
+    supports.Set("proj4", Napi::Boolean::New(env, false));
 #endif
 
 #if defined(MAPNIK_THREADSAFE)
-    supports.Set("threadsafe", Napi::Boolean::New(env,true));
+    supports.Set("threadsafe", Napi::Boolean::New(env, true));
 #else
-    supports.Set("threadsafe", Napi::Boolean::New(env,false));
+    supports.Set("threadsafe", Napi::Boolean::New(env, false));
 #endif
     exports.Set("supports", supports);
     return exports;

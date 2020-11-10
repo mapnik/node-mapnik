@@ -7,22 +7,22 @@
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/agg_renderer.hpp>      // for agg_renderer
-#include <mapnik/geometry/box2d.hpp>    // for box2d
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/attribute.hpp>         // for attributes
-#include <mapnik/util/variant.hpp>      // for save_to_file, guess_type, etc
-#include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/agg_renderer.hpp>   // for agg_renderer
+#include <mapnik/geometry/box2d.hpp> // for box2d
+#include <mapnik/color.hpp>          // for color
+#include <mapnik/attribute.hpp>      // for attributes
+#include <mapnik/util/variant.hpp>   // for save_to_file, guess_type, etc
+#include <mapnik/image.hpp>          // for image_rgba8
 #include <mapnik/image_any.hpp>
-#include <mapnik/image_util.hpp>        // for save_to_file, guess_type, etc
+#include <mapnik/image_util.hpp> // for save_to_file, guess_type, etc
 #include <mapnik/image_scaling.hpp>
 #if defined(HAVE_CAIRO)
 #include <mapnik/cairo_io.hpp>
 #endif
 #if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"
-#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
-#include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
+#include <mapnik/grid/grid.hpp>          // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp> // for grid_renderer
 #endif
 // stl
 #include <future>
@@ -45,14 +45,14 @@ struct agg_renderer_visitor
           offset_y_(offset_y),
           scale_denominator_(scale_denominator) {}
 
-    void operator() (mapnik::image_rgba8 & pixmap)
+    void operator()(mapnik::image_rgba8& pixmap)
     {
-        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_,req_,vars_,pixmap,scale_factor_,offset_x_,offset_y_);
+        mapnik::agg_renderer<mapnik::image_rgba8> ren(m_, req_, vars_, pixmap, scale_factor_, offset_x_, offset_y_);
         ren.apply(scale_denominator_);
     }
 
     template <typename T>
-    void operator() (T &)
+    void operator()(T&)
     {
         throw std::runtime_error("This image type is not currently supported for rendering.");
     }
@@ -67,11 +67,10 @@ struct agg_renderer_visitor
     double scale_denominator_;
 };
 
-
 struct AsyncRender : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncRender(Map * map_obj, Napi::Function const& callback)
+    AsyncRender(Map* map_obj, Napi::Function const& callback)
         : Base(callback),
           map_obj_(map_obj) {}
 
@@ -85,25 +84,26 @@ struct AsyncRender : Napi::AsyncWorker
         }
         Base::OnWorkComplete(env, status);
     }
-protected:
-    Map * map_obj_;
+
+  protected:
+    Map* map_obj_;
 };
 
 struct AsyncRenderImage : AsyncRender
 {
     AsyncRenderImage(Map* map_obj, image_ptr const& image,
-                double scale_factor, double scale_denominator,
-                int buffer_size, unsigned offset_x, unsigned offset_y,
-                mapnik::attributes const& variables,
-                Napi::Function const& callback)
-        :AsyncRender(map_obj, callback),
-         image_(image),
-         scale_factor_(scale_factor),
-         scale_denominator_(scale_denominator),
-         buffer_size_(buffer_size),
-         offset_x_(offset_x),
-         offset_y_(offset_y),
-         variables_(variables) {}
+                     double scale_factor, double scale_denominator,
+                     int buffer_size, unsigned offset_x, unsigned offset_y,
+                     mapnik::attributes const& variables,
+                     Napi::Function const& callback)
+        : AsyncRender(map_obj, callback),
+          image_(image),
+          scale_factor_(scale_factor),
+          scale_denominator_(scale_denominator),
+          buffer_size_(buffer_size),
+          offset_x_(offset_x),
+          offset_y_(offset_y),
+          variables_(variables) {}
 
     ~AsyncRenderImage() {}
 
@@ -136,7 +136,7 @@ struct AsyncRenderImage : AsyncRender
         return {env.Null(), napi_value(obj)};
     }
 
-private:
+  private:
     image_ptr image_;
     double scale_factor_;
     double scale_denominator_;
@@ -146,21 +146,20 @@ private:
     mapnik::attributes variables_;
 };
 
-
 struct AsyncRenderGrid : AsyncRender
 {
-    AsyncRenderGrid(Map * map_obj, grid_ptr const& grid,
+    AsyncRenderGrid(Map* map_obj, grid_ptr const& grid,
                     double scale_factor, double scale_denominator,
                     unsigned offset_x, unsigned offset_y,
                     std::size_t layer_idx,
                     Napi::Function const& callback)
-        :AsyncRender(map_obj, callback),
-         grid_(grid),
-         scale_factor_(scale_factor),
-         scale_denominator_(scale_denominator),
-         offset_x_(offset_x),
-         offset_y_(offset_y),
-         layer_idx_(layer_idx) {}
+        : AsyncRender(map_obj, callback),
+          grid_(grid),
+          scale_factor_(scale_factor),
+          scale_denominator_(scale_denominator),
+          offset_x_(offset_x),
+          offset_y_(offset_y),
+          layer_idx_(layer_idx) {}
 
     ~AsyncRenderGrid() {}
     void Execute() override
@@ -206,7 +205,7 @@ struct AsyncRenderGrid : AsyncRender
         return {env.Null(), napi_value(obj)};
     }
 
-private:
+  private:
     grid_ptr grid_;
     double scale_factor_;
     double scale_denominator_;
@@ -217,21 +216,21 @@ private:
 
 struct AsyncRenderFile : AsyncRender
 {
-    AsyncRenderFile(Map * map_obj, std::string const& output_filename,
+    AsyncRenderFile(Map* map_obj, std::string const& output_filename,
                     double scale_factor, double scale_denominator,
                     int buffer_size, palette_ptr const& palette,
                     std::string const& format, bool use_cairo,
                     mapnik::attributes const& variables,
                     Napi::Function const& callback)
         : AsyncRender(map_obj, callback),
-         output_filename_(output_filename),
-         scale_factor_(scale_factor),
-         scale_denominator_(scale_denominator),
-         buffer_size_(buffer_size),
-         palette_(palette),
-         format_(format),
-         use_cairo_(use_cairo),
-         variables_(variables) {}
+          output_filename_(output_filename),
+          scale_factor_(scale_factor),
+          scale_denominator_(scale_denominator),
+          buffer_size_(buffer_size),
+          palette_(palette),
+          format_(format),
+          use_cairo_(use_cairo),
+          variables_(variables) {}
 
     void Execute() override
     {
@@ -280,7 +279,8 @@ struct AsyncRenderFile : AsyncRender
     {
         return Base::GetResult(env);
     }
-private:
+
+  private:
     std::string output_filename_;
     double scale_factor_;
     double scale_denominator_;
@@ -291,10 +291,9 @@ private:
     mapnik::attributes variables_;
 };
 
-
 struct AsyncRenderVectorTile : AsyncRender
 {
-    AsyncRenderVectorTile(Map * map_obj,
+    AsyncRenderVectorTile(Map* map_obj,
                           mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                           double area_threshold,
                           double scale_factor,
@@ -311,47 +310,47 @@ struct AsyncRenderVectorTile : AsyncRender
                           std::launch threading_mode,
                           mapnik::attributes const& variables,
                           Napi::Function const& callback)
-    : AsyncRender(map_obj, callback),
-      tile_(tile),
-      area_threshold_(area_threshold),
-      scale_factor_(scale_factor),
-      scale_denominator_(scale_denominator),
-      offset_x_(offset_x),
-      offset_y_(offset_y),
-      image_format_(image_format),
-      scaling_method_(scaling_method),
-      simplify_distance_(simplify_distance),
-      strictly_simple_(strictly_simple),
-      multi_polygon_union_(multi_polygon_union),
-      process_all_rings_(process_all_rings),
-      fill_type_(fill_type),
-      threading_mode_(threading_mode),
-      variables_(variables) {}
+        : AsyncRender(map_obj, callback),
+          tile_(tile),
+          area_threshold_(area_threshold),
+          scale_factor_(scale_factor),
+          scale_denominator_(scale_denominator),
+          offset_x_(offset_x),
+          offset_y_(offset_y),
+          image_format_(image_format),
+          scaling_method_(scaling_method),
+          simplify_distance_(simplify_distance),
+          strictly_simple_(strictly_simple),
+          multi_polygon_union_(multi_polygon_union),
+          process_all_rings_(process_all_rings),
+          fill_type_(fill_type),
+          threading_mode_(threading_mode),
+          variables_(variables) {}
 
     ~AsyncRenderVectorTile() {}
 
     void Execute() override
     {
-         try
-         {
-             map_ptr map = map_obj_->impl();
-             mapnik::vector_tile_impl::processor ren(*map, variables_);
-             ren.set_simplify_distance(simplify_distance_);
-             ren.set_multi_polygon_union(multi_polygon_union_);
-             ren.set_fill_type(fill_type_);
-             ren.set_process_all_rings(process_all_rings_);
-             ren.set_scale_factor(scale_factor_);
-             ren.set_strictly_simple(strictly_simple_);
-             ren.set_image_format(image_format_);
-             ren.set_scaling_method(scaling_method_);
-             ren.set_area_threshold(area_threshold_);
-             ren.set_threading_mode(threading_mode_);
-             ren.update_tile(*tile_, scale_denominator_, offset_x_, offset_y_);
-         }
-         catch (std::exception const& ex)
-         {
-             SetError(ex.what());
-         }
+        try
+        {
+            map_ptr map = map_obj_->impl();
+            mapnik::vector_tile_impl::processor ren(*map, variables_);
+            ren.set_simplify_distance(simplify_distance_);
+            ren.set_multi_polygon_union(multi_polygon_union_);
+            ren.set_fill_type(fill_type_);
+            ren.set_process_all_rings(process_all_rings_);
+            ren.set_scale_factor(scale_factor_);
+            ren.set_strictly_simple(strictly_simple_);
+            ren.set_image_format(image_format_);
+            ren.set_scaling_method(scaling_method_);
+            ren.set_area_threshold(area_threshold_);
+            ren.set_threading_mode(threading_mode_);
+            ren.update_tile(*tile_, scale_denominator_, offset_x_, offset_y_);
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
@@ -361,7 +360,7 @@ struct AsyncRenderVectorTile : AsyncRender
         return {env.Undefined(), napi_value(obj)};
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     double area_threshold_;
     double scale_factor_;
@@ -379,8 +378,7 @@ private:
     mapnik::attributes variables_;
 };
 
-
-}
+} // namespace detail
 
 /**
  * Renders a mapnik object (image tile, grid, vector tile) by passing in a renderable mapnik object.
@@ -464,7 +462,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
     }
 
     // ensure function callback
-    if (!info[info.Length()-1].IsFunction())
+    if (!info[info.Length() - 1].IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -568,7 +566,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
+            Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
             this->Ref();
             auto* worker = new detail::AsyncRenderImage{this,
                                                         image,
@@ -599,7 +597,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 std::vector<mapnik::layer> const& layers = map_->layers();
 
                 Napi::Value layer_id = options.Get("layer");
-                if (! (layer_id.IsString() || layer_id.IsNumber()) )
+                if (!(layer_id.IsString() || layer_id.IsNumber()))
                 {
                     Napi::TypeError::New(env, "'layer' option required for grid rendering and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
                     return env.Undefined();
@@ -609,7 +607,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 {
                     bool found = false;
                     unsigned int idx(0);
-                    std::string const & layer_name = layer_id.As<Napi::String>();
+                    std::string const& layer_name = layer_id.As<Napi::String>();
                     for (mapnik::layer const& lyr : layers)
                     {
                         if (lyr.name() == layer_name)
@@ -675,7 +673,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
+            Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
             this->Ref();
             auto* worker = new detail::AsyncRenderGrid{this,
                                                        grid,
@@ -847,13 +845,13 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                 Napi::TypeError::New(env, "render: Map currently in use by another thread. Consider using a map pool.").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            Napi::Function callback = info[info.Length()-1].As<Napi::Function>();
-            VectorTile * vt = Napi::ObjectWrap<VectorTile>::Unwrap(obj);
+            Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
+            VectorTile* vt = Napi::ObjectWrap<VectorTile>::Unwrap(obj);
 
             if (vt && vt->impl())
             {
                 this->Ref();
-                auto * worker = new detail::AsyncRenderVectorTile{
+                auto* worker = new detail::AsyncRenderVectorTile{
                     this,
                     vt->impl(),
                     area_threshold,
@@ -870,8 +868,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     fill_type,
                     threading_mode,
                     variables,
-                    callback
-                };
+                    callback};
                 worker->Queue();
             }
         }
@@ -983,7 +980,7 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
     try
     {
         mapnik::image_rgba8 im(map_->width(), map_->height());
-        mapnik::request m_req(map_->width(),map_->height(),map_->get_current_extent());
+        mapnik::request m_req(map_->width(), map_->height(), map_->get_current_extent());
         m_req.set_buffer_size(buffer_size);
         mapnik::agg_renderer<mapnik::image_rgba8> ren(*map_,
                                                       m_req,
@@ -1010,7 +1007,6 @@ Napi::Value Map::renderSync(Napi::CallbackInfo const& info)
     release();
     return scope.Escape(Napi::Buffer<char>::Copy(env, (char*)s.data(), s.size()));
 }
-
 
 Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 {
@@ -1041,7 +1037,8 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
 
     if (!info[1].IsFunction() && info[1].IsObject())
     {
-        options = info[1].As<Napi::Object>();;
+        options = info[1].As<Napi::Object>();
+        ;
         if (options.Has("format"))
         {
             Napi::Value format_opt = options.Get("format");
@@ -1170,7 +1167,6 @@ Napi::Value Map::renderFile(Napi::CallbackInfo const& info)
                                                callback};
     worker->Queue();
     return env.Undefined();
-
 }
 
 Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
@@ -1293,7 +1289,7 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
     try
     {
 
-        if (format == "pdf" || format == "svg" || format =="ps" || format == "ARGB32" || format == "RGB24")
+        if (format == "pdf" || format == "svg" || format == "ps" || format == "ARGB32" || format == "RGB24")
         {
 #if defined(HAVE_CAIRO)
             mapnik::save_to_cairo_file(*map_, output_filename, format, scale_factor, scale_denominator);
@@ -1307,7 +1303,7 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
         }
         else
         {
-            mapnik::image_rgba8 im(map_->width(),map_->height());
+            mapnik::image_rgba8 im(map_->width(), map_->height());
             mapnik::request m_req(map_->width(), map_->height(), map_->get_current_extent());
             m_req.set_buffer_size(buffer_size);
             mapnik::agg_renderer<mapnik::image_rgba8> ren(*map_,
@@ -1322,7 +1318,8 @@ Napi::Value Map::renderFileSync(Napi::CallbackInfo const& info)
             {
                 mapnik::save_to_file(im, output_filename, *palette);
             }
-            else {
+            else
+            {
                 mapnik::save_to_file(im, output_filename);
             }
         }

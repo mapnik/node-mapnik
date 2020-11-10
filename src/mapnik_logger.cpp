@@ -6,6 +6,7 @@ Napi::FunctionReference Logger::constructor;
 
 Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Logger", {
             StaticMethod<&Logger::get_severity>("getSeverity", prop_attr),
             StaticMethod<&Logger::set_severity>("setSeverity", prop_attr),
@@ -14,6 +15,8 @@ Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports, napi_proper
             StaticValue("DEBUG", Napi::Number::New(env, mapnik::logger::severity_type::debug), napi_enumerable),
             StaticValue("WARN", Napi::Number::New(env, mapnik::logger::severity_type::warn), napi_enumerable)
         });
+    // clang-format on
+
     // What about booleans like:
     // ENABLE_STATS
     // ENABLE_LOG
@@ -39,7 +42,7 @@ Napi::Object Logger::Initialize(Napi::Env env, Napi::Object exports, napi_proper
  */
 
 Logger::Logger(Napi::CallbackInfo const& info)
- : Napi::ObjectWrap<Logger>(info)
+    : Napi::ObjectWrap<Logger>(info)
 {
     Napi::Env env = info.Env();
     Napi::Error::New(env, "a mapnik.Logger cannot be created directly - rather you should ....").ThrowAsJavaScriptException();

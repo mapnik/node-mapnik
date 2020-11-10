@@ -20,8 +20,8 @@
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/version.hpp>
 #if defined(GRID_RENDERER)
-#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
-#include <mapnik/grid/grid_renderer.hpp>  // for grid_renderer
+#include <mapnik/grid/grid.hpp>          // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp> // for grid_renderer
 #endif
 #ifdef HAVE_CAIRO
 #include <mapnik/cairo/cairo_renderer.hpp>
@@ -32,17 +32,17 @@
 #endif
 
 // std
-#include <set>                          // for set, etc
-#include <sstream>                      // for operator<<, basic_ostream, etc
-#include <string>                       // for string, char_traits, etc
-#include <exception>                    // for exception
-#include <vector>                       // for vector
-
+#include <set>       // for set, etc
+#include <sstream>   // for operator<<, basic_ostream, etc
+#include <string>    // for string, char_traits, etc
+#include <exception> // for exception
+#include <vector>    // for vector
 
 Napi::FunctionReference VectorTile::constructor;
 
-Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
+Napi::Object VectorTile::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "VectorTile", {
             InstanceAccessor<&VectorTile::get_tile_x, &VectorTile::set_tile_x>("x", prop_attr),
             InstanceAccessor<&VectorTile::get_tile_y, &VectorTile::set_tile_y>("y", prop_attr),
@@ -87,6 +87,7 @@ Napi::Object  VectorTile::Initialize(Napi::Env env, Napi::Object exports, napi_p
             // static methods
             StaticMethod<&VectorTile::info>("info", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("VectorTile", func);
@@ -148,7 +149,7 @@ VectorTile::VectorTile(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "required parameters (z, x, and y) must be greater then or equal to zero").ThrowAsJavaScriptException();
         return;
     }
-    std::int64_t max_at_zoom = pow(2,z);
+    std::int64_t max_at_zoom = pow(2, z);
     if (x >= max_at_zoom)
     {
         Napi::TypeError::New(env, "required parameter x is out of range of possible values based on z value").ThrowAsJavaScriptException();
@@ -229,7 +230,6 @@ Napi::Value VectorTile::extent(Napi::CallbackInfo const& info)
     arr.Set(2u, Napi::Number::New(env, e.maxx()));
     arr.Set(3u, Napi::Number::New(env, e.maxy()));
     return scope.Escape(arr);
-
 }
 
 /**
@@ -341,10 +341,9 @@ Napi::Value VectorTile::layer(Napi::CallbackInfo const& info)
             break;
         }
     }
-     Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &new_tile);
-     Napi::Object obj = VectorTile::constructor.New({arg});
-     return scope.Escape(obj);
-
+    Napi::Value arg = Napi::External<mapnik::vector_tile_impl::merc_tile_ptr>::New(env, &new_tile);
+    Napi::Object obj = VectorTile::constructor.New({arg});
+    return scope.Escape(obj);
 }
 
 /**
@@ -490,7 +489,6 @@ void VectorTile::set_tile_y(Napi::CallbackInfo const& info, const Napi::Value& v
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
-
     }
     else
     {
@@ -510,7 +508,6 @@ void VectorTile::set_tile_z(Napi::CallbackInfo const& info, const Napi::Value& v
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
-
     }
     else
     {
@@ -530,7 +527,6 @@ void VectorTile::set_tile_size(Napi::CallbackInfo const& info, const Napi::Value
     if (!value.IsNumber())
     {
         Napi::Error::New(env, "Must provide a number").ThrowAsJavaScriptException();
-
     }
     else
     {

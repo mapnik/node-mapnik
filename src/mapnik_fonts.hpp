@@ -39,7 +39,7 @@ static inline Napi::Value register_fonts(Napi::CallbackInfo const& info)
                 }
                 bool recurse = recurse_opt.As<Napi::Boolean>();
                 std::string path = info[0].As<Napi::String>();
-                found = mapnik::freetype_engine::register_fonts(path,recurse);
+                found = mapnik::freetype_engine::register_fonts(path, recurse);
             }
         }
         else
@@ -100,5 +100,4 @@ static inline Napi::Value available_font_files(Napi::CallbackInfo const& info)
     return scope.Escape(obj);
 }
 
-
-}
+} // namespace node_mapnik

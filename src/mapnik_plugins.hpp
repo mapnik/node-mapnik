@@ -101,4 +101,4 @@ static inline Napi::Value register_datasources(Napi::CallbackInfo const& info)
     return Napi::Boolean::New(env, status);
 }
 
-} // ns
+} // namespace node_mapnik

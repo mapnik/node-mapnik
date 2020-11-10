@@ -1,7 +1,7 @@
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/image_reader.hpp>      // for get_image_reader, etc
+#include <mapnik/image.hpp>        // for image types
+#include <mapnik/image_any.hpp>    // for image_any
+#include <mapnik/image_util.hpp>   // for save_to_string, guess_type, etc
+#include <mapnik/image_reader.hpp> // for get_image_reader, etc
 
 #include "mapnik_image.hpp"
 
@@ -17,7 +17,8 @@ struct AsyncFromBytes : Napi::AsyncWorker
           dataLength_{buffer.Length()},
           max_size_{max_size},
           premultiply_{premultiply}
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -57,7 +58,7 @@ struct AsyncFromBytes : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
     std::size_t dataLength_;
@@ -66,7 +67,7 @@ private:
     image_ptr image_;
 };
 
-}
+} // namespace detail
 
 /**
  * Create an image from a byte stream buffer. (synchronous)
@@ -161,7 +162,8 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    if (!info[0].IsObject()) {
+    if (!info[0].IsObject())
+    {
         Napi::TypeError::New(env, "must provide a buffer argument").ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -224,11 +226,10 @@ Napi::Value Image::fromBytes(Napi::CallbackInfo const& info)
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     Napi::Buffer<char> buffer = info[0].As<Napi::Buffer<char>>();
-    auto * worker = new detail::AsyncFromBytes(buffer, max_size, premultiply, callback);
+    auto* worker = new detail::AsyncFromBytes(buffer, max_size, premultiply, callback);
     worker->Queue();
     return env.Undefined();
 }
-
 
 /**
  * Create an image of the existing buffer.

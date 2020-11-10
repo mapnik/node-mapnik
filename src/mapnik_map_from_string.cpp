@@ -1,7 +1,7 @@
 #include "mapnik_map.hpp"
 
-#include <mapnik/load_map.hpp>          // for load_map, load_map_string
-#include <mapnik/map.hpp>               // for Map, etc
+#include <mapnik/load_map.hpp> // for load_map, load_map_string
+#include <mapnik/map.hpp>      // for Map, etc
 
 namespace detail {
 
@@ -39,15 +39,14 @@ struct AsyncMapFromString : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     map_ptr map_;
     std::string stylesheet_;
     std::string base_path_;
     bool strict_;
 };
 
-} // ns
-
+} // namespace detail
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik
@@ -77,7 +76,6 @@ Napi::Value Map::fromStringSync(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "first argument must be a mapnik stylesheet string").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-
 
     // defaults
     bool strict = false;

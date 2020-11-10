@@ -1,9 +1,8 @@
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 
 #include "mapnik_image.hpp"
-
 
 namespace detail {
 
@@ -15,7 +14,8 @@ struct AsyncClear : Napi::AsyncWorker
     AsyncClear(image_ptr const& image, Napi::Function const& callback)
         : Base(callback),
           image_(image)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -34,7 +34,7 @@ struct AsyncClear : Napi::AsyncWorker
     }
     image_ptr image_;
 };
-} // ns
+} // namespace detail
 
 /**
  * Make this image transparent. (synchronous)
@@ -57,10 +57,9 @@ Napi::Value Image::clearSync(Napi::CallbackInfo const& info)
     {
         mapnik::fill(*image_, 0);
     }
-    catch(std::exception const& ex)
+    catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
     }
     return env.Undefined();
 }
@@ -89,14 +88,14 @@ Napi::Value Image::clear(Napi::CallbackInfo const& info)
     }
     Napi::Env env = info.Env();
     // ensure callback is a function
-    Napi::Value callback_val = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    auto * worker = new detail::AsyncClear{image_, callback_val.As<Napi::Function>()};
+    auto* worker = new detail::AsyncClear{image_, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

@@ -22,12 +22,12 @@ namespace {
 struct geometry_type_name
 {
     template <typename T>
-    std::string operator () (T const& geom) const
+    std::string operator()(T const& geom) const
     {
         return mapnik::util::apply_visitor(*this, geom);
     }
 
-    std::string operator() (mapnik::geometry::geometry_empty const& ) const
+    std::string operator()(mapnik::geometry::geometry_empty const&) const
     {
         // LCOV_EXCL_START
         return "Empty";
@@ -35,50 +35,49 @@ struct geometry_type_name
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::point<T> const&) const
+    std::string operator()(mapnik::geometry::point<T> const&) const
     {
         return "Point";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::line_string<T> const&) const
+    std::string operator()(mapnik::geometry::line_string<T> const&) const
     {
         return "LineString";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::polygon<T> const&) const
+    std::string operator()(mapnik::geometry::polygon<T> const&) const
     {
         return "Polygon";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::multi_point<T> const&) const
+    std::string operator()(mapnik::geometry::multi_point<T> const&) const
     {
         return "MultiPoint";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::multi_line_string<T> const&) const
+    std::string operator()(mapnik::geometry::multi_line_string<T> const&) const
     {
         return "MultiLineString";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::multi_polygon<T> const&) const
+    std::string operator()(mapnik::geometry::multi_polygon<T> const&) const
     {
         return "MultiPolygon";
     }
 
     template <typename T>
-    std::string operator () (mapnik::geometry::geometry_collection<T> const&) const
+    std::string operator()(mapnik::geometry::geometry_collection<T> const&) const
     {
         // LCOV_EXCL_START
         return "GeometryCollection";
         // LCOV_EXCL_STOP
     }
 };
-
 
 template <typename T>
 static inline std::string geometry_type_as_string(T const& geom)
@@ -91,7 +90,7 @@ struct geometry_array_visitor
     geometry_array_visitor(Napi::Env env)
         : env_(env) {}
 
-    Napi::Array operator() (mapnik::geometry::geometry_empty const&)
+    Napi::Array operator()(mapnik::geometry::geometry_empty const&)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
@@ -101,7 +100,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::point<T> const& geom)
+    Napi::Array operator()(mapnik::geometry::point<T> const& geom)
     {
         Napi::Array arr = Napi::Array::New(env_, 2);
         arr.Set(0u, Napi::Number::New(env_, geom.x));
@@ -110,7 +109,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::line_string<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::line_string<T> const& geom)
     {
         if (geom.empty())
         {
@@ -122,7 +121,7 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
@@ -130,7 +129,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::linear_ring<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::linear_ring<T> const& geom)
     {
         if (geom.empty())
         {
@@ -142,7 +141,7 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
@@ -150,7 +149,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::multi_point<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::multi_point<T> const& geom)
     {
         if (geom.empty())
         {
@@ -162,7 +161,7 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
@@ -170,7 +169,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::multi_line_string<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::multi_line_string<T> const& geom)
     {
         if (geom.empty())
         {
@@ -182,7 +181,7 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
@@ -190,12 +189,12 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::polygon<T> const & poly)
+    Napi::Array operator()(mapnik::geometry::polygon<T> const& poly)
     {
         Napi::Array arr = Napi::Array::New(env_, poly.size());
         std::uint32_t index = 0;
 
-        for (auto const & ring : poly)
+        for (auto const& ring : poly)
         {
             arr.Set(index++, (*this)(ring));
         }
@@ -203,7 +202,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::multi_polygon<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::multi_polygon<T> const& geom)
     {
         if (geom.empty())
         {
@@ -215,7 +214,7 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
@@ -223,7 +222,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::geometry<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::geometry<T> const& geom)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
@@ -233,7 +232,7 @@ struct geometry_array_visitor
     }
 
     template <typename T>
-    Napi::Array operator() (mapnik::geometry::geometry_collection<T> const & geom)
+    Napi::Array operator()(mapnik::geometry::geometry_collection<T> const& geom)
     {
         // Removed as it should be a bug if a vector tile has reached this point
         // therefore no known tests reach this point
@@ -244,66 +243,64 @@ struct geometry_array_visitor
         }
         Napi::Array arr = Napi::Array::New(env_, geom.size());
         std::uint32_t c = 0;
-        for (auto const & pt : geom)
+        for (auto const& pt : geom)
         {
             arr.Set(c++, (*this)(pt));
         }
         return arr;
         // LCOV_EXCL_STOP
     }
-private:
+
+  private:
     Napi::Env env_;
 };
 
-
 template <typename T>
-Napi::Array geometry_to_array(Napi::Env const& env, mapnik::geometry::geometry<T> const & geom)
+Napi::Array geometry_to_array(Napi::Env const& env, mapnik::geometry::geometry<T> const& geom)
 {
     return mapnik::util::apply_visitor(geometry_array_visitor(env), geom);
 }
 
-
 struct json_value_visitor
 {
 
-    json_value_visitor(Napi::Env env, Napi::Object & att_obj,
+    json_value_visitor(Napi::Env env, Napi::Object& att_obj,
                        std::string const& name)
-        : env_(env), att_obj_(att_obj),
-          name_(name) {}
+        : env_(env), att_obj_(att_obj), name_(name) {}
 
-    void operator() (std::string const& val)
+    void operator()(std::string const& val)
     {
         att_obj_.Set(name_, val);
     }
 
-    void operator() (bool const& val)
+    void operator()(bool const& val)
     {
         att_obj_.Set(name_, Napi::Boolean::New(env_, val));
     }
 
-    void operator() (int64_t const& val)
+    void operator()(int64_t const& val)
     {
         att_obj_.Set(name_, Napi::Number::New(env_, val));
     }
 
-    void operator() (uint64_t const& val)
+    void operator()(uint64_t const& val)
     {
         // LCOV_EXCL_START
         att_obj_.Set(name_, Napi::Number::New(env_, val));
         // LCOV_EXCL_STOP
     }
 
-    void operator() (double const& val)
+    void operator()(double const& val)
     {
         att_obj_.Set(name_, Napi::Number::New(env_, val));
     }
 
-    void operator() (float const& val)
+    void operator()(float const& val)
     {
         att_obj_.Set(name_, Napi::Number::New(env_, val));
     }
     Napi::Env env_;
-    Napi::Object & att_obj_;
+    Napi::Object& att_obj_;
     std::string const& name_;
 };
 
@@ -316,15 +313,15 @@ enum geojson_write_type : std::uint8_t
 };
 
 bool layer_to_geojson(protozero::pbf_reader const& layer,
-                      std::string & result,
+                      std::string& result,
                       unsigned x,
                       unsigned y,
                       unsigned z)
 {
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer, x, y, z);
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::projection wgs84("+init=epsg:4326", true);
+    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::proj_transform prj_trans(merc, wgs84);
     // This mega box ensures we capture all features, including those
     // outside the tile extent. Geometries outside the tile extent are
     // likely when the vtile was created by clipping to a buffered extent
@@ -353,7 +350,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
                 result += "\n,";
             }
             std::string feature_str;
-            mapnik::feature_impl feature_new(feature->context(),feature->id());
+            mapnik::feature_impl feature_new(feature->context(), feature->id());
             feature_new.set_data(feature->get_data());
             unsigned int n_err = 0;
             feature_new.set_geometry(mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
@@ -368,7 +365,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
     }
     return !first;
 }
-void write_geojson_array(std::string & result,
+void write_geojson_array(std::string& result,
                          mapnik::vector_tile_impl::merc_tile_ptr const& tile)
 {
     protozero::pbf_reader tile_msg = tile->get_reader();
@@ -409,7 +406,7 @@ void write_geojson_array(std::string & result,
     result += "]";
 }
 
-void write_geojson_all(std::string & result,
+void write_geojson_all(std::string& result,
                        mapnik::vector_tile_impl::merc_tile_ptr const& tile)
 {
     protozero::pbf_reader tile_msg = tile->get_reader();
@@ -440,7 +437,7 @@ void write_geojson_all(std::string & result,
     result += "]}";
 }
 
-bool write_geojson_layer_index(std::string & result,
+bool write_geojson_layer_index(std::string& result,
                                std::size_t layer_idx,
                                mapnik::vector_tile_impl::merc_tile_ptr const& tile)
 {
@@ -464,7 +461,7 @@ bool write_geojson_layer_index(std::string & result,
     // LCOV_EXCL_STOP
 }
 
-bool write_geojson_layer_name(std::string & result,
+bool write_geojson_layer_name(std::string& result,
                               std::string const& name,
                               mapnik::vector_tile_impl::merc_tile_ptr const& tile)
 {
@@ -484,7 +481,6 @@ bool write_geojson_layer_name(std::string & result,
     return false;
 }
 
-
 struct AsyncToGeoJSON : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
@@ -496,7 +492,8 @@ struct AsyncToGeoJSON : Napi::AsyncWorker
           type_(type),
           layer_idx_(layer_idx),
           layer_name_(layer_name)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -530,7 +527,7 @@ struct AsyncToGeoJSON : Napi::AsyncWorker
         return {env.Undefined(), Napi::String::New(env, result_)};
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     geojson_write_type type_;
     int layer_idx_;
@@ -607,66 +604,66 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
             {
                 switch (layer_msg.tag())
                 {
-                    case mapnik::vector_tile_impl::Layer_Encoding::NAME:
-                        layer_obj.Set("name", layer_msg.get_string());
-                        break;
-                    case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
-                        layer_features.push_back(layer_msg.get_message());
-                        break;
-                    case mapnik::vector_tile_impl::Layer_Encoding::KEYS:
-                        layer_keys.push_back(layer_msg.get_string());
-                        break;
-                    case mapnik::vector_tile_impl::Layer_Encoding::VALUES:
-                        val_msg = layer_msg.get_message();
-                        while (val_msg.next())
+                case mapnik::vector_tile_impl::Layer_Encoding::NAME:
+                    layer_obj.Set("name", layer_msg.get_string());
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
+                    layer_features.push_back(layer_msg.get_message());
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::KEYS:
+                    layer_keys.push_back(layer_msg.get_string());
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::VALUES:
+                    val_msg = layer_msg.get_message();
+                    while (val_msg.next())
+                    {
+                        switch (val_msg.tag())
                         {
-                            switch(val_msg.tag())
-                            {
-                                case mapnik::vector_tile_impl::Value_Encoding::STRING:
-                                    layer_values.push_back(val_msg.get_string());
-                                    break;
-                                case mapnik::vector_tile_impl::Value_Encoding::FLOAT:
-                                    layer_values.push_back(val_msg.get_float());
-                                    break;
-                                case mapnik::vector_tile_impl::Value_Encoding::DOUBLE:
-                                    layer_values.push_back(val_msg.get_double());
-                                    break;
-                                case mapnik::vector_tile_impl::Value_Encoding::INT:
-                                    layer_values.push_back(val_msg.get_int64());
-                                    break;
-                                case mapnik::vector_tile_impl::Value_Encoding::UINT:
-                                    // LCOV_EXCL_START
-                                    layer_values.push_back(val_msg.get_uint64());
-                                    break;
-                                    // LCOV_EXCL_STOP
-                                case mapnik::vector_tile_impl::Value_Encoding::SINT:
-                                    // LCOV_EXCL_START
-                                    layer_values.push_back(val_msg.get_sint64());
-                                    break;
-                                    // LCOV_EXCL_STOP
-                                case mapnik::vector_tile_impl::Value_Encoding::BOOL:
-                                    layer_values.push_back(val_msg.get_bool());
-                                    break;
-                                default:
-                                    // LCOV_EXCL_START
-                                    val_msg.skip();
-                                    break;
-                                    // LCOV_EXCL_STOP
-                            }
+                        case mapnik::vector_tile_impl::Value_Encoding::STRING:
+                            layer_values.push_back(val_msg.get_string());
+                            break;
+                        case mapnik::vector_tile_impl::Value_Encoding::FLOAT:
+                            layer_values.push_back(val_msg.get_float());
+                            break;
+                        case mapnik::vector_tile_impl::Value_Encoding::DOUBLE:
+                            layer_values.push_back(val_msg.get_double());
+                            break;
+                        case mapnik::vector_tile_impl::Value_Encoding::INT:
+                            layer_values.push_back(val_msg.get_int64());
+                            break;
+                        case mapnik::vector_tile_impl::Value_Encoding::UINT:
+                            // LCOV_EXCL_START
+                            layer_values.push_back(val_msg.get_uint64());
+                            break;
+                            // LCOV_EXCL_STOP
+                        case mapnik::vector_tile_impl::Value_Encoding::SINT:
+                            // LCOV_EXCL_START
+                            layer_values.push_back(val_msg.get_sint64());
+                            break;
+                            // LCOV_EXCL_STOP
+                        case mapnik::vector_tile_impl::Value_Encoding::BOOL:
+                            layer_values.push_back(val_msg.get_bool());
+                            break;
+                        default:
+                            // LCOV_EXCL_START
+                            val_msg.skip();
+                            break;
+                            // LCOV_EXCL_STOP
                         }
-                        break;
-                    case mapnik::vector_tile_impl::Layer_Encoding::EXTENT:
-                        layer_obj.Set("extent", Napi::Number::New(env, layer_msg.get_uint32()));
-                        break;
-                    case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
-                        version = layer_msg.get_uint32();
-                        layer_obj.Set("version", Napi::Number::New(env, version));
-                        break;
-                    default:
-                        // LCOV_EXCL_START
-                        layer_msg.skip();
-                        break;
-                        // LCOV_EXCL_STOP
+                    }
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::EXTENT:
+                    layer_obj.Set("extent", Napi::Number::New(env, layer_msg.get_uint32()));
+                    break;
+                case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
+                    version = layer_msg.get_uint32();
+                    layer_obj.Set("version", Napi::Number::New(env, version));
+                    break;
+                default:
+                    // LCOV_EXCL_START
+                    layer_msg.skip();
+                    break;
+                    // LCOV_EXCL_STOP
                 }
             }
             Napi::Array f_arr = Napi::Array::New(env, layer_features.size());
@@ -684,29 +681,28 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
                 {
                     switch (feature_msg.tag())
                     {
-                        case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                            feature_obj.Set("id",Napi::Number::New(env, feature_msg.get_uint64()));
-                            break;
-                        case mapnik::vector_tile_impl::Feature_Encoding::TAGS:
-                            tag_itr = feature_msg.get_packed_uint32();
-                            has_tags = true;
-                            break;
-                        case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
-                            geom_type_enum = feature_msg.get_enum();
-                            has_geom_type = true;
-                            feature_obj.Set("type", Napi::Number::New(env, geom_type_enum));
-                            break;
-                        case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
-                            geom_itr = feature_msg.get_packed_uint32();
-                            has_geom = true;
-                            break;
-                        case mapnik::vector_tile_impl::Feature_Encoding::RASTER:
-                        {
-                            auto im_buffer = feature_msg.get_view();
-                            feature_obj.Set("raster",
-                                            Napi::Buffer<char>::Copy(env, im_buffer.data(), im_buffer.size()));
-                            break;
-                        }
+                    case mapnik::vector_tile_impl::Feature_Encoding::ID:
+                        feature_obj.Set("id", Napi::Number::New(env, feature_msg.get_uint64()));
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::TAGS:
+                        tag_itr = feature_msg.get_packed_uint32();
+                        has_tags = true;
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
+                        geom_type_enum = feature_msg.get_enum();
+                        has_geom_type = true;
+                        feature_obj.Set("type", Napi::Number::New(env, geom_type_enum));
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
+                        geom_itr = feature_msg.get_packed_uint32();
+                        has_geom = true;
+                        break;
+                    case mapnik::vector_tile_impl::Feature_Encoding::RASTER: {
+                        auto im_buffer = feature_msg.get_view();
+                        feature_obj.Set("raster",
+                                        Napi::Buffer<char>::Copy(env, im_buffer.data(), im_buffer.size()));
+                        break;
+                    }
                     default:
                         // LCOV_EXCL_START
                         feature_msg.skip();
@@ -756,7 +752,7 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
                             geom_vec.push_back(*_i);
                         }
                         Napi::Array g_arr = Napi::Array::New(env, geom_vec.size());
-                        for (std::size_t k = 0; k < geom_vec.size();++k)
+                        for (std::size_t k = 0; k < geom_vec.size(); ++k)
                         {
                             g_arr.Set(k, Napi::Number::New(env, geom_vec[k]));
                         }
@@ -778,7 +774,6 @@ Napi::Value VectorTile::toJSON(Napi::CallbackInfo const& info)
         // LCOV_EXCL_STOP
     }
 }
-
 
 /**
  * Syncronous version of {@link VectorTile}
@@ -808,7 +803,7 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
     }
 
     Napi::Value layer_id = info[0];
-    if (! (layer_id.IsString() || layer_id.IsNumber()) )
+    if (!(layer_id.IsString() || layer_id.IsNumber()))
     {
         Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -871,7 +866,6 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
     return scope.Escape(Napi::String::New(env, result));
 }
 
-
 /**
  * Get a [GeoJSON](http://geojson.org/) representation of this tile
  *
@@ -894,19 +888,19 @@ Napi::Value VectorTile::toGeoJSONSync(Napi::CallbackInfo const& info)
 
 Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
 {
-    if ((info.Length() < 1) || !info[info.Length()-1].IsFunction())
+    if ((info.Length() < 1) || !info[info.Length() - 1].IsFunction())
     {
         return toGeoJSONSync(info);
     }
     Napi::Env env = info.Env();
 
     Napi::Value layer_id = info[0];
-    if (! (layer_id.IsString() || layer_id.IsNumber()) )
+    if (!(layer_id.IsString() || layer_id.IsNumber()))
     {
         Napi::TypeError::New(env, "'layer' argument must be either a layer name (string) or layer index (integer)").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    geojson_write_type type {geojson_write_all};
+    geojson_write_type type{geojson_write_all};
     int layer_idx = 0;
     std::string layer_name{};
 
@@ -948,8 +942,8 @@ Napi::Value VectorTile::toGeoJSON(Napi::CallbackInfo const& info)
         type = geojson_write_layer_index;
     }
 
-    Napi::Value callback = info[info.Length()-1];
-    auto * worker = new AsyncToGeoJSON(tile_, type, layer_idx, layer_name, callback.As<Napi::Function>());
+    Napi::Value callback = info[info.Length() - 1];
+    auto* worker = new AsyncToGeoJSON(tile_, type, layer_idx, layer_name, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }
@@ -1103,9 +1097,9 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
         auto tile_size = tile_->tile_size();
         mapnik::Map map(tile_size, tile_size, "+init=epsg:3857");
         mapnik::parameters p;
-        p["type"]="geojson";
-        p["inline"]=geojson_string;
-        mapnik::layer lyr(geojson_name,"+init=epsg:4326");
+        p["type"] = "geojson";
+        p["inline"] = geojson_string;
+        mapnik::layer lyr(geojson_name, "+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
         map.add_layer(lyr);
 

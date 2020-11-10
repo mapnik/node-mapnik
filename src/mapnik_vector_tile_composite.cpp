@@ -5,7 +5,7 @@
 using tile_type = mapnik::vector_tile_impl::merc_tile_ptr;
 
 void _composite(tile_type target_tile,
-                std::vector<tile_type> & vtiles,
+                std::vector<tile_type>& vtiles,
                 double scale_factor,
                 unsigned offset_x,
                 unsigned offset_y,
@@ -23,7 +23,7 @@ void _composite(tile_type target_tile,
                 std::launch threading_mode)
 {
     // create map
-    mapnik::Map map(target_tile->size(), target_tile->size(),"+init=epsg:3857");
+    mapnik::Map map(target_tile->size(), target_tile->size(), "+init=epsg:3857");
     if (max_extent)
     {
         map.set_maximum_extent(*max_extent);
@@ -286,8 +286,8 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
-                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(), miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(), maxy.As<Napi::Number>().DoubleValue());
         }
         if (options.Has("process_all_rings"))
         {
@@ -333,7 +333,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
 
     std::vector<tile_type> vtiles_vec;
     vtiles_vec.reserve(num_tiles);
-    for (std::size_t j=0; j < num_tiles; ++j)
+    for (std::size_t j = 0; j < num_tiles; ++j)
     {
         Napi::Value val = (vtiles).Get(j);
         if (!val.IsObject())
@@ -419,7 +419,8 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
           image_format_(image_format),
           scaling_method_(scaling_method),
           threading_mode_(threading_mode)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -454,7 +455,8 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
         Napi::Object obj = VectorTile::constructor.New({arg});
         return {env.Undefined(), napi_value(obj)};
     }
-private:
+
+  private:
     tile_type tile_;
     std::vector<tile_type> vtiles_;
     double scale_factor_;
@@ -474,7 +476,7 @@ private:
     std::launch threading_mode_;
 };
 
-}
+} // namespace
 
 /**
  * Composite an array of vector tiles into one vector tile
@@ -752,8 +754,8 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
-                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(), miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(), maxy.As<Napi::Number>().DoubleValue());
         }
         if (options.Has("process_all_rings"))
         {
@@ -797,7 +799,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    Napi::Value callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length() - 1];
     std::vector<tile_type> vtiles_vec;
     for (std::size_t j = 0; j < num_tiles; ++j)
     {
@@ -816,25 +818,24 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         vtiles_vec.push_back(Napi::ObjectWrap<VectorTile>::Unwrap(tile_obj)->tile_);
     }
 
-    auto * worker = new AsyncCompositeVectorTile{tile_,
-                                                 vtiles_vec,
-                                                 scale_factor,
-                                                 offset_x,
-                                                 offset_y,
-                                                 area_threshold,
-                                                 strictly_simple,
-                                                 multi_polygon_union,
-                                                 fill_type,
-                                                 scale_denominator,
-                                                 reencode,
-                                                 max_extent,
-                                                 simplify_distance,
-                                                 process_all_rings,
-                                                 image_format,
-                                                 scaling_method,
-                                                 threading_mode,
-                                                 callback.As<Napi::Function>()};
+    auto* worker = new AsyncCompositeVectorTile{tile_,
+                                                vtiles_vec,
+                                                scale_factor,
+                                                offset_x,
+                                                offset_y,
+                                                area_threshold,
+                                                strictly_simple,
+                                                multi_polygon_union,
+                                                fill_type,
+                                                scale_denominator,
+                                                reencode,
+                                                max_extent,
+                                                simplify_distance,
+                                                process_all_rings,
+                                                image_format,
+                                                scaling_method,
+                                                threading_mode,
+                                                callback.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
-
 }

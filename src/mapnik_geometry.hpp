@@ -5,11 +5,11 @@
 //
 #include <napi.h>
 
-
 class Geometry : public Napi::ObjectWrap<Geometry>
 {
     friend class Feature;
-public:
+
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -25,7 +25,8 @@ public:
     {
         return feature_->get_geometry();
     }
-private:
+
+  private:
     static Napi::FunctionReference constructor;
     mapnik::feature_ptr feature_;
 };

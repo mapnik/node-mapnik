@@ -33,7 +33,7 @@ struct AsyncQueryPoint : Napi::AsyncWorker
                     fs = map_->query_map_point(layer_idx_, x_, y_);
                 }
                 mapnik::layer const& lyr = layers[layer_idx_];
-                featuresets_.insert(std::make_pair(lyr.name(),fs));
+                featuresets_.insert(std::make_pair(lyr.name(), fs));
             }
             else
             {
@@ -50,7 +50,7 @@ struct AsyncQueryPoint : Napi::AsyncWorker
                     {
                         fs = map_->query_map_point(idx, x_, y_);
                     }
-                    featuresets_.insert(std::make_pair(lyr.name(),fs));
+                    featuresets_.insert(std::make_pair(lyr.name(), fs));
                     ++idx;
                 }
             }
@@ -67,7 +67,7 @@ struct AsyncQueryPoint : Napi::AsyncWorker
         if (num_result >= 1)
         {
             Napi::Array arr = Napi::Array::New(env, num_result);
-            typedef std::map<std::string,mapnik::featureset_ptr> fs_itr;
+            typedef std::map<std::string, mapnik::featureset_ptr> fs_itr;
             fs_itr::iterator it = featuresets_.begin();
             fs_itr::iterator end = featuresets_.end();
             unsigned idx = 0;
@@ -81,12 +81,12 @@ struct AsyncQueryPoint : Napi::AsyncWorker
                 ++idx;
             }
             featuresets_.clear();
-            return { env.Undefined(), arr };
+            return {env.Undefined(), arr};
         }
         return Base::GetResult(env);
     }
 
-private:
+  private:
     map_ptr map_;
     double x_;
     double y_;
@@ -95,8 +95,7 @@ private:
     std::map<std::string, mapnik::featureset_ptr> featuresets_;
 };
 
-}
-
+} // namespace detail
 
 /**
  * Query a `Mapnik#Map` object to retrieve layer and feature data based on an
@@ -131,7 +130,7 @@ private:
 
 Napi::Value Map::queryMapPoint(Napi::CallbackInfo const& info)
 {
-    return query_point_impl(info,false);
+    return query_point_impl(info, false);
 }
 
 /**
@@ -210,7 +209,7 @@ Napi::Value Map::query_point_impl(Napi::CallbackInfo const& info, bool geo_coord
         {
             std::vector<mapnik::layer> const& layers = map_->layers();
             Napi::Value layer_id = options.Get("layer");
-            if (!(layer_id.IsString() || layer_id.IsNumber()) )
+            if (!(layer_id.IsString() || layer_id.IsNumber()))
             {
                 Napi::TypeError::New(env, "'layer' option required for map query and must be either a layer name(string) or layer index (integer)").ThrowAsJavaScriptException();
                 return env.Undefined();
@@ -244,7 +243,8 @@ Napi::Value Map::query_point_impl(Napi::CallbackInfo const& info, bool geo_coord
                 layer_idx = layer_id.As<Napi::Number>().Int32Value();
                 std::size_t layer_num = layers.size();
 
-                if (layer_idx < 0) {
+                if (layer_idx < 0)
+                {
                     std::ostringstream s;
                     s << "Zero-based layer index '" << layer_idx << "' not valid"
                       << " must be a positive integer, ";
@@ -284,7 +284,7 @@ Napi::Value Map::query_point_impl(Napi::CallbackInfo const& info, bool geo_coord
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new detail::AsyncQueryPoint(map_, x, y, layer_idx, geo_coords, callback.As<Napi::Function>());
+    auto* worker = new detail::AsyncQueryPoint(map_, x, y, layer_idx, geo_coords, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

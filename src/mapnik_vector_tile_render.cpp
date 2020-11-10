@@ -8,22 +8,22 @@
 #include <mapnik/projection.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/attribute.hpp>         // for attributes
-#include <mapnik/image.hpp>             // for image_rgba8
+#include <mapnik/attribute.hpp> // for attributes
+#include <mapnik/image.hpp>     // for image_rgba8
 #include <mapnik/image_any.hpp>
 #include <mapnik/scale_denominator.hpp>
-#include <mapnik/agg_renderer.hpp>      // for agg_renderer
+#include <mapnik/agg_renderer.hpp> // for agg_renderer
 #if defined(HAVE_CAIRO)
 #include <cairo.h>
 #include <mapnik/cairo/cairo_renderer.hpp>
-#if defined (CAIRO_HAS_SVG_SURFACE)
+#if defined(CAIRO_HAS_SVG_SURFACE)
 #include <cairo-svg.h>
 #endif // CAIRO_HAS_SVG_SURFACE
 #endif
 #if defined(GRID_RENDERER)
 #include "mapnik_grid.hpp"
-#include <mapnik/grid/grid.hpp>         // for hit_grid, grid
-#include <mapnik/grid/grid_renderer.hpp>// for grid_renderer
+#include <mapnik/grid/grid.hpp>          // for hit_grid, grid
+#include <mapnik/grid/grid_renderer.hpp> // for grid_renderer
 #endif
 #if defined(SVG_RENDERER)
 #include <mapnik/svg/output/svg_renderer.hpp>
@@ -33,25 +33,26 @@
 #include "vector_tile_load_tile.hpp"
 #include "object_to_container.hpp"
 
-
 namespace {
 
-struct dummy_surface {};
+struct dummy_surface
+{
+};
 
-using surface_type = mapnik::util::variant
-    <dummy_surface,
-     Image *,
-     CairoSurface *
+using surface_type = mapnik::util::variant<dummy_surface,
+                                           Image*,
+                                           CairoSurface*
 #if defined(GRID_RENDERER)
-     ,Grid *
+                                           ,
+                                           Grid*
 #endif
-     >;
+                                           >;
 
 struct ref_visitor
 {
-    void operator() (dummy_surface) {} // no-op
+    void operator()(dummy_surface) {} // no-op
     template <typename SurfaceType>
-    void operator() (SurfaceType * surface)
+    void operator()(SurfaceType* surface)
     {
         if (surface != nullptr)
         {
@@ -60,12 +61,11 @@ struct ref_visitor
     }
 };
 
-
 struct deref_visitor
 {
-    void operator() (dummy_surface) {} // no-op
+    void operator()(dummy_surface) {} // no-op
     template <typename SurfaceType>
-    void operator() (SurfaceType * surface)
+    void operator()(SurfaceType* surface)
     {
         if (surface != nullptr)
         {
@@ -75,7 +75,7 @@ struct deref_visitor
 };
 
 template <typename Renderer>
-void process_layers(Renderer & ren,
+void process_layers(Renderer& ren,
                     mapnik::request const& m_req,
                     mapnik::projection const& map_proj,
                     std::vector<mapnik::layer> const& layers,
@@ -93,11 +93,11 @@ void process_layers(Renderer & ren,
                 mapnik::layer lyr_copy(lyr);
                 lyr_copy.set_srs(map_srs);
                 std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                                                mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                                    layer_msg,
-                                                    tile->x(),
-                                                    tile->y(),
-                                                    tile->z());
+                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                    layer_msg,
+                    tile->x(),
+                    tile->y(),
+                    tile->z());
                 ds->set_envelope(m_req.get_buffered_extent());
                 lyr_copy.set_datasource(ds);
                 std::set<std::string> names;
@@ -119,7 +119,7 @@ void process_layers(Renderer & ren,
 struct AsyncRenderTile : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncRenderTile(Map * map_obj,
+    AsyncRenderTile(Map* map_obj,
                     mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                     surface_type const& surface,
                     mapnik::attributes const& variables,
@@ -135,22 +135,22 @@ struct AsyncRenderTile : Napi::AsyncWorker
                     bool use_cairo,
                     bool zxy_override,
                     Napi::Function const& callback)
-    : Base(callback),
-      map_obj_(map_obj),
-      tile_(tile),
-      surface_(surface),
-      variables_(variables),
-      layer_idx_(layer_idx),
-      z_(z),
-      x_(x),
-      y_(y),
-      width_(width),
-      height_(height),
-      buffer_size_(buffer_size),
-      scale_factor_(scale_factor),
-      scale_denominator_(scale_denominator),
-      use_cairo_(use_cairo),
-      zxy_override_(zxy_override) {}
+        : Base(callback),
+          map_obj_(map_obj),
+          tile_(tile),
+          surface_(surface),
+          variables_(variables),
+          layer_idx_(layer_idx),
+          z_(z),
+          x_(x),
+          y_(y),
+          width_(width),
+          height_(height),
+          buffer_size_(buffer_size),
+          scale_factor_(scale_factor),
+          scale_denominator_(scale_denominator),
+          use_cairo_(use_cairo),
+          zxy_override_(zxy_override) {}
 
     ~AsyncRenderTile() {}
 
@@ -182,9 +182,9 @@ struct AsyncRenderTile : Napi::AsyncWorker
             std::vector<mapnik::layer> const& layers = map->layers();
 #if defined(GRID_RENDERER)
             // render grid for layer
-            if (surface_.is<Grid *>())
+            if (surface_.is<Grid*>())
             {
-                Grid * g = mapnik::util::get<Grid *>(surface_);
+                Grid* g = mapnik::util::get<Grid*>(surface_);
                 grid_ptr grid = g->impl();
 
                 mapnik::grid_renderer<mapnik::grid> ren(*map,
@@ -217,7 +217,7 @@ struct AsyncRenderTile : Napi::AsyncWorker
                         mapnik::layer lyr_copy(lyr);
                         lyr_copy.set_srs(map->srs());
                         std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                        mapnik::vector_tile_impl::tile_datasource_pbf>(
+                            mapnik::vector_tile_impl::tile_datasource_pbf>(
                             layer_msg,
                             tile_->x(),
                             tile_->y(),
@@ -240,67 +240,67 @@ struct AsyncRenderTile : Napi::AsyncWorker
             }
             else
 #endif
-                if (surface_.is<CairoSurface *>())
+                if (surface_.is<CairoSurface*>())
+            {
+                CairoSurface* c = mapnik::util::get<CairoSurface*>(surface_);
+                if (use_cairo_)
                 {
-                    CairoSurface * c = mapnik::util::get<CairoSurface *>(surface_);
-                    if (use_cairo_)
-                    {
 #if defined(HAVE_CAIRO)
-                        mapnik::cairo_surface_ptr surface;
-                        // TODO - support any surface type
-                        surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
-                                                                (cairo_write_func_t)c->write_callback,
-                                                                (void*)(&c->stream()),
-                                                                static_cast<double>(c->width()),
-                                                                static_cast<double>(c->height())
-                                                                ), mapnik::cairo_surface_closer());
-                        mapnik::cairo_ptr c_context = mapnik::create_context(surface);
-                        mapnik::cairo_renderer<mapnik::cairo_ptr> ren(*map, m_req,
-                                                                      variables_,
-                                                                      c_context , scale_factor_);
-                        ren.start_map_processing(*map);
-                        process_layers(ren,m_req,map_proj,layers,scale_denom, map->srs(), tile_);
-                        ren.end_map_processing(*map);
+                    mapnik::cairo_surface_ptr surface;
+                    // TODO - support any surface type
+                    surface = mapnik::cairo_surface_ptr(cairo_svg_surface_create_for_stream(
+                                                            (cairo_write_func_t)c->write_callback,
+                                                            (void*)(&c->stream()),
+                                                            static_cast<double>(c->width()),
+                                                            static_cast<double>(c->height())),
+                                                        mapnik::cairo_surface_closer());
+                    mapnik::cairo_ptr c_context = mapnik::create_context(surface);
+                    mapnik::cairo_renderer<mapnik::cairo_ptr> ren(*map, m_req,
+                                                                  variables_,
+                                                                  c_context, scale_factor_);
+                    ren.start_map_processing(*map);
+                    process_layers(ren, m_req, map_proj, layers, scale_denom, map->srs(), tile_);
+                    ren.end_map_processing(*map);
 #else
-                        SetError("no support for rendering svg with cairo backend");
+                    SetError("no support for rendering svg with cairo backend");
 #endif
-                    }
-                    else
-                    {
-#if defined(SVG_RENDERER)
-                        typedef mapnik::svg_renderer<std::ostream_iterator<char> > svg_ren;
-                        std::ostream_iterator<char> output_stream_iterator(c->stream());
-                        svg_ren ren(*map, m_req,
-                                    variables_,
-                                    output_stream_iterator, scale_factor_);
-                        ren.start_map_processing(*map);
-                        process_layers(ren, m_req, map_proj, layers, scale_denom, map->srs(), tile_);
-                        ren.end_map_processing(*map);
-#else
-                        SetError("no support for rendering svg with native svg backend (-DSVG_RENDERER)");
-#endif
-                    }
                 }
-                // render all layers with agg
-                else if (surface_.is<Image *>())
+                else
                 {
-                    Image * js_image = mapnik::util::get<Image *>(surface_);
-                    mapnik::image_any & im = *js_image->impl();
-                    if (im.is<mapnik::image_rgba8>())
-                    {
-                        mapnik::image_rgba8 & im_data = mapnik::util::get<mapnik::image_rgba8>(im);
-                        mapnik::agg_renderer<mapnik::image_rgba8> ren(*map, m_req,
-                                                                      variables_,
-                                                                      im_data, scale_factor_);
-                        ren.start_map_processing(*map);
-                        process_layers(ren, m_req, map_proj, layers, scale_denom, map->srs(), tile_);
-                        ren.end_map_processing(*map);
-                    }
-                    else
-                    {
-                        SetError("This image type is not currently supported for rendering.");
-                    }
+#if defined(SVG_RENDERER)
+                    typedef mapnik::svg_renderer<std::ostream_iterator<char>> svg_ren;
+                    std::ostream_iterator<char> output_stream_iterator(c->stream());
+                    svg_ren ren(*map, m_req,
+                                variables_,
+                                output_stream_iterator, scale_factor_);
+                    ren.start_map_processing(*map);
+                    process_layers(ren, m_req, map_proj, layers, scale_denom, map->srs(), tile_);
+                    ren.end_map_processing(*map);
+#else
+                    SetError("no support for rendering svg with native svg backend (-DSVG_RENDERER)");
+#endif
                 }
+            }
+            // render all layers with agg
+            else if (surface_.is<Image*>())
+            {
+                Image* js_image = mapnik::util::get<Image*>(surface_);
+                mapnik::image_any& im = *js_image->impl();
+                if (im.is<mapnik::image_rgba8>())
+                {
+                    mapnik::image_rgba8& im_data = mapnik::util::get<mapnik::image_rgba8>(im);
+                    mapnik::agg_renderer<mapnik::image_rgba8> ren(*map, m_req,
+                                                                  variables_,
+                                                                  im_data, scale_factor_);
+                    ren.start_map_processing(*map);
+                    process_layers(ren, m_req, map_proj, layers, scale_denom, map->srs(), tile_);
+                    ren.end_map_processing(*map);
+                }
+                else
+                {
+                    SetError("This image type is not currently supported for rendering.");
+                }
+            }
         }
         catch (std::exception const& ex)
         {
@@ -321,38 +321,39 @@ struct AsyncRenderTile : Napi::AsyncWorker
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
-        if (surface_.is<Image *>())
+        if (surface_.is<Image*>())
         {
-            image_ptr image =  mapnik::util::get<Image *>(surface_)->impl();
+            image_ptr image = mapnik::util::get<Image*>(surface_)->impl();
             Napi::Value arg = Napi::External<image_ptr>::New(env, &image);
             Napi::Object obj = Image::constructor.New({arg});
             return {env.Undefined(), napi_value(obj)};
         }
 #if defined(GRID_RENDERER)
-        else if (surface_.is<Grid *>())
+        else if (surface_.is<Grid*>())
         {
-            grid_ptr grid =  mapnik::util::get<Grid *>(surface_)->impl();
+            grid_ptr grid = mapnik::util::get<Grid*>(surface_)->impl();
             Napi::Value arg = Napi::External<grid_ptr>::New(env, &grid);
             Napi::Object obj = Grid::constructor.New({arg});
             return {env.Undefined(), napi_value(obj)};
         }
 #endif
-        else if (surface_.is<CairoSurface *>())
+        else if (surface_.is<CairoSurface*>())
         {
-            CairoSurface * c = mapnik::util::get<CairoSurface*>(surface_);
+            CairoSurface* c = mapnik::util::get<CairoSurface*>(surface_);
             c->flush();
             Napi::Value width = Napi::Number::New(env, c->width());
             Napi::Value height = Napi::Number::New(env, c->height());
             Napi::Value format = Napi::String::New(env, c->format());
             Napi::Object obj = CairoSurface::constructor.New({format, width, height});
-            CairoSurface * new_c = Napi::ObjectWrap<CairoSurface>::Unwrap(obj);
+            CairoSurface* new_c = Napi::ObjectWrap<CairoSurface>::Unwrap(obj);
             new_c->set_data(c->data());
             return {env.Undefined(), napi_value(obj)};
         }
         return Base::GetResult(env);
     }
-private:
-    Map * map_obj_;
+
+  private:
+    Map* map_obj_;
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     surface_type surface_;
     mapnik::attributes variables_;
@@ -367,9 +368,8 @@ private:
     double scale_denominator_;
     bool use_cairo_;
     bool zxy_override_;
-
 };
-}
+} // namespace
 
 /**
  * Render/write this vector tile to a surface/image, like a {@link Image}
@@ -431,7 +431,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    Map *m = Napi::ObjectWrap<Map>::Unwrap(obj);
+    Map* m = Napi::ObjectWrap<Map>::Unwrap(obj);
     if (info.Length() < 2 || !info[1].IsObject())
     {
         Napi::TypeError::New(env, "a renderable mapnik object is expected as second arg").ThrowAsJavaScriptException();
@@ -439,8 +439,8 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     }
     Napi::Object im_obj = info[1].As<Napi::Object>();
     // ensure callback is a function
-    Napi::Value callback = info[info.Length()-1];
-    if (!info[info.Length()-1].IsFunction())
+    Napi::Value callback = info[info.Length() - 1];
+    if (!info[info.Length() - 1].IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -567,7 +567,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
                 Napi::TypeError::New(env, "optional arg 'variables' must be an object").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            object_to_container(variables,bind_opt.As<Napi::Object>());
+            object_to_container(variables, bind_opt.As<Napi::Object>());
         }
     }
 
@@ -585,7 +585,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     }
     else if (im_obj.InstanceOf(CairoSurface::constructor.Value()))
     {
-        CairoSurface *c = Napi::ObjectWrap<CairoSurface>::Unwrap(im_obj);
+        CairoSurface* c = Napi::ObjectWrap<CairoSurface>::Unwrap(im_obj);
         width = c->width();
         height = c->height();
         surface = c;
@@ -616,7 +616,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
 #if defined(GRID_RENDERER)
     else if (im_obj.InstanceOf(Grid::constructor.Value()))
     {
-        Grid *g = Napi::ObjectWrap<Grid>::Unwrap(im_obj);
+        Grid* g = Napi::ObjectWrap<Grid>::Unwrap(im_obj);
         width = g->impl()->width();
         height = g->impl()->height();
         surface = g;
@@ -713,20 +713,19 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
     }
     mapnik::util::apply_visitor(ref_visitor(), surface);
     m->Ref();
-    auto * worker = new AsyncRenderTile{m,
-                                        tile_,
-                                        surface,
-                                        variables,
-                                        layer_idx,
-                                        z, x, y,
-                                        width, height,
-                                        buffer_size,
-                                        scale_factor,
-                                        scale_denominator,
-                                        use_cairo,
-                                        zxy_override,
-                                        callback.As<Napi::Function>()};
+    auto* worker = new AsyncRenderTile{m,
+                                       tile_,
+                                       surface,
+                                       variables,
+                                       layer_idx,
+                                       z, x, y,
+                                       width, height,
+                                       buffer_size,
+                                       scale_factor,
+                                       scale_denominator,
+                                       use_cairo,
+                                       zxy_override,
+                                       callback.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
-
 }

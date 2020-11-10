@@ -4,14 +4,17 @@
 // stl
 #include <memory>
 
-namespace mapnik { class layer; }
+namespace mapnik {
+class layer;
+}
 
-using layer_ptr =  std::shared_ptr<mapnik::layer>;
+using layer_ptr = std::shared_ptr<mapnik::layer>;
 
 class Layer : public Napi::ObjectWrap<Layer>
 {
     friend class Map;
-public:
+
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -37,8 +40,9 @@ public:
     void queryable(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value clear_label_cache(Napi::CallbackInfo const& info);
     void clear_label_cache(Napi::CallbackInfo const& info, Napi::Value const& value);
-    inline layer_ptr impl() const {return layer_;}
-private:
+    inline layer_ptr impl() const { return layer_; }
+
+  private:
     static Napi::FunctionReference constructor;
     layer_ptr layer_;
 };

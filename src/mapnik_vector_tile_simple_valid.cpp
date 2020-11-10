@@ -23,7 +23,6 @@
 #include "vector_tile_load_tile.hpp"
 #include "object_to_container.hpp"
 
-
 namespace {
 
 // LCOV_EXCL_START
@@ -55,10 +54,10 @@ struct not_valid_feature
 };
 
 void layer_not_simple(protozero::pbf_reader const& layer_msg,
-               unsigned x,
-               unsigned y,
-               unsigned z,
-               std::vector<not_simple_feature> & errors)
+                      unsigned x,
+                      unsigned y,
+                      unsigned z,
+                      std::vector<not_simple_feature>& errors)
 {
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_msg, x, y, z);
     mapnik::query q(mapnik::box2d<double>(std::numeric_limits<double>::lowest(),
@@ -90,13 +89,13 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
 
 struct visitor_geom_valid
 {
-    std::vector<not_valid_feature> & errors;
-    mapnik::feature_ptr & feature;
+    std::vector<not_valid_feature>& errors;
+    mapnik::feature_ptr& feature;
     std::string const& layer_name;
     bool split_multi_features;
 
-    visitor_geom_valid(std::vector<not_valid_feature> & errors_,
-                       mapnik::feature_ptr & feature_,
+    visitor_geom_valid(std::vector<not_valid_feature>& errors_,
+                       mapnik::feature_ptr& feature_,
                        std::string const& layer_name_,
                        bool split_multi_features_)
         : errors(errors_),
@@ -104,17 +103,17 @@ struct visitor_geom_valid
           layer_name(layer_name_),
           split_multi_features(split_multi_features_) {}
 
-    void operator() (mapnik::geometry::geometry_empty const&) {}
+    void operator()(mapnik::geometry::geometry_empty const&) {}
 
     template <typename T>
-    void operator() (mapnik::geometry::point<T> const& geom)
+    void operator()(mapnik::geometry::point<T> const& geom)
     {
         std::string message;
         if (!mapnik::geometry::is_valid(geom, message))
         {
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -137,14 +136,14 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::multi_point<T> const& geom)
+    void operator()(mapnik::geometry::multi_point<T> const& geom)
     {
         std::string message;
         if (!mapnik::geometry::is_valid(geom, message))
         {
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -167,14 +166,14 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::line_string<T> const& geom)
+    void operator()(mapnik::geometry::line_string<T> const& geom)
     {
         std::string message;
         if (!mapnik::geometry::is_valid(geom, message))
         {
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -197,7 +196,7 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::multi_line_string<T> const& geom)
+    void operator()(mapnik::geometry::multi_line_string<T> const& geom)
     {
         if (split_multi_features)
         {
@@ -206,7 +205,7 @@ struct visitor_geom_valid
                 std::string message;
                 if (!mapnik::geometry::is_valid(ls, message))
                 {
-                    mapnik::feature_impl feature_new(feature->context(),feature->id());
+                    mapnik::feature_impl feature_new(feature->context(), feature->id());
                     std::string result;
                     std::string feature_str;
                     result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -232,7 +231,7 @@ struct visitor_geom_valid
             std::string message;
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -255,14 +254,14 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::polygon<T> const& geom)
+    void operator()(mapnik::geometry::polygon<T> const& geom)
     {
         std::string message;
         if (!mapnik::geometry::is_valid(geom, message))
         {
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -285,7 +284,7 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::multi_polygon<T> const& geom)
+    void operator()(mapnik::geometry::multi_polygon<T> const& geom)
     {
         if (split_multi_features)
         {
@@ -294,7 +293,7 @@ struct visitor_geom_valid
                 std::string message;
                 if (!mapnik::geometry::is_valid(poly, message))
                 {
-                    mapnik::feature_impl feature_new(feature->context(),feature->id());
+                    mapnik::feature_impl feature_new(feature->context(), feature->id());
                     std::string result;
                     std::string feature_str;
                     result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -320,7 +319,7 @@ struct visitor_geom_valid
             std::string message;
             if (!mapnik::geometry::is_valid(geom, message))
             {
-                mapnik::feature_impl feature_new(feature->context(),feature->id());
+                mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
                 std::string feature_str;
                 result += "{\"type\":\"FeatureCollection\",\"features\":[";
@@ -343,7 +342,7 @@ struct visitor_geom_valid
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::geometry_collection<T> const& geom)
+    void operator()(mapnik::geometry::geometry_collection<T> const& geom)
     {
         // This should never be able to be reached.
         // LCOV_EXCL_START
@@ -355,14 +354,14 @@ struct visitor_geom_valid
     }
 };
 
-void layer_not_valid(protozero::pbf_reader & layer_msg,
-               unsigned x,
-               unsigned y,
-               unsigned z,
-               std::vector<not_valid_feature> & errors,
-               bool split_multi_features = false,
-               bool lat_lon = false,
-               bool web_merc = false)
+void layer_not_valid(protozero::pbf_reader& layer_msg,
+                     unsigned x,
+                     unsigned y,
+                     unsigned z,
+                     std::vector<not_valid_feature>& errors,
+                     bool split_multi_features = false,
+                     bool lat_lon = false,
+                     bool web_merc = false)
 {
     if (web_merc || lat_lon)
     {
@@ -384,19 +383,19 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
             {
                 if (lat_lon)
                 {
-                    mapnik::projection wgs84("+init=epsg:4326",true);
-                    mapnik::projection merc("+init=epsg:3857",true);
-                    mapnik::proj_transform prj_trans(merc,wgs84);
+                    mapnik::projection wgs84("+init=epsg:4326", true);
+                    mapnik::projection merc("+init=epsg:3857", true);
+                    mapnik::proj_transform prj_trans(merc, wgs84);
                     unsigned int n_err = 0;
                     mapnik::util::apply_visitor(
-                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
-                            mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
+                        visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
+                        mapnik::geometry::reproject_copy(feature->get_geometry(), prj_trans, n_err));
                 }
                 else
                 {
                     mapnik::util::apply_visitor(
-                            visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
-                            feature->get_geometry());
+                        visitor_geom_valid(errors, feature, ds.get_name(), split_multi_features),
+                        feature->get_geometry());
                 }
             }
         }
@@ -410,18 +409,18 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
         {
             switch (layer_msg.tag())
             {
-                case mapnik::vector_tile_impl::Layer_Encoding::NAME:
-                    layer_name = layer_msg.get_string();
-                    break;
-                case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
-                    layer_features.push_back(layer_msg.get_message());
-                    break;
-                case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
-                    version = layer_msg.get_uint32();
-                    break;
-                default:
-                    layer_msg.skip();
-                    break;
+            case mapnik::vector_tile_impl::Layer_Encoding::NAME:
+                layer_name = layer_msg.get_string();
+                break;
+            case mapnik::vector_tile_impl::Layer_Encoding::FEATURES:
+                layer_features.push_back(layer_msg.get_message());
+                break;
+            case mapnik::vector_tile_impl::Layer_Encoding::VERSION:
+                version = layer_msg.get_uint32();
+                break;
+            default:
+                layer_msg.skip();
+                break;
             }
         }
         for (auto feature_msg : layer_features)
@@ -435,39 +434,39 @@ void layer_not_valid(protozero::pbf_reader & layer_msg,
             {
                 switch (feature_msg.tag())
                 {
-                    case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                        feature_id = feature_msg.get_uint64();
-                        break;
-                    case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
-                        geom_type_enum = feature_msg.get_enum();
-                        has_geom_type = true;
-                        break;
-                    case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
-                        geom_itr = feature_msg.get_packed_uint32();
-                        has_geom = true;
-                        break;
-                    default:
-                        feature_msg.skip();
-                        break;
+                case mapnik::vector_tile_impl::Feature_Encoding::ID:
+                    feature_id = feature_msg.get_uint64();
+                    break;
+                case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
+                    geom_type_enum = feature_msg.get_enum();
+                    has_geom_type = true;
+                    break;
+                case mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY:
+                    geom_itr = feature_msg.get_packed_uint32();
+                    has_geom = true;
+                    break;
+                default:
+                    feature_msg.skip();
+                    break;
                 }
             }
             if (has_geom && has_geom_type)
             {
                 // Decode the geometry first into an int64_t mapnik geometry
                 mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-                mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+                mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx, 1));
                 mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
                 feature->set_geometry(mapnik::vector_tile_impl::decode_geometry<double>(geoms, geom_type_enum, version, 0.0, 0.0, 1.0, 1.0));
                 mapnik::util::apply_visitor(
-                        visitor_geom_valid(errors, feature, layer_name, split_multi_features),
-                        feature->get_geometry());
+                    visitor_geom_valid(errors, feature, layer_name, split_multi_features),
+                    feature->get_geometry());
             }
         }
     }
 }
 
 void vector_tile_not_simple(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
-                            std::vector<not_simple_feature> & errors)
+                            std::vector<not_simple_feature>& errors)
 {
     protozero::pbf_reader tile_msg(tile->get_reader());
     while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
@@ -481,7 +480,7 @@ void vector_tile_not_simple(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
     }
 }
 
-Napi::Array make_not_simple_array(Napi::Env env, std::vector<not_simple_feature> & errors)
+Napi::Array make_not_simple_array(Napi::Env env, std::vector<not_simple_feature>& errors)
 {
     Napi::Array array = Napi::Array::New(env, errors.size());
     Napi::String layer_key = Napi::String::New(env, "layer");
@@ -500,7 +499,7 @@ Napi::Array make_not_simple_array(Napi::Env env, std::vector<not_simple_feature>
 }
 
 void vector_tile_not_valid(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
-                           std::vector<not_valid_feature> & errors,
+                           std::vector<not_valid_feature>& errors,
                            bool split_multi_features = false,
                            bool lat_lon = false,
                            bool web_merc = false)
@@ -520,7 +519,7 @@ void vector_tile_not_valid(mapnik::vector_tile_impl::merc_tile_ptr const& tile,
     }
 }
 
-Napi::Array make_not_valid_array(Napi::Env env, std::vector<not_valid_feature> & errors)
+Napi::Array make_not_valid_array(Napi::Env env, std::vector<not_valid_feature>& errors)
 {
     Napi::Array array = Napi::Array::New(env, errors.size());
     Napi::String layer_key = Napi::String::New(env, "layer");
@@ -564,14 +563,13 @@ struct AsyncGeometrySimple : Napi::AsyncWorker
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
         Napi::Array array = make_not_simple_array(env, result_);
-        return  { env.Undefined(), array };
+        return {env.Undefined(), array};
     }
 
-private:
-    mapnik::vector_tile_impl::merc_tile_ptr  tile_;
+  private:
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
     std::vector<not_simple_feature> result_;
 };
-
 
 struct AsyncGeometryValid : Napi::AsyncWorker
 {
@@ -584,7 +582,8 @@ struct AsyncGeometryValid : Napi::AsyncWorker
           split_multi_features_(split_multi_features),
           lat_lon_(lat_lon),
           web_merc_(web_merc)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -600,10 +599,11 @@ struct AsyncGeometryValid : Napi::AsyncWorker
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
         Napi::Array array = make_not_valid_array(env, result_);
-        return { env.Undefined(), array };
+        return {env.Undefined(), array};
     }
-private:
-    mapnik::vector_tile_impl::merc_tile_ptr  tile_;
+
+  private:
+    mapnik::vector_tile_impl::merc_tile_ptr tile_;
     bool split_multi_features_;
     bool lat_lon_;
     bool web_merc_;
@@ -757,10 +757,9 @@ Napi::Value VectorTile::reportGeometrySimplicity(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncGeometrySimple(tile_, callback.As<Napi::Function>());
+    auto* worker = new AsyncGeometrySimple(tile_, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
-
 }
 
 /**
@@ -846,10 +845,9 @@ Napi::Value VectorTile::reportGeometryValidity(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new AsyncGeometryValid(tile_, split_multi_features, lat_lon, web_merc, callback.As<Napi::Function>());
+    auto* worker = new AsyncGeometryValid(tile_, split_multi_features, lat_lon, web_merc, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
-
 }
 
 #endif // BOOST_VERSION >= 1.58

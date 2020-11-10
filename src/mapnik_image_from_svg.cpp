@@ -1,7 +1,7 @@
 // mapnik
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include <mapnik/marker.hpp>
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/svg/svg_parser.hpp>
@@ -33,7 +33,8 @@ struct AsyncFromSVG : Napi::AsyncWorker
           scale_(scale),
           max_size_(max_size),
           strict_(strict)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -49,17 +50,18 @@ struct AsyncFromSVG : Napi::AsyncWorker
             if (strict_ && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
-                for (auto const& error : p.err_handler().error_messages()) {
-                    errorMessage <<  error << std::endl;
+                for (auto const& error : p.err_handler().error_messages())
+                {
+                    errorMessage << error << std::endl;
                 }
                 SetError(errorMessage.str());
                 return;
             }
 
-            double lox,loy,hix,hiy;
+            double lox, loy, hix, hiy;
             svg.bounding_rect(&lox, &loy, &hix, &hiy);
-            marker_path->set_bounding_box(lox,loy,hix,hiy);
-            marker_path->set_dimensions(svg.width(),svg.height());
+            marker_path->set_bounding_box(lox, loy, hix, hiy);
+            marker_path->set_dimensions(svg.width(), svg.height());
 
             using pixfmt = agg::pixfmt_rgba32_pre;
             using renderer_base = agg::renderer_base<pixfmt>;
@@ -92,9 +94,9 @@ struct AsyncFromSVG : Napi::AsyncWorker
             renderer_base renb(pixf);
 
             mapnik::box2d<double> const& bbox = marker_path->bounding_box();
-            mapnik::coord<double,2> c = bbox.center();
+            mapnik::coord<double, 2> c = bbox.center();
             // center the svg marker on '0,0'
-            agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+            agg::trans_affine mtx = agg::trans_affine_translation(-c.x, -c.y);
             // Scale the image
             mtx.scale(scale_);
             // render the marker at the center of the marker box
@@ -103,8 +105,9 @@ struct AsyncFromSVG : Napi::AsyncWorker
             mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
                                       mapnik::svg_attribute_type,
                                       renderer_solid,
-                                      agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
-                                                                                 marker_path->attributes());
+                                      agg::pixfmt_rgba32_pre>
+                svg_renderer_this(svg_path,
+                                  marker_path->attributes());
 
             svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
             mapnik::demultiply_alpha(im);
@@ -131,14 +134,14 @@ struct AsyncFromSVG : Napi::AsyncWorker
         }
         return Base::GetResult(env);
     }
-private:
+
+  private:
     std::string filename_;
     double scale_;
-    std::size_t  max_size_;
+    std::size_t max_size_;
     bool strict_;
     image_ptr image_;
 };
-
 
 struct AsyncFromSVGBytes : Napi::AsyncWorker
 {
@@ -152,7 +155,8 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
           scale_(scale),
           max_size_(max_size),
           strict_(strict)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -169,17 +173,18 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             if (strict_ && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
-                for (auto const& error : p.err_handler().error_messages()) {
-                    errorMessage <<  error << std::endl;
+                for (auto const& error : p.err_handler().error_messages())
+                {
+                    errorMessage << error << std::endl;
                 }
                 SetError(errorMessage.str());
                 return;
             }
 
-            double lox,loy,hix,hiy;
+            double lox, loy, hix, hiy;
             svg.bounding_rect(&lox, &loy, &hix, &hiy);
-            marker_path->set_bounding_box(lox,loy,hix,hiy);
-            marker_path->set_dimensions(svg.width(),svg.height());
+            marker_path->set_bounding_box(lox, loy, hix, hiy);
+            marker_path->set_dimensions(svg.width(), svg.height());
 
             using pixfmt = agg::pixfmt_rgba32_pre;
             using renderer_base = agg::renderer_base<pixfmt>;
@@ -211,9 +216,9 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             renderer_base renb(pixf);
 
             mapnik::box2d<double> const& bbox = marker_path->bounding_box();
-            mapnik::coord<double,2> c = bbox.center();
+            mapnik::coord<double, 2> c = bbox.center();
             // center the svg marker on '0,0'
-            agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+            agg::trans_affine mtx = agg::trans_affine_translation(-c.x, -c.y);
             // Scale the image
             mtx.scale(scale_);
             // render the marker at the center of the marker box
@@ -222,8 +227,9 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
                                       mapnik::svg_attribute_type,
                                       renderer_solid,
-                                      agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
-                                                                                 marker_path->attributes());
+                                      agg::pixfmt_rgba32_pre>
+                svg_renderer_this(svg_path,
+                                  marker_path->attributes());
 
             svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
             mapnik::demultiply_alpha(im);
@@ -250,18 +256,18 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
         }
         return Base::GetResult(env);
     }
-private:
+
+  private:
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
     std::size_t dataLength_;
     double scale_;
-    std::size_t  max_size_;
+    std::size_t max_size_;
     bool strict_;
     image_ptr image_;
 };
 
-}
-
+} // namespace detail
 
 Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file)
 {
@@ -348,8 +354,9 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
             if (strict && !p.err_handler().error_messages().empty())
             {
                 std::ostringstream errorMessage;
-                for (auto const& error : p.err_handler().error_messages()) {
-                    errorMessage <<  error << std::endl;
+                for (auto const& error : p.err_handler().error_messages())
+                {
+                    errorMessage << error << std::endl;
                 }
                 Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
                 return env.Undefined();
@@ -370,16 +377,16 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
                 std::ostringstream errorMessage;
                 for (auto const& error : p.err_handler().error_messages())
                 {
-                    errorMessage <<  error << std::endl;
+                    errorMessage << error << std::endl;
                 }
                 Napi::TypeError::New(env, errorMessage.str().c_str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
         }
 
-        double lox,loy,hix,hiy;
+        double lox, loy, hix, hiy;
         svg.bounding_rect(&lox, &loy, &hix, &hiy);
-        marker_path->set_bounding_box(lox,loy,hix,hiy);
+        marker_path->set_bounding_box(lox, loy, hix, hiy);
         marker_path->set_dimensions(svg.width(), svg.height());
 
         using pixfmt = agg::pixfmt_rgba32_pre;
@@ -413,19 +420,20 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         pixfmt pixf(buf);
         renderer_base renb(pixf);
         mapnik::box2d<double> const& bbox = marker_path->bounding_box();
-        mapnik::coord<double,2> c = bbox.center();
+        mapnik::coord<double, 2> c = bbox.center();
         // center the svg marker on '0,0'
-        agg::trans_affine mtx = agg::trans_affine_translation(-c.x,-c.y);
+        agg::trans_affine mtx = agg::trans_affine_translation(-c.x, -c.y);
         // Scale the image
         mtx.scale(scale);
         // render the marker at the center of the marker box
         mtx.translate(0.5 * im.width(), 0.5 * im.height());
 
         mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
-            mapnik::svg_attribute_type,
-            renderer_solid,
-            agg::pixfmt_rgba32_pre > svg_renderer_this(svg_path,
-                                                       marker_path->attributes());
+                                  mapnik::svg_attribute_type,
+                                  renderer_solid,
+                                  agg::pixfmt_rgba32_pre>
+            svg_renderer_this(svg_path,
+                              marker_path->attributes());
 
         svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
         mapnik::demultiply_alpha(im);
@@ -446,7 +454,6 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         // LCOV_EXCL_STOP
     }
 }
-
 
 /**
  * Load image from an SVG buffer (synchronous)
@@ -599,7 +606,7 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto * worker = new detail::AsyncFromSVG(info[0].As<Napi::String>(), scale, max_size, strict, callback);
+    auto* worker = new detail::AsyncFromSVG(info[0].As<Napi::String>(), scale, max_size, strict, callback);
     worker->Queue();
     return env.Undefined();
 }
@@ -627,7 +634,6 @@ Napi::Value Image::fromSVG(Napi::CallbackInfo const& info)
  *   // your custom code with `img`
  * });
  */
-
 
 Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
 {
@@ -713,7 +719,7 @@ Napi::Value Image::fromSVGBytes(Napi::CallbackInfo const& info)
     }
     Napi::Buffer<char> buffer = info[0].As<Napi::Buffer<char>>();
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto * worker = new detail::AsyncFromSVGBytes(buffer, scale, max_size, strict, callback);
+    auto* worker = new detail::AsyncFromSVGBytes(buffer, scale, max_size, strict, callback);
     worker->Queue();
     return env.Undefined();
 }

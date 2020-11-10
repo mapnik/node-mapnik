@@ -1,8 +1,8 @@
 // mapnik
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/color.hpp>      // for color
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
@@ -11,13 +11,14 @@
 
 // std
 #include <exception>
-#include <sstream>                      // for basic_ostringstream, etc
+#include <sstream> // for basic_ostringstream, etc
 #include <cstdlib>
 
 Napi::FunctionReference Image::constructor;
 
 Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Image", {
             InstanceAccessor<&Image::offset, &Image::offset>("offset", prop_attr),
             InstanceAccessor<&Image::scaling, &Image::scaling>("scaling", prop_attr),
@@ -64,6 +65,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_propert
             StaticMethod<&Image::fromSVGBytesSync>("fromSVGBytesSync", prop_attr),
             StaticMethod<&Image::fromSVGBytes>("fromSVGBytes", prop_attr)
         });
+    // clang-format off
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Image", func);

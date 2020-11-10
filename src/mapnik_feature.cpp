@@ -14,6 +14,7 @@ Napi::FunctionReference Feature::constructor;
 
 Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Feature", {
             InstanceMethod<&Feature::id>("id", prop_attr),
             InstanceMethod<&Feature::extent>("extent", prop_attr),
@@ -22,7 +23,7 @@ Napi::Object Feature::Initialize(Napi::Env env, Napi::Object exports, napi_prope
             InstanceMethod<&Feature::toJSON>("toJSON", prop_attr),
             StaticMethod<&Feature::fromJSON>("fromJSON", prop_attr)
         });
-
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Feature", func);
@@ -48,7 +49,7 @@ Feature::Feature(Napi::CallbackInfo const& info)
         if (info[0].IsExternal())
         {
             auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
-            if (ext) feature_  = *ext.Data();
+            if (ext) feature_ = *ext.Data();
             return;
         }
         else if (info[0].IsNumber())
@@ -85,7 +86,7 @@ Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
     try
     {
         mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(), 1));
-        if (!mapnik::json::from_geojson(json,*feature))
+        if (!mapnik::json::from_geojson(json, *feature))
         {
             Napi::Error::New(env, "Failed to read GeoJSON").ThrowAsJavaScriptException();
             return env.Undefined();
@@ -156,13 +157,11 @@ Napi::Value Feature::attributes(Napi::CallbackInfo const& info)
         for (auto const& attr : *feature_)
         {
             attributes.Set(std::get<0>(attr),
-                           mapnik::util::apply_visitor(node_mapnik::value_converter(env), std::get<1>(attr))
-                );
+                           mapnik::util::apply_visitor(node_mapnik::value_converter(env), std::get<1>(attr)));
         }
     }
     return scope.Escape(attributes);
 }
-
 
 /**
  * Get the feature's attributes as a Mapnik geometry.

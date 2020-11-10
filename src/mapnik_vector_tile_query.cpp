@@ -12,8 +12,7 @@
 #include "vector_tile_projection.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 
-namespace detail
-{
+namespace detail {
 
 struct p2p_result
 {
@@ -25,16 +24,16 @@ struct p2p_result
 struct p2p_distance
 {
     p2p_distance(double x, double y)
-     : x_(x),
-       y_(y) {}
+        : x_(x),
+          y_(y) {}
 
-    p2p_result operator() (mapnik::geometry::geometry_empty const& ) const
+    p2p_result operator()(mapnik::geometry::geometry_empty const&) const
     {
         p2p_result p2p;
         return p2p;
     }
 
-    p2p_result operator() (mapnik::geometry::point<double> const& geom) const
+    p2p_result operator()(mapnik::geometry::point<double> const& geom) const
     {
         p2p_result p2p;
         p2p.x_hit = geom.x;
@@ -42,7 +41,7 @@ struct p2p_distance
         p2p.distance = mapnik::distance(geom.x, geom.y, x_, y_);
         return p2p;
     }
-    p2p_result operator() (mapnik::geometry::multi_point<double> const& geom) const
+    p2p_result operator()(mapnik::geometry::multi_point<double> const& geom) const
     {
         p2p_result p2p;
         for (auto const& pt : geom)
@@ -57,7 +56,7 @@ struct p2p_distance
         }
         return p2p;
     }
-    p2p_result operator() (mapnik::geometry::line_string<double> const& geom) const
+    p2p_result operator()(mapnik::geometry::line_string<double> const& geom) const
     {
         p2p_result p2p;
         auto num_points = geom.size();
@@ -65,9 +64,9 @@ struct p2p_distance
         {
             for (std::size_t i = 1; i < num_points; ++i)
             {
-                auto const& pt0 = geom[i-1];
+                auto const& pt0 = geom[i - 1];
                 auto const& pt1 = geom[i];
-                double dist = mapnik::point_to_segment_distance(x_,y_,pt0.x,pt0.y,pt1.x,pt1.y);
+                double dist = mapnik::point_to_segment_distance(x_, y_, pt0.x, pt0.y, pt1.x, pt1.y);
                 if (dist >= 0 && (p2p.distance < 0 || dist < p2p.distance))
                 {
                     p2p.x_hit = pt0.x;
@@ -78,10 +77,10 @@ struct p2p_distance
         }
         return p2p;
     }
-    p2p_result operator() (mapnik::geometry::multi_line_string<double> const& geom) const
+    p2p_result operator()(mapnik::geometry::multi_line_string<double> const& geom) const
     {
         p2p_result p2p;
-        for (auto const& line: geom)
+        for (auto const& line : geom)
         {
             p2p_result p2p_sub = operator()(line);
             if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
@@ -93,7 +92,7 @@ struct p2p_distance
         }
         return p2p;
     }
-    p2p_result operator() (mapnik::geometry::polygon<double> const& poly) const
+    p2p_result operator()(mapnik::geometry::polygon<double> const& poly) const
     {
         p2p_result p2p;
         std::size_t num_rings = poly.size();
@@ -114,7 +113,7 @@ struct p2p_distance
                 auto const& pt0 = ring[index - 1];
                 auto const& pt1 = ring[index];
                 // todo - account for tolerance
-                if (mapnik::detail::pip(pt0.x, pt0.y, pt1.x, pt1.y, x_,y_))
+                if (mapnik::detail::pip(pt0.x, pt0.y, pt1.x, pt1.y, x_, y_))
                 {
                     inside = !inside;
                 }
@@ -125,10 +124,10 @@ struct p2p_distance
         return p2p;
     }
 
-    p2p_result operator() (mapnik::geometry::multi_polygon<double> const& geom) const
+    p2p_result operator()(mapnik::geometry::multi_polygon<double> const& geom) const
     {
         p2p_result p2p;
-        for (auto const& poly: geom)
+        for (auto const& poly : geom)
         {
             p2p_result p2p_sub = operator()(poly);
             if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
@@ -140,14 +139,14 @@ struct p2p_distance
         }
         return p2p;
     }
-    p2p_result operator() (mapnik::geometry::geometry_collection<double> const& collection) const
+    p2p_result operator()(mapnik::geometry::geometry_collection<double> const& collection) const
     {
         // There is no current way that a geometry collection could be returned from a vector tile.
         // LCOV_EXCL_START
         p2p_result p2p;
-        for (auto const& geom: collection)
+        for (auto const& geom : collection)
         {
-            p2p_result p2p_sub = mapnik::util::apply_visitor((*this),geom);
+            p2p_result p2p_sub = mapnik::util::apply_visitor((*this), geom);
             if (p2p_sub.distance >= 0 && (p2p.distance < 0 || p2p_sub.distance < p2p.distance))
             {
                 p2p.x_hit = p2p_sub.x_hit;
@@ -176,13 +175,13 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
         return arr;
     }
 
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(wgs84,merc);
+    mapnik::projection wgs84("+init=epsg:4326", true);
+    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::proj_transform tr(wgs84, merc);
     double x = lon;
     double y = lat;
     double z = 0;
-    if (!tr.forward(x,y,z))
+    if (!tr.forward(x, y, z))
     {
         // THIS CAN NEVER BE REACHED CURRENTLY
         // internally lonlat2merc in mapnik can never return false.
@@ -191,17 +190,17 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
         // LCOV_EXCL_STOP
     }
 
-    mapnik::coord2d pt(x,y);
+    mapnik::coord2d pt(x, y);
     if (!layer_name.empty())
     {
         protozero::pbf_reader layer_msg;
         if (tile->layer_reader(layer_name, layer_msg))
         {
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                            layer_msg,
-                                            tile->x(),
-                                            tile->y(),
-                                            tile->z());
+                layer_msg,
+                tile->x(),
+                tile->y(),
+                tile->z());
             mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
             if (fs && mapnik::is_valid(fs))
             {
@@ -209,8 +208,8 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
                 while ((feature = fs->next()))
                 {
                     auto const& geom = feature->get_geometry();
-                    auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
+                    auto p2p = path_to_point_distance(geom, x, y);
+                    if (!tr.backward(p2p.x_hit, p2p.y_hit, z))
                     {
                         // LCOV_EXCL_START
                         throw std::runtime_error("could not reproject lon/lat to mercator");
@@ -237,19 +236,19 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
         {
             protozero::pbf_reader layer_msg = item.get_message();
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                            layer_msg,
-                                            tile->x(),
-                                            tile->y(),
-                                            tile->z());
-            mapnik::featureset_ptr fs = ds->features_at_point(pt,tolerance);
+                layer_msg,
+                tile->x(),
+                tile->y(),
+                tile->z());
+            mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
             if (fs && mapnik::is_valid(fs))
             {
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
                 {
                     auto const& geom = feature->get_geometry();
-                    auto p2p = path_to_point_distance(geom,x,y);
-                    if (!tr.backward(p2p.x_hit,p2p.y_hit,z))
+                    auto p2p = path_to_point_distance(geom, x, y);
+                    if (!tr.backward(p2p.x_hit, p2p.y_hit, z))
                     {
                         // LCOV_EXCL_START
                         throw std::runtime_error("could not reproject lon/lat to mercator");
@@ -269,13 +268,13 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
             }
         }
     }
-    std::sort(arr.begin(), arr.end(),[](query_result const& a, query_result const& b) {
-                                         return a.distance < b.distance;
-                                     });
+    std::sort(arr.begin(), arr.end(), [](query_result const& a, query_result const& b) {
+        return a.distance < b.distance;
+    });
     return arr;
 }
 
-Napi::Array _queryResultToV8(Napi::Env env, std::vector<query_result> & result)
+Napi::Array _queryResultToV8(Napi::Env env, std::vector<query_result>& result)
 {
     Napi::Array arr = Napi::Array::New(env, result.size());
     std::size_t i = 0;
@@ -303,7 +302,8 @@ struct AsyncQuery : Napi::AsyncWorker
           lat_(lat),
           tolerance_(tolerance),
           layer_name_(layer_name)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -321,7 +321,8 @@ struct AsyncQuery : Napi::AsyncWorker
         Napi::Array arr = _queryResultToV8(env, result_);
         return {env.Undefined(), arr};
     }
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     double lon_;
     double lat_;
@@ -330,10 +331,9 @@ private:
     std::vector<query_result> result_;
 };
 
-
 // Query many
 
-Napi::Object _queryManyResultToV8(Napi::Env env, queryMany_result & result)
+Napi::Object _queryManyResultToV8(Napi::Env env, queryMany_result& result)
 {
     Napi::Object results = Napi::Object::New(env);
     Napi::Array features = Napi::Array::New(env, result.features.size());
@@ -367,7 +367,7 @@ Napi::Object _queryManyResultToV8(Napi::Env env, queryMany_result & result)
     return results;
 }
 
-void _queryMany(queryMany_result & result,
+void _queryMany(queryMany_result& result,
                 mapnik::vector_tile_impl::merc_tile_ptr const& tile,
                 std::vector<query_lonlat> const& query,
                 double tolerance,
@@ -375,19 +375,19 @@ void _queryMany(queryMany_result & result,
                 std::vector<std::string> const& fields)
 {
     protozero::pbf_reader layer_msg;
-    if (!tile->layer_reader(layer_name,layer_msg))
+    if (!tile->layer_reader(layer_name, layer_msg))
     {
         throw std::runtime_error("Could not find layer in vector tile");
     }
 
-    std::map<unsigned,query_result> features;
-    std::map<unsigned,std::vector<query_hit> > hits;
+    std::map<unsigned, query_result> features;
+    std::map<unsigned, std::vector<query_hit>> hits;
 
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform tr(wgs84,merc);
+    mapnik::projection wgs84("+init=epsg:4326", true);
+    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::proj_transform tr(wgs84, merc);
     std::vector<mapnik::coord2d> points;
     points.reserve(query.size());
     for (std::size_t p = 0; p < query.size(); ++p)
@@ -395,24 +395,24 @@ void _queryMany(queryMany_result & result,
         double x = query[p].lon;
         double y = query[p].lat;
         double z = 0;
-        if (!tr.forward(x,y,z))
+        if (!tr.forward(x, y, z))
         {
             // LCOV_EXCL_START
             throw std::runtime_error("could not reproject lon/lat to mercator");
-// LCOV_EXCL_STOP
+            // LCOV_EXCL_STOP
         }
-        mapnik::coord2d pt(x,y);
+        mapnik::coord2d pt(x, y);
         bbox.expand_to_include(pt);
         points.emplace_back(std::move(pt));
     }
     bbox.pad(tolerance);
 
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
-                                mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                    layer_msg,
-                                    tile->x(),
-                                    tile->y(),
-                                    tile->z());
+        mapnik::vector_tile_impl::tile_datasource_pbf>(
+        layer_msg,
+        tile->x(),
+        tile->y(),
+        tile->z());
     mapnik::query q(bbox);
     if (fields.empty())
     {
@@ -443,7 +443,7 @@ void _queryMany(queryMany_result & result,
             {
                 mapnik::coord2d const& pt = points[p];
                 auto const& geom = feature->get_geometry();
-                auto p2p = path_to_point_distance(geom,pt.x,pt.y);
+                auto p2p = path_to_point_distance(geom, pt.x, pt.y);
                 if (p2p.distance >= 0 && p2p.distance <= tolerance)
                 {
                     has_hit = 1;
@@ -458,7 +458,7 @@ void _queryMany(queryMany_result & result,
 
                     features.insert(std::make_pair(idx, res));
 
-                    std::map<unsigned,std::vector<query_hit> >::iterator hits_it;
+                    std::map<unsigned, std::vector<query_hit>>::iterator hits_it;
                     hits_it = hits.find(p);
                     if (hits_it == hits.end())
                     {
@@ -481,11 +481,11 @@ void _queryMany(queryMany_result & result,
     }
 
     // Sort each group of hits by distance.
-    for (auto & hit : hits)
+    for (auto& hit : hits)
     {
         std::sort(hit.second.begin(), hit.second.end(), [](auto const& a, auto const& b) {
-                                                            return a.distance < b.distance;
-                                                        });
+            return a.distance < b.distance;
+        });
     }
 
     result.hits = std::move(hits);
@@ -504,7 +504,8 @@ struct AsyncQueryMany : Napi::AsyncWorker
           tolerance_(tolerance),
           layer_name_(layer_name),
           fields_(fields)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -522,7 +523,8 @@ struct AsyncQueryMany : Napi::AsyncWorker
         Napi::Object obj = _queryManyResultToV8(env, result_);
         return {env.Undefined(), obj};
     }
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     std::vector<query_lonlat> query_;
     double tolerance_;
@@ -531,10 +533,9 @@ private:
     queryMany_result result_;
 };
 
+} // namespace detail
 
-} // ns
-
- /**
+/**
  * Query a vector tile by longitude and latitude and get an array of
  * features in the vector tile that exist in relation to those coordinates.
  *
@@ -646,7 +647,7 @@ Napi::Value VectorTile::query(Napi::CallbackInfo const& info)
     else
     {
         Napi::Value callback = info[info.Length() - 1];
-        auto * worker = new detail::AsyncQuery(tile_, lon, lat, tolerance, layer_name, callback.As<Napi::Function>());
+        auto* worker = new detail::AsyncQuery(tile_, lon, lat, tolerance, layer_name, callback.As<Napi::Function>());
         worker->Queue();
     }
     return env.Undefined();
@@ -787,7 +788,7 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
     }
 
     // If last argument is not a function go with sync call.
-    if (!info[info.Length()-1].IsFunction())
+    if (!info[info.Length() - 1].IsFunction())
     {
         try
         {
@@ -805,8 +806,8 @@ Napi::Value VectorTile::queryMany(Napi::CallbackInfo const& info)
     else
     {
         Napi::Value callback = info[info.Length() - 1];
-        auto * worker = new detail::AsyncQueryMany(tile_, query, tolerance, layer_name,
-                                                   fields, callback.As<Napi::Function>());
+        auto* worker = new detail::AsyncQueryMany(tile_, query, tolerance, layer_name,
+                                                  fields, callback.As<Napi::Function>());
         worker->Queue();
         return env.Undefined();
     }
