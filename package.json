@@ -38,13 +38,13 @@
   "dependencies": {
     "mapnik-vector-tile": "3.0.1",
     "node-addon-api": "~3.0.2",
-    "node-pre-gyp": "~0.13.0"
+    "node-pre-gyp": "^0.14.0"
   },
   "bin": {
-    "mapnik-index.js": "./bin/mapnik-index.js",
-    "mapnik-inspect.js": "./bin/mapnik-inspect.js",
-    "mapnik-render.js": "./bin/mapnik-render.js",
-    "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
+    "mapnik-index.js": "bin/mapnik-index.js",
+    "mapnik-inspect.js": "bin/mapnik-inspect.js",
+    "mapnik-render.js": "bin/mapnik-render.js",
+    "mapnik-shapeindex.js": "bin/mapnik-shapeindex.js"
   },
   "scripts": {
     "test": "tape test/*.test.js",
