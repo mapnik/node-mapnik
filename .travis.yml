@@ -95,7 +95,7 @@ matrix:
         - ./scripts/setup.sh --config local.env
         - export PATH=$(pwd)/.mason:${PATH}
         - source scripts/postgis/setup_and_run.sh
-      - npm test
+        - npm test
     # test building with out SSE_MATH enabled
     - os: linux
       env: BUILDTYPE=release SSE_MATH=false
