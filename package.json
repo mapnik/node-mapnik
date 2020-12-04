@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.5.0-dev",
+  "version": "4.5.5",
   "mapnik_version": "c6fc956a7",
   "main": "./lib/mapnik.js",
   "binary": {
@@ -56,7 +56,7 @@
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
     "nyc": "^14.1.1",
-    "tape": "^4.5.1"
+    "tape": "^4.13.3"
   },
   "jshintConfig": {
     "node": true,
