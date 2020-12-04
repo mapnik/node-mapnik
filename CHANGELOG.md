@@ -1,8 +1,10 @@
 # Changelog
 
-## 4.5.5 (dev)
+## 4.5.5
+- Remove `reinterpret_cast` by changing `Napi::Buffer<T>` specialisations
 - Replace bogus Object->Value->Object conversions e.g scope.Escape(napi_value(obj)).ToObject() => scope.Escape(obj) (ref #961)
-- Remove `escape`from `env.Undefined()` (ref #961)
+- Remove `Escape`from `env.Undefined()` (ref #961)
+- Travis CI: enable clang-format + clang-tidy targets
 
 ## 4.5.4
 - Ensure `mapnik.Image` data is valid during `AsyncWorker::Execute()` (ref #960)
