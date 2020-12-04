@@ -23,7 +23,7 @@ struct AsyncFilter : Napi::AsyncWorker
     {
         try
         {
-            mapnik::filter::filter_image(*image_, filter_);
+            mapnik::filter::filter_image(*image_, filter_); // NOLINT
         }
         catch (std::exception const& ex)
         {

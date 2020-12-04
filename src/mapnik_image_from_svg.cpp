@@ -43,7 +43,7 @@ struct AsyncFromSVG : Napi::AsyncWorker
             using namespace mapnik::svg;
             mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
             vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
-            svg_path_adapter svg_path(stl_storage);
+            svg_path_adapter svg_path(stl_storage); // NOLINT
             svg_converter_type svg(svg_path, marker_path->attributes());
             svg_parser p(svg);
             p.parse(filename_);
@@ -66,6 +66,10 @@ struct AsyncFromSVG : Napi::AsyncWorker
             using pixfmt = agg::pixfmt_rgba32_pre;
             using renderer_base = agg::renderer_base<pixfmt>;
             using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+            using renderer_agg = mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
+                                                           mapnik::svg_attribute_type,
+                                                           renderer_solid,
+                                                           agg::pixfmt_rgba32_pre>;
             agg::rasterizer_scanline_aa<> ras_ptr;
             agg::scanline_u8 sl;
 
@@ -101,15 +105,8 @@ struct AsyncFromSVG : Napi::AsyncWorker
             mtx.scale(scale_);
             // render the marker at the center of the marker box
             mtx.translate(0.5 * im.width(), 0.5 * im.height());
-
-            mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
-                                      mapnik::svg_attribute_type,
-                                      renderer_solid,
-                                      agg::pixfmt_rgba32_pre>
-                svg_renderer_this(svg_path,
-                                  marker_path->attributes());
-
-            svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+            renderer_agg  svg_renderer_this(svg_path, marker_path->attributes()); // NOLINT
+            svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);// NOLINT
             mapnik::demultiply_alpha(im);
             image_ = std::make_shared<mapnik::image_any>(im);
         }
@@ -165,7 +162,7 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             using namespace mapnik::svg;
             mapnik::svg_path_ptr marker_path(std::make_shared<mapnik::svg_storage_type>());
             vertex_stl_adapter<svg_path_storage> stl_storage(marker_path->source());
-            svg_path_adapter svg_path(stl_storage);
+            svg_path_adapter svg_path(stl_storage); // NOLINT
             svg_converter_type svg(svg_path, marker_path->attributes());
             svg_parser p(svg);
             std::string svg_buffer(data_, dataLength_);
@@ -189,6 +186,10 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             using pixfmt = agg::pixfmt_rgba32_pre;
             using renderer_base = agg::renderer_base<pixfmt>;
             using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
+            using renderer_agg = mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
+                                                           mapnik::svg_attribute_type,
+                                                           renderer_solid,
+                                                           agg::pixfmt_rgba32_pre>;
             agg::rasterizer_scanline_aa<> ras_ptr;
             agg::scanline_u8 sl;
 
@@ -223,15 +224,10 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
             mtx.scale(scale_);
             // render the marker at the center of the marker box
             mtx.translate(0.5 * im.width(), 0.5 * im.height());
+            // NOLINTNEXTLINE
+            renderer_agg svg_renderer_this(svg_path, marker_path->attributes()); // NOLINT
 
-            mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
-                                      mapnik::svg_attribute_type,
-                                      renderer_solid,
-                                      agg::pixfmt_rgba32_pre>
-                svg_renderer_this(svg_path,
-                                  marker_path->attributes());
-
-            svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+            svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox); // NOLINT
             mapnik::demultiply_alpha(im);
             image_ = std::make_shared<mapnik::image_any>(im);
         }
@@ -392,8 +388,12 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         using pixfmt = agg::pixfmt_rgba32_pre;
         using renderer_base = agg::renderer_base<pixfmt>;
         using renderer_solid = agg::renderer_scanline_aa_solid<renderer_base>;
-        agg::rasterizer_scanline_aa<> ras_ptr;
-        agg::scanline_u8 sl;
+        using renderer_agg = mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
+                                                       mapnik::svg_attribute_type,
+                                                       renderer_solid,
+                                                       agg::pixfmt_rgba32_pre>;
+        agg::rasterizer_scanline_aa<> ras_ptr; // NOLINT
+        agg::scanline_u8 sl;// NOLINT
 
         double opacity = 1;
         double svg_width = svg.width() * scale;
@@ -416,7 +416,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         mapnik::image_rgba8 im(static_cast<int>(std::round(svg_width)),
                                static_cast<int>(std::round(svg_height)),
                                true, true);
-        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size());
+        agg::rendering_buffer buf(im.bytes(), im.width(), im.height(), im.row_size()); // NOLINT
         pixfmt pixf(buf);
         renderer_base renb(pixf);
         mapnik::box2d<double> const& bbox = marker_path->bounding_box();
@@ -427,15 +427,8 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
         mtx.scale(scale);
         // render the marker at the center of the marker box
         mtx.translate(0.5 * im.width(), 0.5 * im.height());
-
-        mapnik::svg::renderer_agg<mapnik::svg::svg_path_adapter,
-                                  mapnik::svg_attribute_type,
-                                  renderer_solid,
-                                  agg::pixfmt_rgba32_pre>
-            svg_renderer_this(svg_path,
-                              marker_path->attributes());
-
-        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox);
+        renderer_agg svg_renderer_this(svg_path, marker_path->attributes()); // NOLINT
+        svg_renderer_this.render(ras_ptr, sl, renb, mtx, opacity, bbox); // NOLINT
         mapnik::demultiply_alpha(im);
 
         image_ptr imagep = std::make_shared<mapnik::image_any>(im);
@@ -478,7 +471,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
 
 Napi::Value Image::fromSVGBytesSync(Napi::CallbackInfo const& info)
 {
-    return from_svg_sync_impl(info, false);
+    return from_svg_sync_impl(info, false); // NOLINT
 }
 
 /**

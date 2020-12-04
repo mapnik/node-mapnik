@@ -1,7 +1,7 @@
-#include <mapnik/image_any.hpp>  // for image_any
-#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
-#include <mapnik/image_scaling.hpp>
-#include "mapnik_image.hpp"
+#include <mapnik/image_any.hpp>     // NOLINT for image_any
+#include <mapnik/image_util.hpp>    // NOLINT for save_to_string, guess_type, etc
+#include <mapnik/image_scaling.hpp> // NOLINT
+#include "mapnik_image.hpp"         // NOLINT
 
 namespace {
 
@@ -30,6 +30,7 @@ struct resize_visitor
             remultiply = true;
             mapnik::premultiply_alpha(im1_);
         }
+        // NOLINTNEXTLINE
         mapnik::scale_image_agg(im2,
                                 mapnik::util::get<mapnik::image_rgba8>(im1_),
                                 scaling_method_,
@@ -47,6 +48,7 @@ struct resize_visitor
     template <typename T>
     void operator()(T& im2) const
     {
+        // NOLINTNEXTLINE
         mapnik::scale_image_agg(im2,
                                 mapnik::util::get<T>(im1_),
                                 scaling_method_,

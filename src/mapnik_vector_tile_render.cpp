@@ -644,7 +644,7 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
                     if (lyr.name() == layer_name)
                     {
                         found = true;
-                        layer_idx = idx;
+                        //layer_idx = idx; error: Value stored to 'layer_idx' is never read [clang-analyzer-deadcode.DeadStores,-warnings-as-errors]
                         break;
                     }
                     ++idx;

@@ -75,7 +75,7 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
         {
-            if (!mapnik::geometry::is_simple(feature->get_geometry()))
+            if (!mapnik::geometry::is_simple(feature->get_geometry())) // NOLINT
             {
                 // Right now we don't have an obvious way of bypassing our validation
                 // process in JS, so let's skip testing this line
@@ -109,29 +109,26 @@ struct visitor_geom_valid
     void operator()(mapnik::geometry::point<T> const& geom)
     {
         std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
+        if (!mapnik::geometry::is_valid(geom, message)) // NOLINT
         {
-            if (!mapnik::geometry::is_valid(geom, message))
+            mapnik::feature_impl feature_new(feature->context(), feature->id());
+            std::string result;
+            std::string feature_str;
+            result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            feature_new.set_data(feature->get_data());
+            feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
-                mapnik::feature_impl feature_new(feature->context(), feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_STOP
             }
+            result += feature_str;
+            result += "]}";
+            errors.emplace_back(message,
+                                layer_name,
+                                feature->id(),
+                                result);
         }
     }
 
@@ -139,29 +136,26 @@ struct visitor_geom_valid
     void operator()(mapnik::geometry::multi_point<T> const& geom)
     {
         std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
+        if (!mapnik::geometry::is_valid(geom, message)) // NOLINT
         {
-            if (!mapnik::geometry::is_valid(geom, message))
+            mapnik::feature_impl feature_new(feature->context(), feature->id());
+            std::string result;
+            std::string feature_str;
+            result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            feature_new.set_data(feature->get_data());
+            feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
-                mapnik::feature_impl feature_new(feature->context(), feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_STOP
             }
+            result += feature_str;
+            result += "]}";
+            errors.emplace_back(message,
+                                layer_name,
+                                feature->id(),
+                                result);
         }
     }
 
@@ -169,29 +163,26 @@ struct visitor_geom_valid
     void operator()(mapnik::geometry::line_string<T> const& geom)
     {
         std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
+        if (!mapnik::geometry::is_valid(geom, message)) // NOLINT
         {
-            if (!mapnik::geometry::is_valid(geom, message))
+            mapnik::feature_impl feature_new(feature->context(), feature->id());
+            std::string result;
+            std::string feature_str;
+            result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            feature_new.set_data(feature->get_data());
+            feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
-                mapnik::feature_impl feature_new(feature->context(), feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_STOP
             }
+            result += feature_str;
+            result += "]}";
+            errors.emplace_back(message,
+                                layer_name,
+                                feature->id(),
+                                result);
         }
     }
 
@@ -203,7 +194,7 @@ struct visitor_geom_valid
             for (auto const& ls : geom)
             {
                 std::string message;
-                if (!mapnik::geometry::is_valid(ls, message))
+                if (!mapnik::geometry::is_valid(ls, message)) // NOLINT
                 {
                     mapnik::feature_impl feature_new(feature->context(), feature->id());
                     std::string result;
@@ -229,7 +220,7 @@ struct visitor_geom_valid
         else
         {
             std::string message;
-            if (!mapnik::geometry::is_valid(geom, message))
+            if (!mapnik::geometry::is_valid(geom, message)) // NOLINT
             {
                 mapnik::feature_impl feature_new(feature->context(), feature->id());
                 std::string result;
@@ -257,29 +248,26 @@ struct visitor_geom_valid
     void operator()(mapnik::geometry::polygon<T> const& geom)
     {
         std::string message;
-        if (!mapnik::geometry::is_valid(geom, message))
+        if (!mapnik::geometry::is_valid(geom, message)) // NOLINT
         {
-            if (!mapnik::geometry::is_valid(geom, message))
+            mapnik::feature_impl feature_new(feature->context(), feature->id());
+            std::string result;
+            std::string feature_str;
+            result += "{\"type\":\"FeatureCollection\",\"features\":[";
+            feature_new.set_data(feature->get_data());
+            feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
+            if (!mapnik::util::to_geojson(feature_str, feature_new))
             {
-                mapnik::feature_impl feature_new(feature->context(), feature->id());
-                std::string result;
-                std::string feature_str;
-                result += "{\"type\":\"FeatureCollection\",\"features\":[";
-                feature_new.set_data(feature->get_data());
-                feature_new.set_geometry(mapnik::geometry::geometry<T>(geom));
-                if (!mapnik::util::to_geojson(feature_str, feature_new))
-                {
-                    // LCOV_EXCL_START
-                    throw std::runtime_error("Failed to generate GeoJSON geometry");
-                    // LCOV_EXCL_STOP
-                }
-                result += feature_str;
-                result += "]}";
-                errors.emplace_back(message,
-                                    layer_name,
-                                    feature->id(),
-                                    result);
+                // LCOV_EXCL_START
+                throw std::runtime_error("Failed to generate GeoJSON geometry");
+                // LCOV_EXCL_STOP
             }
+            result += feature_str;
+            result += "]}";
+            errors.emplace_back(message,
+                                layer_name,
+                                feature->id(),
+                                result);
         }
     }
 
@@ -429,13 +417,13 @@ void layer_not_valid(protozero::pbf_reader& layer_msg,
             bool has_geom = false;
             bool has_geom_type = false;
             std::int32_t geom_type_enum = 0;
-            std::uint64_t feature_id = 0;
+            //std::uint64_t feature_id = 0;
             while (feature_msg.next())
             {
                 switch (feature_msg.tag())
                 {
                 case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                    feature_id = feature_msg.get_uint64();
+                    /*feature_id*/ feature_msg.get_uint64();
                     break;
                 case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
                     geom_type_enum = feature_msg.get_enum();

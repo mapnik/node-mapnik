@@ -30,13 +30,13 @@ struct AsyncComposite : Napi::AsyncWorker
     {
         try
         {
-            if (filters_.size() > 0)
+            if (filters_.size() > 0) // NOLINT
             {
                 // TODO: expose passing custom scale_factor: https://github.com/mapnik/mapnik/commit/b830469d2d574ac575ff24713935378894f8bdc9
                 mapnik::filter::filter_visitor<mapnik::image_any> visitor(*src_);
                 for (mapnik::filter::filter_type const& filter_tag : filters_)
                 {
-                    mapnik::util::apply_visitor(visitor, filter_tag);
+                    mapnik::util::apply_visitor(visitor, filter_tag); // NOLINT
                 }
                 mapnik::premultiply_alpha(*src_);
             }
