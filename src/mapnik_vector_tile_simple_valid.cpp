@@ -422,9 +422,6 @@ void layer_not_valid(protozero::pbf_reader& layer_msg,
             {
                 switch (feature_msg.tag())
                 {
-                case mapnik::vector_tile_impl::Feature_Encoding::ID:
-                    /*feature_id*/ feature_msg.get_uint64();
-                    break;
                 case mapnik::vector_tile_impl::Feature_Encoding::TYPE:
                     geom_type_enum = feature_msg.get_enum();
                     has_geom_type = true;
