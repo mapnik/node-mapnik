@@ -20,13 +20,7 @@ always returns 0 even on errors.
 
 '
 
-# to speed up re-runs, only re-create environment if needed
-if [[ ! -f local.env ]]; then
-    # automatically setup environment
-    ./scripts/setup.sh --config local.env
-fi
-
-# source the environment
+./scripts/setup.sh --config local.env
 source local.env
 
 PATH_TO_CLANG_TIDY_SCRIPT="$(pwd)/mason_packages/.link/share/run-clang-tidy.py"
@@ -70,4 +64,3 @@ if [[ $dirty ]]; then
 else
     exit 0
 fi
-
