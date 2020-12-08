@@ -34,7 +34,7 @@ mason link clang-tidy ${MASON_LLVM_RELEASE}
 if [[ ! -f build/compile_commands.json ]]; then
     # We need to clean otherwise when we make the project
     # will will not see all the compile commands
-    make clean
+    make distclean
     # Create the build directory to put the compile_commands in
     # We do this first to ensure it is there to start writing to
     # immediately (make make not create it right away)
