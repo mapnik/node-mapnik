@@ -13,7 +13,7 @@ endif
 deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
-node_modules:
+./node_modules/.bin/node-pre-gyp:
 	npm install --ignore-scripts --clang
 
 mason_packages/.link/bin/mapnik-config:
@@ -24,11 +24,11 @@ pre_build_check:
 	@echo "Looking for mapnik-config on your PATH..."
 	mapnik-config -v
 
-release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-pre-gyp
 	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
-debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp node_modules
+debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-pre-gyp
 	V=1 ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
 
@@ -69,7 +69,7 @@ distclean: clean
 	rm -rf .toolchain
 	rm -f local.env
 
-xcode: node_modules
+xcode: ./node_modules/.bin/node-pre-gyp
 	./node_modules/.bin/node-pre-gyp configure -- -f xcode
 
 	@# If you need more targets, e.g. to run other npm scripts, duplicate the last line and change NPM_ARGUMENT
