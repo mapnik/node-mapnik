@@ -124,7 +124,7 @@ matrix:
         - make tidy
       # Overrides `script`, no need to run tests
       before_script:
-        - rm -rf node_modules
+        - echo "skipping tests.."
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"
