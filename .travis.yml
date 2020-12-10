@@ -60,7 +60,7 @@ matrix:
         - source local.env
         # Note: to build without stopping on errors remove the -fno-sanitize-recover=all flag
         # You might want to do this if there are multiple errors and you want to see them all before fixing
-        - export CXXFLAGS="${MASON_SANITIZE_CXXFLAGS} -fno-sanitize-recover=all"
+        - export CXXFLAGS="${MASON_SANITIZE_CXXFLAGS}"
         - export LDFLAGS="${MASON_SANITIZE_LDFLAGS}"
         - make distclean
         - make ${BUILDTYPE}
