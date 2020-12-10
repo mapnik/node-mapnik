@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.5.4",
-  "mapnik_version": "26d3084ea",
+  "version": "4.5.5",
+  "mapnik_version": "c6fc956a7",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
@@ -37,14 +37,14 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "mapnik-vector-tile": "3.0.1",
-    "node-addon-api": "~3.0.1",
-    "node-pre-gyp": "~0.13.0"
+    "node-addon-api": "~3.0.2",
+    "node-pre-gyp": "^0.14.0"
   },
   "bin": {
-    "mapnik-index.js": "./bin/mapnik-index.js",
-    "mapnik-inspect.js": "./bin/mapnik-inspect.js",
-    "mapnik-render.js": "./bin/mapnik-render.js",
-    "mapnik-shapeindex.js": "./bin/mapnik-shapeindex.js"
+    "mapnik-index.js": "bin/mapnik-index.js",
+    "mapnik-inspect.js": "bin/mapnik-inspect.js",
+    "mapnik-render.js": "bin/mapnik-render.js",
+    "mapnik-shapeindex.js": "bin/mapnik-shapeindex.js"
   },
   "scripts": {
     "test": "tape test/*.test.js",
@@ -56,7 +56,7 @@
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
     "nyc": "^14.1.1",
-    "tape": "^4.5.1"
+    "tape": "^4.13.3"
   },
   "jshintConfig": {
     "node": true,

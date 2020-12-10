@@ -1,6 +1,6 @@
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 
 #include "mapnik_image.hpp"
 
@@ -14,12 +14,15 @@ struct AsyncMultiply : Napi::AsyncWorker
     AsyncMultiply(image_ptr const& image, Napi::Function const& callback)
         : Base(callback),
           image_(image)
-    {}
+    {
+    }
 
     void Execute() override
     {
-        if (pre) mapnik::premultiply_alpha(*image_);
-        else mapnik::demultiply_alpha(*image_);
+        if (pre)
+            mapnik::premultiply_alpha(*image_);
+        else
+            mapnik::demultiply_alpha(*image_);
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
@@ -35,12 +38,10 @@ struct AsyncMultiply : Napi::AsyncWorker
     image_ptr image_;
 };
 
-} // ns
-
+} // namespace detail
 
 using AsyncPremultiply = detail::AsyncMultiply<true>;
 using AsyncDemultiply = detail::AsyncMultiply<false>;
-
 
 /**
  * Premultiply the pixels in this image.
@@ -83,13 +84,13 @@ Napi::Value Image::premultiply(Napi::CallbackInfo const& info)
     }
     Napi::Env env = info.Env();
     // ensure callback is a function
-    Napi::Value callback_val = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncPremultiply{image_, callback_val.As<Napi::Function>()};
+    auto* worker = new AsyncPremultiply{image_, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }
@@ -127,13 +128,13 @@ Napi::Value Image::demultiply(Napi::CallbackInfo const& info)
     }
     Napi::Env env = info.Env();
     // ensure callback is a function
-    Napi::Value callback_val = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncDemultiply{image_, callback_val.As<Napi::Function>()};
+    auto* worker = new AsyncDemultiply{image_, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

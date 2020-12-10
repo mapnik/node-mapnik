@@ -5,7 +5,7 @@
 using tile_type = mapnik::vector_tile_impl::merc_tile_ptr;
 
 void _composite(tile_type target_tile,
-                std::vector<tile_type> & vtiles,
+                std::vector<tile_type>& vtiles,
                 double scale_factor,
                 unsigned offset_x,
                 unsigned offset_y,
@@ -23,7 +23,7 @@ void _composite(tile_type target_tile,
                 std::launch threading_mode)
 {
     // create map
-    mapnik::Map map(target_tile->size(), target_tile->size(),"+init=epsg:3857");
+    mapnik::Map map(target_tile->size(), target_tile->size(), "+init=epsg:3857");
     if (max_extent)
     {
         map.set_maximum_extent(*max_extent);
@@ -79,7 +79,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
     {
         Napi::TypeError::New(env, "must provide an array of VectorTile objects and an optional options object")
             .ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     Napi::Array vtiles = info[0].As<Napi::Array>();
     unsigned num_tiles = vtiles.Length();
@@ -87,7 +87,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
     {
         Napi::TypeError::New(env, "must provide an array with at least one VectorTile object and an optional options object")
             .ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     // options needed for re-rendering tiles
@@ -115,7 +115,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
         if (!info[1].IsObject())
         {
             Napi::TypeError::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         Napi::Object options = info[1].As<Napi::Object>();
         if (options.Has("area_threshold"))
@@ -124,13 +124,13 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!area_thres.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'area_threshold' must be an floating point number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             area_threshold = area_thres.As<Napi::Number>().DoubleValue();
             if (area_threshold < 0.0)
             {
                 Napi::TypeError::New(env, "option 'area_threshold' can not be negative").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("simplify_distance"))
@@ -139,13 +139,13 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' must be an floating point number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             simplify_distance = param_val.As<Napi::Number>().DoubleValue();
             if (simplify_distance < 0.0)
             {
                 Napi::TypeError::New(env, "option 'simplify_distance' can not be negative").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("strictly_simple"))
@@ -154,7 +154,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!strict_simp.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'strictly_simple' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             strictly_simple = strict_simp.As<Napi::Boolean>();
         }
@@ -164,7 +164,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!mpu.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'multi_polygon_union' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             multi_polygon_union = mpu.As<Napi::Boolean>();
         }
@@ -175,13 +175,13 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' must be a number").ThrowAsJavaScriptException();
 
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             fill_type = static_cast<mapnik::vector_tile_impl::polygon_fill_type>(ft.As<Napi::Number>().Int32Value());
             if (fill_type >= mapnik::vector_tile_impl::polygon_fill_type_max)
             {
                 Napi::TypeError::New(env, "optional arg 'fill_type' out of possible range").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("threading_mode"))
@@ -190,7 +190,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'threading_mode' must be an unsigned integer").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             threading_mode = static_cast<std::launch>(param_val.As<Napi::Number>().Int32Value());
             if (threading_mode != std::launch::async &&
@@ -198,7 +198,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
                 threading_mode != (std::launch::async | std::launch::deferred))
             {
                 Napi::TypeError::New(env, "optional arg 'threading_mode' is invalid").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("scale"))
@@ -207,13 +207,13 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'scale' must be a number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_factor <= 0.0)
             {
                 Napi::TypeError::New(env, "optional arg 'scale' must be greater then zero").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("scale_denominator"))
@@ -223,13 +223,13 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             {
                 Napi::TypeError::New(env, "optional arg 'scale_denominator' must be a number").ThrowAsJavaScriptException();
 
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             scale_denominator = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_denominator < 0.0)
             {
                 Napi::TypeError::New(env, "optional arg 'scale_denominator' must be non negative number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("offset_x"))
@@ -238,7 +238,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'offset_x' must be a number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             offset_x = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -248,7 +248,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!bind_opt.IsNumber())
             {
                 Napi::TypeError::New(env, "optional arg 'offset_y' must be a number").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             offset_y = bind_opt.As<Napi::Number>().Int32Value();
         }
@@ -258,7 +258,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!reencode_opt.IsBoolean())
             {
                 Napi::TypeError::New(env, "reencode value must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             reencode = reencode_opt.As<Napi::Boolean>();
         }
@@ -268,14 +268,14 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!max_extent_opt.IsArray())
             {
                 Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             Napi::Array bbox = max_extent_opt.As<Napi::Array>();
             auto len = bbox.Length();
             if (len != 4)
             {
                 Napi::TypeError::New(env, "max_extent value must be an array of [minx,miny,maxx,maxy]").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             Napi::Value minx = bbox.Get(0u);
             Napi::Value miny = bbox.Get(1u);
@@ -284,10 +284,10 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!minx.IsNumber() || !miny.IsNumber() || !maxx.IsNumber() || !maxy.IsNumber())
             {
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
-                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(), miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(), maxy.As<Napi::Number>().DoubleValue());
         }
         if (options.Has("process_all_rings"))
         {
@@ -295,7 +295,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'process_all_rings' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             process_all_rings = param_val.As<Napi::Boolean>();
         }
@@ -306,7 +306,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             std::string image_scaling = param_val.As<Napi::String>();
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
@@ -314,7 +314,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")
                     .ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             scaling_method = *method;
         }
@@ -325,7 +325,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             image_format = param_val.As<Napi::String>();
         }
@@ -333,19 +333,19 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
 
     std::vector<tile_type> vtiles_vec;
     vtiles_vec.reserve(num_tiles);
-    for (std::size_t j=0; j < num_tiles; ++j)
+    for (std::size_t j = 0; j < num_tiles; ++j)
     {
         Napi::Value val = (vtiles).Get(j);
         if (!val.IsObject())
         {
             Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         Napi::Object tile_obj = val.As<Napi::Object>();
         if (!tile_obj.InstanceOf(VectorTile::constructor.Value()))
         {
             Napi::TypeError::New(env, "must provide an array of VectorTile objects").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         vtiles_vec.push_back(Napi::ObjectWrap<VectorTile>::Unwrap(tile_obj)->tile_);
     }
@@ -373,10 +373,10 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
     {
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 
 namespace {
@@ -419,7 +419,8 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
           image_format_(image_format),
           scaling_method_(scaling_method),
           threading_mode_(threading_mode)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -454,7 +455,8 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
         Napi::Object obj = VectorTile::constructor.New({arg});
         return {env.Undefined(), napi_value(obj)};
     }
-private:
+
+  private:
     tile_type tile_;
     std::vector<tile_type> vtiles_;
     double scale_factor_;
@@ -474,7 +476,7 @@ private:
     std::launch threading_mode_;
 };
 
-}
+} // namespace
 
 /**
  * Composite an array of vector tiles into one vector tile
@@ -752,8 +754,8 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
-            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
-                                               maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
+            max_extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(), miny.As<Napi::Number>().DoubleValue(),
+                                               maxx.As<Napi::Number>().DoubleValue(), maxy.As<Napi::Number>().DoubleValue());
         }
         if (options.Has("process_all_rings"))
         {
@@ -797,7 +799,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         }
     }
 
-    Napi::Value callback = info[info.Length()-1];
+    Napi::Value callback = info[info.Length() - 1];
     std::vector<tile_type> vtiles_vec;
     for (std::size_t j = 0; j < num_tiles; ++j)
     {
@@ -816,25 +818,24 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
         vtiles_vec.push_back(Napi::ObjectWrap<VectorTile>::Unwrap(tile_obj)->tile_);
     }
 
-    auto * worker = new AsyncCompositeVectorTile{tile_,
-                                                 vtiles_vec,
-                                                 scale_factor,
-                                                 offset_x,
-                                                 offset_y,
-                                                 area_threshold,
-                                                 strictly_simple,
-                                                 multi_polygon_union,
-                                                 fill_type,
-                                                 scale_denominator,
-                                                 reencode,
-                                                 max_extent,
-                                                 simplify_distance,
-                                                 process_all_rings,
-                                                 image_format,
-                                                 scaling_method,
-                                                 threading_mode,
-                                                 callback.As<Napi::Function>()};
+    auto* worker = new AsyncCompositeVectorTile{tile_,
+                                                vtiles_vec,
+                                                scale_factor,
+                                                offset_x,
+                                                offset_y,
+                                                area_threshold,
+                                                strictly_simple,
+                                                multi_polygon_union,
+                                                fill_type,
+                                                scale_denominator,
+                                                reencode,
+                                                max_extent,
+                                                simplify_distance,
+                                                process_all_rings,
+                                                image_format,
+                                                scaling_method,
+                                                threading_mode,
+                                                callback.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
-
 }

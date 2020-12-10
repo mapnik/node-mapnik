@@ -8,7 +8,8 @@ class Color : public Napi::ObjectWrap<Color>
     friend class Image;
     friend class ImageView;
     friend class Map;
-public:
+
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -27,7 +28,8 @@ public:
     void alpha(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value premultiplied(Napi::CallbackInfo const& info);
     void premultiplied(Napi::CallbackInfo const& info, Napi::Value const& value);
-private:
+
+  private:
     static Napi::FunctionReference constructor;
     mapnik::color color_;
 };

@@ -8,20 +8,19 @@
 
 Napi::FunctionReference Projection::constructor;
 
-
 Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
+    // clang-format off
     Napi::Function func = DefineClass(env, "Projection", {
             InstanceMethod<&Projection::forward>("forward", prop_attr),
             InstanceMethod<&Projection::inverse>("inverse", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Projection", func);
     return exports;
 }
-
 
 /**
  * **`mapnik.Projection`**
@@ -117,7 +116,7 @@ Napi::Value Projection::forward(Napi::CallbackInfo const& info)
             {
                 double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
                 double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
-                projection_->forward(x,y);
+                projection_->forward(x, y);
                 Napi::Array arr_out = Napi::Array::New(env, 2);
                 arr_out.Set(0u, Napi::Number::New(env, x));
                 arr_out.Set(1u, Napi::Number::New(env, y));
@@ -130,15 +129,15 @@ Napi::Value Projection::forward(Napi::CallbackInfo const& info)
                 lry = lly = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
                 lrx = urx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
                 uly = ury = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
-                projection_->forward(ulx,uly);
-                projection_->forward(urx,ury);
-                projection_->forward(lrx,lry);
-                projection_->forward(llx,lly);
+                projection_->forward(ulx, uly);
+                projection_->forward(urx, ury);
+                projection_->forward(lrx, lry);
+                projection_->forward(llx, lly);
                 Napi::Array arr_out = Napi::Array::New(env, 4);
-                arr_out.Set(0u, Napi::Number::New(env, std::min(ulx,llx)));
-                arr_out.Set(1u, Napi::Number::New(env, std::min(lry,lly)));
-                arr_out.Set(2u, Napi::Number::New(env, std::max(urx,lrx)));
-                arr_out.Set(3u, Napi::Number::New(env, std::max(ury,uly)));
+                arr_out.Set(0u, Napi::Number::New(env, std::min(ulx, llx)));
+                arr_out.Set(1u, Napi::Number::New(env, std::min(lry, lly)));
+                arr_out.Set(2u, Napi::Number::New(env, std::max(urx, lrx)));
+                arr_out.Set(3u, Napi::Number::New(env, std::max(ury, uly)));
                 return scope.Escape(arr_out);
             }
             else
@@ -147,7 +146,9 @@ Napi::Value Projection::forward(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
         }
-    } catch (std::exception const & ex) {
+    }
+    catch (std::exception const& ex)
+    {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -191,7 +192,7 @@ Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
             {
                 double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
                 double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
-                projection_->inverse(x,y);
+                projection_->inverse(x, y);
                 Napi::Array arr_out = Napi::Array::New(env, 2);
                 arr_out.Set(0u, Napi::Number::New(env, x));
                 arr_out.Set(1u, Napi::Number::New(env, y));
@@ -203,8 +204,8 @@ Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
                 double miny = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
                 double maxx = arr_in.Get(2u).As<Napi::Number>().DoubleValue();
                 double maxy = arr_in.Get(3u).As<Napi::Number>().DoubleValue();
-                projection_->inverse(minx,miny);
-                projection_->inverse(maxx,maxy);
+                projection_->inverse(minx, miny);
+                projection_->inverse(maxx, maxy);
                 Napi::Array arr_out = Napi::Array::New(env, 4);
                 arr_out.Set(0u, Napi::Number::New(env, minx));
                 arr_out.Set(1u, Napi::Number::New(env, miny));
@@ -219,7 +220,8 @@ Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
         }
-    } catch (std::exception const & ex)
+    }
+    catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return env.Undefined();
@@ -230,25 +232,24 @@ Napi::FunctionReference ProjTransform::constructor;
 
 Napi::Object ProjTransform::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
+    // clang-format off
     Napi::Function func = DefineClass(env, "ProjTransform", {
             InstanceMethod<&ProjTransform::forward>("forward", prop_attr),
             InstanceMethod<&ProjTransform::backward>("backward", prop_attr)
          });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("ProjTransform", func);
     return exports;
 }
 
-
 ProjTransform::ProjTransform(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<ProjTransform>(info)
 {
     Napi::Env env = info.Env();
 
-    if (info.Length() != 2 || !info[0].IsObject()  || !info[1].IsObject())
+    if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsObject())
     {
         Napi::TypeError::New(env, "please provide two arguments: a pair of mapnik.Projection objects")
             .ThrowAsJavaScriptException();
@@ -270,8 +271,8 @@ ProjTransform::ProjTransform(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "mapnik.Projection expected for second argument").ThrowAsJavaScriptException();
         return;
     }
-    Projection *p1 = Napi::ObjectWrap<Projection>::Unwrap(src_obj);
-    Projection *p2 = Napi::ObjectWrap<Projection>::Unwrap(dst_obj);
+    Projection* p1 = Napi::ObjectWrap<Projection>::Unwrap(src_obj);
+    Projection* p2 = Napi::ObjectWrap<Projection>::Unwrap(dst_obj);
 
     try
     {
@@ -314,7 +315,7 @@ Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << x <<  "," << y << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                  << x << "," << y << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
                 Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
@@ -380,7 +381,7 @@ Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
             double x = arr_in.Get(0u).As<Napi::Number>().DoubleValue();
             double y = arr_in.Get(1u).As<Napi::Number>().DoubleValue();
             double z = 0;
-            if (!proj_transform_->backward(x,y,z))
+            if (!proj_transform_->backward(x, y, z))
             {
                 std::ostringstream s;
                 s << "Failed to back project "

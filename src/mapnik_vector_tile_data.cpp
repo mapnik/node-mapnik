@@ -31,7 +31,7 @@ struct AsyncSetData : Napi::AsyncWorker
             tile_->clear();
             merge_from_compressed_buffer(*tile_, data_, length_, validate_, upgrade_);
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
             SetError(ex.what());
         }
@@ -41,7 +41,7 @@ struct AsyncSetData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
@@ -65,7 +65,8 @@ struct AsyncGetData : Napi::AsyncWorker
           release_(release),
           level_(level),
           strategy_(strategy)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -100,7 +101,8 @@ struct AsyncGetData : Napi::AsyncWorker
                 &data[0],
                 data.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                    if (str_ptr != nullptr) {
+                    if (str_ptr != nullptr)
+                    {
                         Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                     }
                     delete str_ptr;
@@ -120,7 +122,8 @@ struct AsyncGetData : Napi::AsyncWorker
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
+                        if (str_ptr != nullptr)
+                        {
                             Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                         }
                         delete str_ptr;
@@ -137,7 +140,7 @@ struct AsyncGetData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     bool compress_;
     bool release_;
@@ -173,7 +176,7 @@ struct AsyncAddData : Napi::AsyncWorker
         {
             merge_from_compressed_buffer(*tile_, data_, length_, validate_, upgrade_);
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
             SetError(ex.what());
         }
@@ -183,7 +186,7 @@ struct AsyncAddData : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
@@ -192,8 +195,7 @@ private:
     bool upgrade_;
 };
 
-
-}
+} // namespace
 /**
  * Replace the data in this vector tile with new raw data (synchronous). This function validates
  * geometry according to the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
@@ -214,8 +216,6 @@ private:
 Napi::Value VectorTile::setDataSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
@@ -353,7 +353,7 @@ Napi::Value VectorTile::setData(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
-    auto * worker = new AsyncSetData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
+    auto* worker = new AsyncSetData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
     worker->Queue();
     return env.Undefined();
 }
@@ -393,7 +393,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
         if (!info[0].IsObject())
         {
             Napi::TypeError::New(env, "first arg must be a options object").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
 
         options = info[0].As<Napi::Object>();
@@ -404,7 +404,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'compression' must be a string, either 'gzip', or 'none' (default)").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             compress = (std::string("gzip") == param_val.As<Napi::String>().Utf8Value());
         }
@@ -414,7 +414,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::Error::New(env, "option 'release' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             release = param_val.As<Napi::Boolean>();
         }
@@ -424,13 +424,13 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsNumber())
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             level = param_val.As<Napi::Number>().Int32Value();
             if (level < 0 || level > 9)
             {
                 Napi::TypeError::New(env, "option 'level' must be an integer between 0 (no compression) and 9 (best compression) inclusive").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
         if (options.Has("strategy"))
@@ -439,9 +439,9 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
-            std::string str =  param_val.As<Napi::String>().Utf8Value();
+            std::string str = param_val.As<Napi::String>().Utf8Value();
             if (std::string("FILTERED") == str)
             {
                 strategy = Z_FILTERED;
@@ -465,7 +465,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
             else
             {
                 Napi::TypeError::New(env, "option 'strategy' must be one of the following strings: FILTERED, HUFFMAN_ONLY, RLE, FIXED, DEFAULT").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
         }
     }
@@ -490,7 +490,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                 s << "(" << raw_size << " raw bytes >= node::Buffer::kMaxLength)";
                 Napi::TypeError::New(env, s.str().c_str()).ThrowAsJavaScriptException();
 
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
                 // LCOV_EXCL_STOP
             }
             */
@@ -505,7 +505,8 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                         &data[0],
                         data.size(),
                         [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                            if (str_ptr != nullptr) {
+                            if (str_ptr != nullptr)
+                            {
                                 Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                             }
                             delete str_ptr;
@@ -535,7 +536,8 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                     &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
-                        if (str_ptr != nullptr) {
+                        if (str_ptr != nullptr)
+                        {
                             Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
                         }
                         delete str_ptr;
@@ -553,10 +555,10 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
         // in test coverage.
         // LCOV_EXCL_START
         Napi::TypeError::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
         // LCOV_EXCL_STOP
     }
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 /*
 typedef struct
@@ -597,7 +599,7 @@ typedef struct
  */
 Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 {
-    if (info.Length() == 0 || !info[info.Length()-1].IsFunction())
+    if (info.Length() == 0 || !info[info.Length() - 1].IsFunction())
     {
         return getDataSync(info);
     }
@@ -696,7 +698,7 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
         }
     }
 
-    auto * worker = new AsyncGetData(tile_, compress, release, level, strategy, callback.As<Napi::Function>());
+    auto* worker = new AsyncGetData(tile_, compress, release, level, strategy, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }
@@ -722,25 +724,23 @@ Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::EscapableHandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::TypeError::New(env, "first argument must be a buffer object").ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     Napi::Object obj = info[0].As<Napi::Object>();
     if (!obj.IsBuffer())
     {
         Napi::TypeError::New(env, "first arg must be a buffer object").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     std::size_t buffer_size = obj.As<Napi::Buffer<char>>().Length();
     if (buffer_size <= 0)
     {
         Napi::Error::New(env, "cannot accept empty buffer as protobuf").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     bool upgrade = false;
@@ -752,7 +752,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
         {
             Napi::TypeError::New(env, "second arg must be a options object").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         options = info[1].As<Napi::Object>();
         if (options.Has("validate"))
@@ -761,7 +761,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'validate' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             validate = param_val.As<Napi::Boolean>();
         }
@@ -771,7 +771,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
             if (!param_val.IsBoolean())
             {
                 Napi::TypeError::New(env, "option 'upgrade' must be a boolean").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             upgrade = param_val.As<Napi::Boolean>();
         }
@@ -784,7 +784,7 @@ Napi::Value VectorTile::addDataSync(Napi::CallbackInfo const& info)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     return env.Undefined();
 }
@@ -864,7 +864,7 @@ Napi::Value VectorTile::addData(Napi::CallbackInfo const& info)
         }
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
-    auto * worker = new AsyncAddData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
+    auto* worker = new AsyncAddData(tile_, obj.As<Napi::Buffer<char>>(), validate, upgrade, callback);
     worker->Queue();
     return env.Undefined();
 }

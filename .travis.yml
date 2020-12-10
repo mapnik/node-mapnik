@@ -103,6 +103,28 @@ matrix:
       # Overrides `before_script` to disable publishing
       before_script:
         - npm test
+
+      # Clang format build
+    - os: linux
+      # can be generic since we don't need nodejs to run formatting
+      language: generic
+      env: CLANG_FORMAT
+      # Overrides `install` to avoid initializing clang toolchain
+      install:
+        - make format
+      # Overrides `script`, no need to run tests
+      before_script:
+        - echo "skipping tests.."
+      # Clang tidy build
+    - os: linux
+      env: CLANG_TIDY
+      node_js: 12
+      # Overrides `install` to avoid initializing clang toolchain
+      install:
+        - make tidy
+      # Overrides `script`, no need to run tests
+      before_script:
+        - echo "skipping tests.."
     # Coverage build
     - os: linux
       env: BUILDTYPE=debug CXXFLAGS="--coverage" LDFLAGS="--coverage"

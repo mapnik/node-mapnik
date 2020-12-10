@@ -3,10 +3,13 @@
 #include <mapnik/image.hpp>
 #include <mapnik/image_view.hpp>
 
-namespace detail { namespace traits {
+namespace detail {
+namespace traits {
 
 template <typename T>
-struct null_image {};
+struct null_image
+{
+};
 
 template <>
 struct null_image<mapnik::image_any>
@@ -19,7 +22,7 @@ struct null_image<mapnik::image_view_any>
 {
     using type = mapnik::image_view_null;
 };
-}
+} // namespace traits
 
 template <typename Image> // image or image_view
 struct visitor_get_pixel
@@ -29,7 +32,7 @@ struct visitor_get_pixel
     visitor_get_pixel(Napi::Env env, int x, int y)
         : env_(env), x_(x), y_(y) {}
 
-    Napi::Value operator() (image_null_type const&) const
+    Napi::Value operator()(image_null_type const&) const
     {
         // This should never be reached because the width and height of 0 for a null
         // image will prevent the visitor from being called.
@@ -37,7 +40,7 @@ struct visitor_get_pixel
     }
 
     template <typename T>
-    Napi::Value operator() (T const& data) const
+    Napi::Value operator()(T const& data) const
     {
         using image_type = T;
         using pixel_type = typename image_type::pixel_type;
@@ -50,7 +53,6 @@ struct visitor_get_pixel
     Napi::Env env_;
     int x_;
     int y_;
-
 };
 
 struct visitor_set_pixel
@@ -58,19 +60,19 @@ struct visitor_set_pixel
     visitor_set_pixel(Napi::Number const& num, int x, int y)
         : num_(num), x_(x), y_(y) {}
 
-    void operator() (mapnik::image_null &) const
+    void operator()(mapnik::image_null&) const
     {
         // no-op
     }
     template <typename T>
-    void operator() (T & image) const
+    void operator()(T& image) const
     {
         mapnik::set_pixel(image, x_, y_, num_.DoubleValue());
     }
+
   private:
     Napi::Number const& num_;
     int x_;
     int y_;
-
 };
-} // ns detail
+} // namespace detail

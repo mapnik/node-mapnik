@@ -9,16 +9,16 @@ Napi::FunctionReference Palette::constructor;
 
 Napi::Object Palette::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-
-     Napi::Function func = DefineClass(env, "Palette", {
-             InstanceMethod<&Palette::toBuffer>("toBuffer", prop_attr),
-             InstanceMethod<&Palette::toString>("toString", prop_attr)
-         });
-
-     constructor = Napi::Persistent(func);
-     constructor.SuppressDestruct();
-     exports.Set("Palette", func);
-     return exports;
+    // clang-format off
+    Napi::Function func = DefineClass(env, "Palette", {
+            InstanceMethod<&Palette::toBuffer>("toBuffer", prop_attr),
+            InstanceMethod<&Palette::toString>("toString", prop_attr)
+        });
+    // clang-format on
+    constructor = Napi::Persistent(func);
+    constructor.SuppressDestruct();
+    exports.Set("Palette", func);
+    return exports;
 }
 
 Palette::Palette(Napi::CallbackInfo const& info)
@@ -55,7 +55,8 @@ Palette::Palette(Napi::CallbackInfo const& info)
         }
     }
 
-    if (palette_str.empty()) {
+    if (palette_str.empty())
+    {
         Napi::TypeError::New(env, "First parameter must be a palette string").ThrowAsJavaScriptException();
         return;
     }
@@ -84,12 +85,15 @@ Napi::Value Palette::toString(Napi::CallbackInfo const& info)
 
     std::ostringstream ss("");
     ss << "[Palette " << length;
-    if (length == 1) ss << " color";
-    else ss << " colors";
+    if (length == 1)
+        ss << " color";
+    else
+        ss << " colors";
 
     ss << std::hex << std::setfill('0');
 
-    for (std::size_t i = 0; i < length; ++i) {
+    for (std::size_t i = 0; i < length; ++i)
+    {
         ss << " #";
         ss << std::setw(2) << static_cast<std::uint32_t>(colors[i].r);
         ss << std::setw(2) << static_cast<std::uint32_t>(colors[i].g);

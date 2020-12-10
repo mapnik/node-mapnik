@@ -4,15 +4,15 @@
 #include "mapnik_palette.hpp"
 
 namespace mapnik {
-    struct image_any;
-    enum image_dtype : std::uint8_t;
-}
+struct image_any;
+enum image_dtype : std::uint8_t;
+} // namespace mapnik
 
 using image_ptr = std::shared_ptr<mapnik::image_any>;
 
 class Image : public Napi::ObjectWrap<Image>
 {
-public:
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes attr);
     // ctor
@@ -71,7 +71,8 @@ public:
     void offset(Napi::CallbackInfo const& info, Napi::Value const& value);
     inline image_ptr impl() const { return image_; }
     static Napi::FunctionReference constructor;
-private:
+
+  private:
     static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     static Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file);
     image_ptr image_;

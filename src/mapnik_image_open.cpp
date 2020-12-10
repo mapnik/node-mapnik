@@ -1,8 +1,8 @@
 // mapnik
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_reader.hpp>      // for get_image_reader, etc
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image.hpp>        // for image types
+#include <mapnik/image_any.hpp>    // for image_any
+#include <mapnik/image_reader.hpp> // for get_image_reader, etc
+#include <mapnik/image_util.hpp>   // for save_to_string, guess_type, etc
 //
 #include "mapnik_image.hpp"
 
@@ -33,13 +33,13 @@ struct AsyncOpen : Napi::AsyncWorker
                     SetError(ex.what());
                 }
             }
-            else SetError("Can't create image reader");
+            else
+                SetError("Can't create image reader");
         }
         else
         {
             SetError("Can't determine image type from filename");
         }
-
     }
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
@@ -52,12 +52,12 @@ struct AsyncOpen : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     std::string filename_;
     image_ptr image_;
 };
 
-}
+} // namespace detail
 
 /**
  * Load in a pre-existing image as an image object
@@ -77,12 +77,12 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
     if (info.Length() < 1)
     {
         Napi::Error::New(env, "must provide a string argument").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     if (!info[0].IsString())
     {
         Napi::TypeError::New(env, "Argument must be a string").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     try
     {
@@ -90,7 +90,7 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
         boost::optional<std::string> type = mapnik::type_from_filename(filename);
         if (type)
         {
-            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename,*type));
+            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename, *type));
             if (reader.get())
             {
                 image_ptr imagep = std::make_shared<mapnik::image_any>(reader->read(0, 0, reader->width(), reader->height()));
@@ -100,17 +100,17 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
                 }
                 Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
                 Napi::Object obj = constructor.New({arg});
-                return scope.Escape(napi_value(obj)).ToObject();
+                return scope.Escape(obj);
             }
         }
         Napi::TypeError::New(env, ("Unsupported image format:" + filename)).ThrowAsJavaScriptException();
 
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 }
 
@@ -143,7 +143,8 @@ Napi::Value Image::open(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    if (!info[0].IsString()) {
+    if (!info[0].IsString())
+    {
         Napi::TypeError::New(env, "Argument must be a string").ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -157,7 +158,7 @@ Napi::Value Image::open(Napi::CallbackInfo const& info)
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
     std::string filename = info[0].As<Napi::String>();
-    auto * worker = new detail::AsyncOpen(filename, callback);
+    auto* worker = new detail::AsyncOpen(filename, callback);
     worker->Queue();
     return env.Undefined();
 }

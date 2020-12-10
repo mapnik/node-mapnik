@@ -1,8 +1,8 @@
 // mapnik
 
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include <mapnik/image_copy.hpp>
 #include "mapnik_image.hpp"
 #include "mapnik_palette.hpp"
@@ -61,13 +61,16 @@ struct AsyncEncode : Napi::AsyncWorker
           image_(image),
           palette_(palette),
           format_(format)
-    {}
+    {
+    }
     void Execute() override
     {
         try
         {
-            if (palette_) result_ = std::make_unique<std::string>(save_to_string(*image_, format_, *palette_));
-            else result_ = std::make_unique<std::string>(save_to_string(*image_, format_));
+            if (palette_)
+                result_ = std::make_unique<std::string>(save_to_string(*image_, format_, *palette_));
+            else
+                result_ = std::make_unique<std::string>(save_to_string(*image_, format_));
         }
         catch (std::exception const& ex)
         {
@@ -78,29 +81,31 @@ struct AsyncEncode : Napi::AsyncWorker
     {
         if (result_)
         {
-            std::string & str = *result_;
-            auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
-                                                  [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                      if (str_ptr != nullptr) {
-                                                          Napi::MemoryManagement::AdjustExternalMemory
-                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                      }
-                                                      delete str_ptr;
-                                                  },
-                                                  result_.release());
+            std::string& str = *result_;
+            auto buffer = Napi::Buffer<char>::New(
+                env, &str[0], str.size(),
+                [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
+                    if (str_ptr != nullptr)
+                    {
+                        Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                    }
+                    delete str_ptr;
+                },
+                result_.release());
             Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
             return {env.Null(), buffer};
         }
         return Base::GetResult(env);
     }
-private:
+
+  private:
     image_ptr image_;
     palette_ptr palette_;
     std::string format_;
     std::unique_ptr<std::string> result_;
 };
 
-}
+} // namespace
 
 /**
  * Encode this image into a buffer of encoded data (synchronous)
@@ -126,20 +131,24 @@ Napi::Value Image::encodeSync(Napi::CallbackInfo const& info)
     std::string format{"png"};
     palette_ptr palette;
     encode_common_args_(info, format, palette);
-    try {
+    try
+    {
         std::unique_ptr<std::string> result;
-        if (palette) result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
-        else result = std::make_unique<std::string>(save_to_string(*image_, format));
-        std::string & str = *result;
-        auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
-                                              [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                  if (str_ptr != nullptr) {
-                                                      Napi::MemoryManagement::AdjustExternalMemory
-                                                          (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                  }
-                                                  delete str_ptr;
-                                              },
-                                              result.release());
+        if (palette)
+            result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
+        else
+            result = std::make_unique<std::string>(save_to_string(*image_, format));
+        std::string& str = *result;
+        auto buffer = Napi::Buffer<char>::New(
+            env, &str[0], str.size(),
+            [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
+                if (str_ptr != nullptr)
+                {
+                    Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                }
+                delete str_ptr;
+            },
+            result.release());
         Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
         return scope.Escape(buffer);
     }

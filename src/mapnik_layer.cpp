@@ -13,7 +13,7 @@ Napi::FunctionReference Layer::constructor;
 
 Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
+    // clang-format off
     Napi::Function func = DefineClass(env, "Layer", {
             InstanceMethod<&Layer::describe>("describe", prop_attr),
             InstanceAccessor<&Layer::name, &Layer::name>("name", prop_attr),
@@ -26,7 +26,7 @@ Napi::Object Layer::Initialize(Napi::Env env, Napi::Object exports, napi_propert
             InstanceAccessor<&Layer::queryable, &Layer::queryable>("queryable", prop_attr),
             InstanceAccessor<&Layer::clear_label_cache, &Layer::clear_label_cache>("clear_label_cache", prop_attr)
         });
-
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Layer", func);
@@ -122,7 +122,6 @@ Napi::Value Layer::styles(Napi::CallbackInfo const& info)
 void Layer::styles(Napi::CallbackInfo const& info, Napi::Value const& value)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
     if (!value.IsArray())
     {
         Napi::TypeError::New(env, "Must provide an array of style names").ThrowAsJavaScriptException();
@@ -148,7 +147,7 @@ Napi::Value Layer::datasource(Napi::CallbackInfo const& info)
     {
         Napi::Value arg = Napi::External<mapnik::datasource_ptr>::New(env, &ds);
         Napi::Object obj = Datasource::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();
+        return scope.Escape(obj);
     }
     return env.Null();
 }
@@ -170,7 +169,7 @@ void Layer::datasource(Napi::CallbackInfo const& info, Napi::Value const& value)
         }
         else
         {
-            Datasource * ds = Napi::ObjectWrap<Datasource>::Unwrap(obj);
+            Datasource* ds = Napi::ObjectWrap<Datasource>::Unwrap(obj);
             if (ds) layer_->set_datasource(ds->impl());
         }
     }
@@ -277,7 +276,6 @@ void Layer::clear_label_cache(Napi::CallbackInfo const& info, Napi::Value const&
     }
 }
 
-
 Napi::Value Layer::describe(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
@@ -293,14 +291,14 @@ Napi::Value Layer::describe(Napi::CallbackInfo const& info)
 
     std::vector<std::string> const& style_names = layer_->styles();
     std::size_t size = style_names.size();
-    Napi::Array styles = Napi::Array::New(env, size );
+    Napi::Array styles = Napi::Array::New(env, size);
     for (std::size_t index = 0; index < size; ++index)
     {
         styles.Set(index, style_names[index]);
     }
     description.Set("styles", styles);
     Napi::Object ds = Napi::Object::New(env);
-    description.Set(Napi::String::New(env, "datasource"), ds );
+    description.Set(Napi::String::New(env, "datasource"), ds);
 
     mapnik::datasource_ptr datasource = layer_->datasource();
     if (datasource)

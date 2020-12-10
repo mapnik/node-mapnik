@@ -4,6 +4,7 @@ Napi::FunctionReference Color::constructor;
 
 Napi::Object Color::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Color", {
             InstanceMethod<&Color::hex>("hex", prop_attr),
             InstanceMethod<&Color::toString>("toString", prop_attr),
@@ -13,6 +14,7 @@ Napi::Object Color::Initialize(Napi::Env env, Napi::Object exports, napi_propert
             InstanceAccessor<&Color::alpha, &Color::alpha>("a", prop_attr),
             InstanceAccessor<&Color::premultiplied, &Color::premultiplied>("premultiplied", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Color", func);
@@ -76,14 +78,14 @@ Color::Color(Napi::CallbackInfo const& info)
     else if (info.Length() == 3 && info[0].IsNumber() && info[1].IsNumber() &&
              info[2].IsNumber())
     {
-         int r = info[0].As<Napi::Number>().Int32Value();
-         int g = info[1].As<Napi::Number>().Int32Value();
-         int b = info[2].As<Napi::Number>().Int32Value();
-         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-         {
-             Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
-         }
-         color_ = mapnik::color(r, g, b);
+        int r = info[0].As<Napi::Number>().Int32Value();
+        int g = info[1].As<Napi::Number>().Int32Value();
+        int b = info[2].As<Napi::Number>().Int32Value();
+        if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+        {
+            Napi::TypeError::New(env, "color value out of range").ThrowAsJavaScriptException();
+        }
+        color_ = mapnik::color(r, g, b);
     }
     else if (info.Length() == 4 && info[0].IsNumber() &&
              info[1].IsNumber() && info[2].IsNumber() &&
@@ -219,7 +221,6 @@ void Color::alpha(Napi::CallbackInfo const& info, Napi::Value const& val)
     color_.set_alpha(a);
 }
 
-
 /**
  * Get whether this color is premultiplied
  *
@@ -234,7 +235,6 @@ Napi::Value Color::premultiplied(Napi::CallbackInfo const& info)
     Napi::Env env = info.Env();
     return Napi::Boolean::New(env, color_.get_premultiplied());
 }
-
 
 /**
  * Set whether this color should be premultiplied

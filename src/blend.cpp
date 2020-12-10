@@ -32,7 +32,7 @@
 
 namespace node_mapnik {
 
-static bool hexToUInt32Color(char const* hex, std::uint32_t & value)
+static bool hexToUInt32Color(char const* hex, std::uint32_t& value)
 {
     if (!hex) return false;
     std::size_t len_original = strlen(hex);
@@ -49,11 +49,14 @@ static bool hexToUInt32Color(char const* hex, std::uint32_t & value)
     ss << std::hex << hex;
     ss >> color;
 
-    if (len == 8) {
+    if (len == 8)
+    {
         // Circular shift to get from RGBA to ARGB.
         value = (color << 24) | ((color & 0xFF00) << 8) | ((color & 0xFF0000) >> 8) | ((color & 0xFF000000) >> 24);
         return true;
-    } else {
+    }
+    else
+    {
         value = 0xFF000000 | ((color & 0xFF) << 16) | (color & 0xFF00) | ((color & 0xFF0000) >> 16);
         return true;
     }
@@ -78,8 +81,8 @@ Napi::Value rgb2hsl(Napi::CallbackInfo const& info)
     std::uint32_t g = info[1].As<Napi::Number>().Int32Value();
     std::uint32_t b = info[2].As<Napi::Number>().Int32Value();
     Napi::Array hsl = Napi::Array::New(env, 3);
-    double h,s,l;
-    rgb_to_hsl(r,g,b,h,s,l);
+    double h, s, l;
+    rgb_to_hsl(r, g, b, h, s, l);
     hsl.Set(0u, Napi::Number::New(env, h));
     hsl.Set(1u, Napi::Number::New(env, s));
     hsl.Set(2u, Napi::Number::New(env, l));
@@ -105,20 +108,17 @@ Napi::Value hsl2rgb(Napi::CallbackInfo const& info)
     double s = info[1].As<Napi::Number>().DoubleValue();
     double l = info[2].As<Napi::Number>().DoubleValue();
     Napi::Array rgb = Napi::Array::New(env, 3);
-    std::uint32_t r,g,b;
-    hsl_to_rgb(h,s,l,r,g,b);
+    std::uint32_t r, g, b;
+    hsl_to_rgb(h, s, l, r, g, b);
     rgb.Set(0u, Napi::Number::New(env, r));
     rgb.Set(1u, Napi::Number::New(env, g));
     rgb.Set(2u, Napi::Number::New(env, b));
     return scope.Escape(rgb);
 }
 
-
-static bool parseTintOps(Napi::CallbackInfo const& info, Napi::Object const& tint, Tinter & tinter)
+static bool parseTintOps(Napi::CallbackInfo const& info, Napi::Object const& tint, Tinter& tinter)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     Napi::Value hue = tint.Get("h");
     if (hue.IsArray())
     {
@@ -171,7 +171,7 @@ static bool parseTintOps(Napi::CallbackInfo const& info, Napi::Object const& tin
     return true;
 }
 
-static inline void Blend_CompositePixel(std::uint32_t & target, std::uint32_t const& source)
+static inline void Blend_CompositePixel(std::uint32_t& target, std::uint32_t const& source)
 {
     if (source <= 0x00FFFFFF)
     {
@@ -206,15 +206,15 @@ static inline void Blend_CompositePixel(std::uint32_t & target, std::uint32_t co
     }
 }
 
-static inline void TintPixel(std::uint32_t & r,
-                             std::uint32_t & g,
-                             std::uint32_t & b,
+static inline void TintPixel(std::uint32_t& r,
+                             std::uint32_t& g,
+                             std::uint32_t& b,
                              Tinter const& tint)
 {
     double h;
     double s;
     double l;
-    rgb_to_hsl(r,g,b,h,s,l);
+    rgb_to_hsl(r, g, b, h, s, l);
     double h2 = tint.h0 + (h * (tint.h1 - tint.h0));
     double s2 = tint.s0 + (s * (tint.s1 - tint.s0));
     double l2 = tint.l0 + (l * (tint.l1 - tint.l0));
@@ -224,12 +224,12 @@ static inline void TintPixel(std::uint32_t & r,
     if (s2 < 0) s2 = 0;
     if (l2 > 1) l2 = 1;
     if (l2 < 0) l2 = 0;
-    hsl_to_rgb(h2,s2,l2,r,g,b);
+    hsl_to_rgb(h2, s2, l2, r, g, b);
 }
 
-static void Blend_Composite(int width_, int height_,  std::uint32_t *target, BImage *image)
+static void Blend_Composite(int width_, int height_, std::uint32_t* target, BImage* image)
 {
-    const std::uint32_t *source = image->im_raw_ptr->data();
+    const std::uint32_t* source = image->im_raw_ptr->data();
 
     int sourceX = std::max(0, -image->x);
     int sourceY = std::max(0, -image->y);
@@ -253,17 +253,17 @@ static void Blend_Composite(int width_, int height_,  std::uint32_t *target, BIm
                 std::uint32_t a = (source_pixel >> 24) & 0xff;
                 if (set_alpha)
                 {
-                    double a2 = image->tint.a0 + (a/255.0 * (image->tint.a1 - image->tint.a0));
+                    double a2 = image->tint.a0 + (a / 255.0 * (image->tint.a1 - image->tint.a0));
                     if (a2 < 0) a2 = 0;
-                    a = static_cast<std::uint32_t>(std::floor((a2 * 255.0)+.5));
+                    a = static_cast<std::uint32_t>(std::floor((a2 * 255.0) + .5));
                     if (a > 255) a = 255;
                 }
                 std::uint32_t r = source_pixel & 0xff;
-                std::uint32_t g = (source_pixel >> 8 ) & 0xff;
+                std::uint32_t g = (source_pixel >> 8) & 0xff;
                 std::uint32_t b = (source_pixel >> 16) & 0xff;
                 if (a > 1 && tinting)
                 {
-                    TintPixel(r,g,b,image->tint);
+                    TintPixel(r, g, b, image->tint);
                 }
                 std::uint32_t new_pixel = (a << 24) | (b << 16) | (g << 8) | (r);
                 Blend_CompositePixel(target[targetPos + x], new_pixel);
@@ -271,7 +271,9 @@ static void Blend_Composite(int width_, int height_,  std::uint32_t *target, BIm
             sourcePos += image->width;
             targetPos += width_;
         }
-    } else {
+    }
+    else
+    {
         for (int y = 0; y < height; ++y)
         {
             for (int x = 0; x < width; ++x)
@@ -294,18 +296,19 @@ struct AsyncBlend : Napi::AsyncWorker
                palette_ptr const& palette, unsigned matte, int compression,
                AlphaMode mode, BlendFormat format, bool reencode,
                Napi::Function const& callback)
-        :Base(callback),
-         images_(images),
-         quality_(quality),
-         width_(width),
-         height_(height),
-         palette_(palette),
-         matte_(matte),
-         compression_(compression),
-         mode_(mode),
-         format_(format),
-         reencode_(reencode)
-    {}
+        : Base(callback),
+          images_(images),
+          quality_(quality),
+          width_(width),
+          height_(height),
+          palette_(palette),
+          matte_(matte),
+          compression_(compression),
+          mode_(mode),
+          format_(format),
+          reencode_(reencode)
+    {
+    }
 
     void Execute() override
     {
@@ -405,12 +408,12 @@ struct AsyncBlend : Napi::AsyncWorker
                     image->x == 0 && image->y == 0 &&
                     static_cast<int>(layer_width) == width_ && static_cast<int>(layer_height) == height_)
                 {
-                    output_buffer_ = std::make_unique<std::string>((char *)image->data, image->dataLength);
+                    output_buffer_ = std::make_unique<std::string>((char*)image->data, image->dataLength);
                     return;
                 }
 
                 // allocate image for decoded pixels
-                auto im_ptr = std::make_unique<mapnik::image_rgba8>(layer_width,layer_height);
+                auto im_ptr = std::make_unique<mapnik::image_rgba8>(layer_width, layer_height);
                 // actually decode pixels now
                 try
                 {
@@ -459,7 +462,7 @@ struct AsyncBlend : Napi::AsyncWorker
         {
             if (image_ptr && image_ptr->im_raw_ptr)
             {
-                Blend_Composite(width_, height_,  target.data(), &*image_ptr);
+                Blend_Composite(width_, height_, target.data(), &*image_ptr);
             }
         }
         Blend_Encode(this, target, alpha);
@@ -469,16 +472,17 @@ struct AsyncBlend : Napi::AsyncWorker
     {
         if (output_buffer_)
         {
-            std::string & str = *output_buffer_;
-            auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
-                                                  [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                      if (str_ptr != nullptr) {
-                                                          Napi::MemoryManagement::AdjustExternalMemory
-                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                      }
-                                                      delete str_ptr;
-                                                  },
-                                                  output_buffer_.release());
+            std::string& str = *output_buffer_;
+            auto buffer = Napi::Buffer<char>::New(
+                env, &str[0], str.size(),
+                [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
+                    if (str_ptr != nullptr)
+                    {
+                        Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                    }
+                    delete str_ptr;
+                },
+                output_buffer_.release());
             Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
             return {env.Null(), buffer};
         }
@@ -502,10 +506,10 @@ struct AsyncBlend : Napi::AsyncWorker
     std::unique_ptr<std::string> output_buffer_;
 };
 
-
 static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, bool alpha)
 {
-    try {
+    try
+    {
         std::ostringstream stream(std::ios::out | std::ios::binary);
         if (worker->format_ == BLEND_FORMAT_JPEG)
         {
@@ -607,8 +611,6 @@ static void Blend_Encode(AsyncBlend* worker, mapnik::image_rgba8 const& image, b
 Napi::Value blend(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     Images images;
     int quality = 0;
     int width = 0;
@@ -681,7 +683,8 @@ Napi::Value blend(Napi::CallbackInfo const& info)
             if (format_val_string == "jpeg" || format_val_string == "jpg")
             {
                 format = BLEND_FORMAT_JPEG;
-                if (quality == 0) quality = 85; // 85 is same default as mapnik core jpeg
+                if (quality == 0)
+                    quality = 85; // 85 is same default as mapnik core jpeg
                 else if (quality < 0 || quality > 100)
                 {
                     Napi::TypeError::New(env, "JPEG quality is range 0-100.").ThrowAsJavaScriptException();
@@ -699,7 +702,8 @@ Napi::Value blend(Napi::CallbackInfo const& info)
             else if (format_val_string == "webp")
             {
                 format = BLEND_FORMAT_WEBP;
-                if (quality == 0) quality = 80;
+                if (quality == 0)
+                    quality = 80;
                 else if (quality < 0 || quality > 100)
                 {
                     Napi::TypeError::New(env, "WebP quality is range 0-100.").ThrowAsJavaScriptException();
@@ -848,7 +852,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
             Napi::Object obj = buffer.As<Napi::Object>();
             if (obj.InstanceOf(Image::constructor.Value()))
             {
-                Image * im = Napi::ObjectWrap<Image>::Unwrap(obj);
+                Image* im = Napi::ObjectWrap<Image>::Unwrap(obj);
 
                 if (im->impl()->get_dtype() == mapnik::image_dtype_rgba8)
                 {
@@ -874,7 +878,7 @@ Napi::Value blend(Napi::CallbackInfo const& info)
                         Napi::Object possible_im = buffer.As<Napi::Object>();
                         if (possible_im.InstanceOf(Image::constructor.Value()))
                         {
-                            Image * im =  Napi::ObjectWrap<Image>::Unwrap(possible_im);
+                            Image* im = Napi::ObjectWrap<Image>::Unwrap(possible_im);
                             if (im->impl()->get_dtype() == mapnik::image_dtype_rgba8)
                             {
                                 image->im_obj = im->impl();

@@ -16,7 +16,8 @@ typedef std::shared_ptr<mapnik::grid_view> grid_view_ptr;
 class GridView : public Napi::ObjectWrap<GridView>
 {
     friend class Grid;
-public:
+
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -31,7 +32,8 @@ public:
     Napi::Value isSolidSync(Napi::CallbackInfo const& info);
     Napi::Value getPixel(Napi::CallbackInfo const& info);
     inline grid_view_ptr impl() const { return grid_view_; }
-private:
+
+  private:
     static Napi::FunctionReference constructor;
     grid_view_ptr grid_view_;
     grid_ptr grid_;

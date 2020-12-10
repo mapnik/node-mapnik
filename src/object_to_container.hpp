@@ -5,13 +5,13 @@
 #include <mapnik/unicode.hpp>
 #include <mapnik/value/types.hpp>
 
-static inline void object_to_container(mapnik::attributes & cont, Napi::Object const& vars)
+static inline void object_to_container(mapnik::attributes& cont, Napi::Object const& vars)
 {
     Napi::Array names = vars.GetPropertyNames();
     std::size_t length = names.Length();
     mapnik::transcoder tr("utf8");
     cont.reserve(length);
-    for(std::size_t i = 0; i < length; ++i)
+    for (std::size_t i = 0; i < length; ++i)
     {
         std::string name = names.Get(i).ToString();
         Napi::Value value = vars.Get(name);

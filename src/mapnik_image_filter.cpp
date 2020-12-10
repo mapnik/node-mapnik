@@ -1,10 +1,9 @@
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include <mapnik/image_filter_types.hpp>
-#include <mapnik/image_filter.hpp>      // filter_visitor
+#include <mapnik/image_filter.hpp> // filter_visitor
 
 #include "mapnik_image.hpp"
-
 
 namespace detail {
 
@@ -17,17 +16,19 @@ struct AsyncFilter : Napi::AsyncWorker
         : Base(callback),
           image_(image),
           filter_(filter)
-    {}
+    {
+    }
 
     void Execute() override
     {
         try
         {
-            mapnik::filter::filter_image(*image_, filter_);
+            mapnik::filter::filter_image(*image_, filter_); // NOLINT
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
-            SetError(ex.what());;
+            SetError(ex.what());
+            ;
         }
     }
 
@@ -44,9 +45,7 @@ struct AsyncFilter : Napi::AsyncWorker
     image_ptr image_;
     std::string filter_;
 };
-} // ns
-
-
+} // namespace detail
 
 /**
  * Apply a filter to this image. This changes all pixel values. (synchronous)
@@ -79,16 +78,14 @@ Napi::Value Image::filterSync(Napi::CallbackInfo const& info)
     std::string filter = info[0].As<Napi::String>();
     try
     {
-        mapnik::filter::filter_image(*image_,filter);
+        mapnik::filter::filter_image(*image_, filter);
     }
-    catch(std::exception const& ex)
+    catch (std::exception const& ex)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
-
     }
     return env.Undefined();
 }
-
 
 /**
  * Apply a filter to this image. Changes all pixel values.
@@ -115,7 +112,7 @@ Napi::Value Image::filter(Napi::CallbackInfo const& info)
         return filterSync(info);
     }
     Napi::Env env = info.Env();
-    if (!info[info.Length()-1].IsFunction())
+    if (!info[info.Length() - 1].IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();

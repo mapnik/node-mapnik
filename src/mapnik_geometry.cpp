@@ -10,12 +10,12 @@
 
 namespace {
 
-bool to_geojson_projected(std::string & json,
+bool to_geojson_projected(std::string& json,
                           mapnik::geometry::geometry<double> const& geom,
                           mapnik::proj_transform const& prj_trans)
 {
     unsigned int n_err = 0;
-    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom, prj_trans, n_err);
     if (n_err > 0) return false;
     return mapnik::util::to_geojson(json, projected_geom);
 }
@@ -23,66 +23,66 @@ bool to_geojson_projected(std::string & json,
 struct AsyncToJSON : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
-    AsyncToJSON(Geometry* geom, ProjTransform * tr, Napi::Function const& callback)
-        :Base(callback),
-         geom_(geom),
-         tr_(tr)
-    {}
+    AsyncToJSON(Geometry* geom, ProjTransform* tr, Napi::Function const& callback)
+        : Base(callback),
+          geom_(geom),
+          tr_(tr)
+    {
+    }
 
     void Execute() override
     {
-         try
-         {
-             if (tr_)
-             {
-                 mapnik::proj_transform const& prj_trans = *tr_->impl();
-                 mapnik::geometry::geometry<double> const& geom = geom_->geometry();
-                 if (!to_geojson_projected(json_, geom, prj_trans))
-                 {
-                     // Fairly certain this situation can never be reached but
-                     // leaving it none the less
-                     // LCOV_EXCL_START
-                     SetError("Failed to generate GeoJSON");
-                     // LCOV_EXCL_STOP
-                 }
-             }
-             else
-             {
-                 if (!mapnik::util::to_geojson(json_, geom_->geometry()))
-                 {
-                     // Fairly certain this situation can never be reached but
-                     // leaving it none the less
-                     /* LCOV_EXCL_START */
-                     SetError("Failed to generate GeoJSON");
-                     /* LCOV_EXCL_STOP */
-                 }
-             }
-         }
-         catch (std::exception const& ex)
-         {
-             SetError(ex.what());
-         }
+        try
+        {
+            if (tr_)
+            {
+                mapnik::proj_transform const& prj_trans = *tr_->impl();
+                mapnik::geometry::geometry<double> const& geom = geom_->geometry();
+                if (!to_geojson_projected(json_, geom, prj_trans))
+                {
+                    // Fairly certain this situation can never be reached but
+                    // leaving it none the less
+                    // LCOV_EXCL_START
+                    SetError("Failed to generate GeoJSON");
+                    // LCOV_EXCL_STOP
+                }
+            }
+            else
+            {
+                if (!mapnik::util::to_geojson(json_, geom_->geometry()))
+                {
+                    // Fairly certain this situation can never be reached but
+                    // leaving it none the less
+                    /* LCOV_EXCL_START */
+                    SetError("Failed to generate GeoJSON");
+                    /* LCOV_EXCL_STOP */
+                }
+            }
+        }
+        catch (std::exception const& ex)
+        {
+            SetError(ex.what());
+        }
     }
 
     std::vector<napi_value> GetResult(Napi::Env env) override
     {
         return {env.Null(), Napi::String::New(env, json_)};
     }
-private:
-    Geometry * geom_;
-    ProjTransform * tr_;
+
+  private:
+    Geometry* geom_;
+    ProjTransform* tr_;
     std::string json_;
 };
 
-
-}
+} // namespace
 
 Napi::FunctionReference Geometry::constructor;
 
-
 Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
+    // clang-format off
     Napi::Function func = DefineClass(env, "Geometry", {
             InstanceMethod<&Geometry::extent>("extent", prop_attr),
             InstanceMethod<&Geometry::type>("type", prop_attr),
@@ -99,7 +99,7 @@ Napi::Object Geometry::Initialize(Napi::Env env, Napi::Object exports, napi_prop
             StaticValue("MultiPolygon", Napi::Number::New(env, mapnik::geometry::geometry_types::MultiPolygon), napi_enumerable),
             StaticValue("GeometryCollection", Napi::Number::New(env, mapnik::geometry::geometry_types::GeometryCollection), napi_enumerable)
         });
-
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Geometry", func);
@@ -127,7 +127,7 @@ Geometry::Geometry(Napi::CallbackInfo const& info)
     if (info.Length() == 1 && info[0].IsExternal())
     {
         auto ext = info[0].As<Napi::External<mapnik::feature_ptr>>();
-        if (ext) feature_  = *ext.Data();
+        if (ext) feature_ = *ext.Data();
     }
     else
     {
@@ -150,7 +150,6 @@ Napi::Value Geometry::type(Napi::CallbackInfo const& info)
     auto const& geom = this->geometry();
     return Napi::Number::New(env, mapnik::geometry::geometry_type(geom));
 }
-
 
 /**
  * Convert this geometry into a [GeoJSON](http://geojson.org/) representation,
@@ -232,13 +231,13 @@ Napi::Value Geometry::toJSONSync(Napi::CallbackInfo const& info)
 
 Napi::Value Geometry::toJSON(Napi::CallbackInfo const& info)
 {
-    if ((info.Length() < 1) || !info[info.Length()-1].IsFunction())
+    if ((info.Length() < 1) || !info[info.Length() - 1].IsFunction())
     {
         return toJSONSync(info);
     }
 
     Napi::Env env = info.Env();
-    ProjTransform * transform = nullptr;
+    ProjTransform* transform = nullptr;
     if (info.Length() > 1)
     {
         if (!info[0].IsObject())
@@ -265,8 +264,8 @@ Napi::Value Geometry::toJSON(Napi::CallbackInfo const& info)
             transform = Napi::ObjectWrap<ProjTransform>::Unwrap(obj);
         }
     }
-    Napi::Value callback_val = info[info.Length()-1];
-    auto * worker = new AsyncToJSON(this, transform, callback_val.As<Napi::Function>());
+    Napi::Value callback_val = info[info.Length() - 1];
+    auto* worker = new AsyncToJSON(this, transform, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

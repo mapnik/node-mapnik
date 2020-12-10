@@ -11,7 +11,6 @@
 // std
 #include <exception>
 
-
 namespace detail {
 
 // AsyncWorker
@@ -22,7 +21,8 @@ struct AsyncGridClear : Napi::AsyncWorker
     AsyncGridClear(grid_ptr const& grid, Napi::Function const& callback)
         : Base(callback),
           grid_(grid)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -51,7 +51,8 @@ struct AsyncGridEncode : Napi::AsyncWorker
           grid_(grid),
           resolution_(resolution),
           add_features_(add_features)
-    {}
+    {
+    }
     void Execute() override
     {
         try
@@ -60,7 +61,6 @@ struct AsyncGridEncode : Napi::AsyncWorker
                                                 lines_,
                                                 key_order_,
                                                 resolution_);
-
         }
         catch (std::exception const& ex)
         {
@@ -91,17 +91,18 @@ struct AsyncGridEncode : Napi::AsyncWorker
         // Create the return hash.
         Napi::Object json = Napi::Object::New(env);
         Napi::Array grid_array = Napi::Array::New(env, lines_.size());
-        for (std::size_t j = 0;j < lines_.size(); ++j)
+        for (std::size_t j = 0; j < lines_.size(); ++j)
         {
-            node_mapnik::grid_line_type const & line = lines_[j];
+            node_mapnik::grid_line_type const& line = lines_[j];
             grid_array.Set(j, Napi::String::New(env, (char*)line.get()));
         }
         json.Set("grid", grid_array);
         json.Set("keys", keys_a);
         json.Set("data", feature_data);
-        return { env.Null(), json };
+        return {env.Null(), json};
     }
-private:
+
+  private:
     grid_ptr grid_;
     std::vector<node_mapnik::grid_line_type> lines_;
     unsigned int resolution_;
@@ -109,14 +110,13 @@ private:
     std::vector<mapnik::grid::lookup_type> key_order_;
 };
 
-} // ns
+} // namespace detail
 
 Napi::FunctionReference Grid::constructor;
 
 Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
+    // clang-format off
     Napi::Function func = DefineClass(env, "Grid", {
             InstanceAccessor<&Grid::key, &Grid::key>("key", prop_attr),
             InstanceMethod<&Grid::encodeSync>("encodeSync", prop_attr),
@@ -131,12 +131,12 @@ Napi::Object Grid::Initialize(Napi::Env env, Napi::Object exports, napi_property
             InstanceMethod<&Grid::height>("height", prop_attr),
             StaticValue("base_mask", Napi::Number::New(env, mapnik::grid::base_mask))
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Grid", func);
     return exports;
 }
-
 
 /**
  * **`mapnik.Grid`**
@@ -220,14 +220,13 @@ Napi::Value Grid::clear(Napi::CallbackInfo const& info)
     Napi::Env env = info.Env();
     // ensure callback is a function
 
-
-    Napi::Value callback_val = info[info.Length()-1];
+    Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new detail::AsyncGridClear{grid_, callback_val.As<Napi::Function>()};
+    auto* worker = new detail::AsyncGridClear{grid_, callback_val.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }
@@ -276,7 +275,6 @@ void Grid::key(Napi::CallbackInfo const& info, const Napi::Value& value)
     }
     grid_->set_key(value.As<Napi::String>());
 }
-
 
 /**
  * Add a field to this grid's output
@@ -342,7 +340,7 @@ Napi::Value Grid::view(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    if ( (info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber() ))
+    if ((info.Length() != 4) || (!info[0].IsNumber() && !info[1].IsNumber() && !info[2].IsNumber() && !info[3].IsNumber()))
     {
         Napi::TypeError::New(env, "requires 4 integer arguments: x, y, width, height").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -353,8 +351,8 @@ Napi::Value Grid::view(Napi::CallbackInfo const& info)
     Napi::Number w = info[2].As<Napi::Number>();
     Napi::Number h = info[3].As<Napi::Number>();
     Napi::Value grid_obj = Napi::External<grid_ptr>::New(env, &grid_);
-    Napi::Object obj = GridView::constructor.New({grid_obj, x, y, w, h });
-    return scope.Escape(napi_value(obj)).ToObject();
+    Napi::Object obj = GridView::constructor.New({grid_obj, x, y, w, h});
+    return scope.Escape(obj);
 }
 
 /**
@@ -416,7 +414,8 @@ Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
         }
     }
 
-    try {
+    try
+    {
 
         std::vector<node_mapnik::grid_line_type> lines;
         std::vector<mapnik::grid::lookup_type> key_order;
@@ -445,7 +444,7 @@ Napi::Value Grid::encodeSync(Napi::CallbackInfo const& info)
         Napi::Array grid_array = Napi::Array::New(env, lines.size());
         for (std::size_t j = 0; j < lines.size(); ++j)
         {
-            node_mapnik::grid_line_type const & line = lines[j];
+            node_mapnik::grid_line_type const& line = lines[j];
             grid_array.Set(j, Napi::String::New(env, (char*)line.get()));
         }
         json.Set("grid", grid_array);
@@ -520,7 +519,7 @@ Napi::Value Grid::encode(Napi::CallbackInfo const& info)
     }
     Napi::Function callback = info[info.Length() - 1].As<Napi::Function>();
 
-    auto * worker = new detail::AsyncGridEncode{grid_, resolution, add_features, callback};
+    auto* worker = new detail::AsyncGridEncode{grid_, resolution, add_features, callback};
     worker->Queue();
     return env.Undefined();
 }

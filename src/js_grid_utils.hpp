@@ -2,18 +2,17 @@
 
 // mapnik
 #include <mapnik/version.hpp>
-#include <mapnik/feature.hpp>           // for feature_impl, etc
-#include <mapnik/grid/grid.hpp>         // for grid
+#include <mapnik/feature.hpp>   // for feature_impl, etc
+#include <mapnik/grid/grid.hpp> // for grid
 
 #include "utils.hpp"
 #include "utf8.hpp"
 
 // stl
-#include <cmath> // ceil
-#include <stdint.h>  // for uint16_t
+#include <cmath>    // ceil
+#include <stdint.h> // for uint16_t
 
 #include <memory>
-
 
 namespace node_mapnik {
 
@@ -21,7 +20,7 @@ typedef std::unique_ptr<char[]> grid_line_type;
 
 template <typename T>
 static void grid2utf(T const& grid_type,
-                     std::vector<grid_line_type> & lines,
+                     std::vector<grid_line_type>& lines,
                      std::vector<typename T::lookup_type>& key_order,
                      unsigned int resolution)
 {
@@ -35,14 +34,14 @@ static void grid2utf(T const& grid_type,
     // start counting at utf8 codepoint 32, aka space character
     node_mapnik::utf8_int32_t codepoint = 32;
 
-    unsigned array_size = std::ceil(grid_type.width()/static_cast<float>(resolution));
-    for (unsigned y = 0; y < grid_type.height(); y=y+resolution)
+    unsigned array_size = std::ceil(grid_type.width() / static_cast<float>(resolution));
+    for (unsigned y = 0; y < grid_type.height(); y = y + resolution)
     {
         grid_line_type line(new char[array_size * 4 + 1]()); // utf8 has up to 4 bytes per character
-        void* p = (char *)line.get();
+        void* p = (char*)line.get();
 
         typename T::value_type const* row = grid_type.get_row(y);
-        for (unsigned x = 0; x < grid_type.width(); x=x+resolution)
+        for (unsigned x = 0; x < grid_type.width(); x = x + resolution)
         {
             // todo - this lookup is expensive
             typename T::value_type feature_id = row[x];
@@ -55,8 +54,10 @@ static void grid2utf(T const& grid_type,
                 {
                     // Create a new entry for this key. Skip the codepoints that
                     // can't be encoded directly in JSON.
-                    if (codepoint == 34) ++codepoint;      // Skip "
-                    else if (codepoint == 92) ++codepoint; // Skip backslash
+                    if (codepoint == 34)
+                        ++codepoint; // Skip "
+                    else if (codepoint == 92)
+                        ++codepoint; // Skip backslash
                     if (feature_id == mapnik::grid::base_mask)
                     {
                         keys[""] = codepoint;
@@ -84,13 +85,11 @@ static void grid2utf(T const& grid_type,
     }
 }
 
-
 template <typename T>
 static void write_features(Napi::Env env, T const& grid_type,
                            Napi::Object& feature_data,
                            std::vector<typename T::lookup_type> const& key_order)
 {
-    Napi::HandleScope scope(env);
     typename T::feature_type const& g_features = grid_type.get_grid_features();
     if (g_features.size() <= 0)
     {
@@ -137,4 +136,4 @@ static void write_features(Napi::Env env, T const& grid_type,
     }
 }
 
-} // ns node_mapnik
+} // namespace node_mapnik

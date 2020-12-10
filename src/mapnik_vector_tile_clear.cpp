@@ -1,6 +1,5 @@
 #include "mapnik_vector_tile.hpp"
 
-
 namespace {
 
 struct AsyncClear : Napi::AsyncWorker
@@ -15,7 +14,7 @@ struct AsyncClear : Napi::AsyncWorker
         {
             tile_->clear();
         }
-        catch(std::exception const& ex)
+        catch (std::exception const& ex)
         {
             // No reason this should ever throw an exception, not currently testable.
             // LCOV_EXCL_START
@@ -23,11 +22,11 @@ struct AsyncClear : Napi::AsyncWorker
             // LCOV_EXCL_STOP
         }
     }
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
 };
 } // namespace
-
 
 /**
  * Remove all data from this vector tile (synchronously)
@@ -44,7 +43,6 @@ Napi::Value VectorTile::clearSync(Napi::CallbackInfo const& info)
     tile_->clear();
     return env.Undefined();
 }
-
 
 /**
  * Remove all data from this vector tile
@@ -75,7 +73,7 @@ Napi::Value VectorTile::clear(Napi::CallbackInfo const& info)
         Napi::TypeError::New(env, "last argument must be a callback function").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    auto * worker = new AsyncClear(tile_, callback.As<Napi::Function>());
+    auto* worker = new AsyncClear(tile_, callback.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }

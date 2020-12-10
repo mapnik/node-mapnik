@@ -48,13 +48,13 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     if (info.Length() < 1 || !info[0].IsObject())
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     if (info.Length() < 2 || !info[1].IsString())
     {
         Napi::Error::New(env, "second argument must be a layer name (string)").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     std::string layer_name = info[1].As<Napi::String>();
@@ -62,14 +62,14 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     if (!obj.InstanceOf(Image::constructor.Value()))
     {
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
-    Image * im = Napi::ObjectWrap<Image>::Unwrap(obj);
+    Image* im = Napi::ObjectWrap<Image>::Unwrap(obj);
     if (im->impl()->width() <= 0 || im->impl()->height() <= 0)
     {
         Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     std::string image_format = "webp";
@@ -81,7 +81,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
         if (!info[2].IsObject())
         {
             Napi::Error::New(env, "optional third argument must be an options object").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
 
         Napi::Object options = info[2].As<Napi::Object>();
@@ -91,7 +91,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             std::string image_scaling = param_val.As<Napi::String>();
             boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
@@ -99,7 +99,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")
                     .ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             scaling_method = *method;
         }
@@ -110,7 +110,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
             if (!param_val.IsString())
             {
                 Napi::TypeError::New(env, "option 'image_format' must be a string").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             image_format = param_val.As<Napi::String>();
         }
@@ -119,7 +119,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
     mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(tile_->extent(), im_copy, 1.0);
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx, 1));
     feature->set_raster(ras);
     ds->push(feature);
     ds->envelope(); // can be removed later, currently doesn't work with out this.
@@ -145,7 +145,6 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     return env.Undefined();
 }
 
-
 namespace {
 
 struct AsyncAddImage : Napi::AsyncWorker
@@ -162,7 +161,8 @@ struct AsyncAddImage : Napi::AsyncWorker
           layer_name_(layer_name),
           image_format_(image_format),
           scaling_method_(scaling_method)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -172,7 +172,7 @@ struct AsyncAddImage : Napi::AsyncWorker
             std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(mapnik::parameters());
             mapnik::raster_ptr ras = std::make_shared<mapnik::raster>(tile_->extent(), im_copy, 1.0);
             mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-            mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx, 1));
             feature->set_raster(ras);
             ds->push(feature);
             ds->envelope(); // can be removed later, currently doesn't work with out this.
@@ -193,14 +193,15 @@ struct AsyncAddImage : Napi::AsyncWorker
             SetError(ex.what());
         }
     }
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     image_ptr image_;
     std::string layer_name_;
     std::string image_format_;
     mapnik::scaling_method_e scaling_method_;
 };
-}
+} // namespace
 /**
  * Add a <mapnik.Image> as a tile layer (asynchronous)
  *
@@ -258,7 +259,7 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
         Napi::Error::New(env, "first argument must be an Image object").ThrowAsJavaScriptException();
         return env.Undefined();
     }
-    Image * im = Napi::ObjectWrap<Image>::Unwrap(obj);
+    Image* im = Napi::ObjectWrap<Image>::Unwrap(obj);
     if (im->impl()->width() <= 0 || im->impl()->height() <= 0)
     {
         Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
@@ -308,11 +309,10 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
             image_format = param_val.As<Napi::String>();
         }
     }
-     auto * worker = new AsyncAddImage{tile_, im->impl(), layer_name, image_format,
-                                      scaling_method, callback.As<Napi::Function>()};
+    auto* worker = new AsyncAddImage{tile_, im->impl(), layer_name, image_format,
+                                     scaling_method, callback.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
-
 }
 
 /**
@@ -403,7 +403,8 @@ struct AsyncAddImageBuffer : Napi::AsyncWorker
           data_{buffer.Data()},
           dataLength_{buffer.Length()},
           layer_name_(layer_name)
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -416,7 +417,8 @@ struct AsyncAddImageBuffer : Napi::AsyncWorker
             SetError(ex.what());
         }
     }
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
     Napi::Reference<Napi::Buffer<char>> buffer_ref;
     char const* data_;
@@ -424,7 +426,7 @@ private:
     std::string layer_name_;
 };
 
-}
+} // namespace
 
 /**
  * Add an encoded image buffer as a layer
@@ -478,7 +480,7 @@ Napi::Value VectorTile::addImageBuffer(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new AsyncAddImageBuffer{tile_, obj.As<Napi::Buffer<char>>(), layer_name, callback.As<Napi::Function>()};
+    auto* worker = new AsyncAddImageBuffer{tile_, obj.As<Napi::Buffer<char>>(), layer_name, callback.As<Napi::Function>()};
     worker->Queue();
     return env.Undefined();
 }

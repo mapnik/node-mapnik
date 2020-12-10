@@ -4,13 +4,13 @@
 #include "ds_emitter.hpp"
 
 // mapnik
-#include <mapnik/attribute_descriptor.hpp>  // for attribute_descriptor
-#include <mapnik/geometry/box2d.hpp>        // for box2d
-#include <mapnik/datasource.hpp>            // for datasource, datasource_ptr, etc
-#include <mapnik/datasource_cache.hpp>      // for datasource_cache
-#include <mapnik/feature_layer_desc.hpp>    // for layer_descriptor
-#include <mapnik/params.hpp>                // for parameters
-#include <mapnik/query.hpp>                 // for query
+#include <mapnik/attribute_descriptor.hpp> // for attribute_descriptor
+#include <mapnik/geometry/box2d.hpp>       // for box2d
+#include <mapnik/datasource.hpp>           // for datasource, datasource_ptr, etc
+#include <mapnik/datasource_cache.hpp>     // for datasource_cache
+#include <mapnik/feature_layer_desc.hpp>   // for layer_descriptor
+#include <mapnik/params.hpp>               // for parameters
+#include <mapnik/query.hpp>                // for query
 
 // stl
 #include <exception>
@@ -20,6 +20,7 @@ Napi::FunctionReference Datasource::constructor;
 
 Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Datasource", {
             InstanceMethod<&Datasource::parameters>("parameters", prop_attr),
             InstanceMethod<&Datasource::describe>("describe", prop_attr),
@@ -28,7 +29,7 @@ Napi::Object Datasource::Initialize(Napi::Env env, Napi::Object exports, napi_pr
             InstanceMethod<&Datasource::fields>("fields", prop_attr)
 
         });
-
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Datasource", func);
@@ -60,8 +61,10 @@ Datasource::Datasource(Napi::CallbackInfo const& info)
         if (ext)
         {
             datasource_ = *ext.Data();
-            if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
-            else info.This().As<Napi::Object>().Set("type","vector");
+            if (datasource_->type() == mapnik::datasource::Raster)
+                info.This().As<Napi::Object>().Set("type", "raster");
+            else
+                info.This().As<Napi::Object>().Set("type", "vector");
         }
         return;
     }
@@ -93,10 +96,12 @@ Datasource::Datasource(Napi::CallbackInfo const& info)
     {
         Napi::Error::New(env, ex.what()).ThrowAsJavaScriptException();
         return;
-     }
+    }
 
-    if (datasource_->type() == mapnik::datasource::Raster) info.This().As<Napi::Object>().Set("type","raster");
-    else info.This().As<Napi::Object>().Set("type","vector");
+    if (datasource_->type() == mapnik::datasource::Raster)
+        info.This().As<Napi::Object>().Set("type", "raster");
+    else
+        info.This().As<Napi::Object>().Set("type", "vector");
 }
 
 Napi::Value Datasource::parameters(Napi::CallbackInfo const& info)
@@ -238,8 +243,8 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
                 Napi::Error::New(env, "max_extent [minx,miny,maxx,maxy] must be numbers").ThrowAsJavaScriptException();
                 return env.Null();
             }
-            extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(),miny.As<Napi::Number>().DoubleValue(),
-                                           maxx.As<Napi::Number>().DoubleValue(),maxy.As<Napi::Number>().DoubleValue());
+            extent = mapnik::box2d<double>(minx.As<Napi::Number>().DoubleValue(), miny.As<Napi::Number>().DoubleValue(),
+                                           maxx.As<Napi::Number>().DoubleValue(), maxy.As<Napi::Number>().DoubleValue());
         }
     }
 
@@ -270,11 +275,10 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
     {
         Napi::Value arg = Napi::External<mapnik::featureset_ptr>::New(env, &fs);
         Napi::Object obj = Featureset::constructor.New({arg});
-        return scope.Escape(napi_value(obj)).ToObject();;
+        return scope.Escape(obj);
     }
     return env.Null(); // an empty Featureset
 }
-
 
 /**
  * Get only the fields metadata from a dataset.

@@ -1,16 +1,17 @@
 #include "utils.hpp"
 #include "mapnik_cairo_surface.hpp"
 
-
 Napi::FunctionReference CairoSurface::constructor;
 
 Napi::Object CairoSurface::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "CairoSurface", {
             InstanceMethod<&CairoSurface::width>("width", prop_attr),
             InstanceMethod<&CairoSurface::height>("height", prop_attr),
             InstanceMethod<&CairoSurface::getData>("getData", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("CairoSurface", func);

@@ -1,7 +1,7 @@
 #include "mapnik_map.hpp"
 
-#include <mapnik/load_map.hpp>          // for load_map, load_map_string
-#include <mapnik/map.hpp>               // for Map, etc
+#include <mapnik/load_map.hpp> // for load_map, load_map_string
+#include <mapnik/map.hpp>      // for Map, etc
 
 namespace detail {
 
@@ -39,14 +39,14 @@ struct AsyncMapLoad : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     map_ptr map_;
     std::string stylesheet_;
     std::string base_path_;
     bool strict_;
 };
 
-} // ns
+} // namespace detail
 
 /**
  * Load styles, layers, and other information for this map from a Mapnik
@@ -63,7 +63,6 @@ private:
 Napi::Value Map::load(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
 
     if (info.Length() < 2)
     {
@@ -125,7 +124,6 @@ Napi::Value Map::load(Napi::CallbackInfo const& info)
     return env.Undefined();
 }
 
-
 /**
  * Load styles, layers, and other information for this map from a Mapnik
  * XML stylesheet.
@@ -142,8 +140,6 @@ Napi::Value Map::load(Napi::CallbackInfo const& info)
 Napi::Value Map::loadSync(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "first argument must be a path to a mapnik stylesheet").ThrowAsJavaScriptException();

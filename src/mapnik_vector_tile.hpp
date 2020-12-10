@@ -23,11 +23,10 @@ struct query_result
     double x_hit;
     double y_hit;
     mapnik::feature_ptr feature;
-    explicit query_result() :
-        layer(),
-        distance(0),
-        x_hit(0),
-        y_hit(0) {}
+    explicit query_result() : layer(),
+                              distance(0),
+                              x_hit(0),
+                              y_hit(0) {}
 };
 
 struct query_hit
@@ -38,14 +37,16 @@ struct query_hit
 
 struct queryMany_result
 {
-    std::map<unsigned,query_result> features;
-    std::map<unsigned,std::vector<query_hit> > hits;
+    std::map<unsigned, query_result> features;
+    std::map<unsigned, std::vector<query_hit>> hits;
 };
-namespace detail { struct AsyncRenderVectorTile;}
+namespace detail {
+struct AsyncRenderVectorTile;
+}
 
 class VectorTile : public Napi::ObjectWrap<VectorTile>
 {
-public:
+  public:
     // initiaizer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -82,10 +83,10 @@ public:
     Napi::Value empty(Napi::CallbackInfo const& info);
 
 #if BOOST_VERSION >= 105800
-     Napi::Value reportGeometrySimplicity(Napi::CallbackInfo const& info);
-     Napi::Value reportGeometrySimplicitySync(Napi::CallbackInfo const& info);
-     Napi::Value reportGeometryValidity(Napi::CallbackInfo const& info);
-     Napi::Value reportGeometryValiditySync(Napi::CallbackInfo const& info);
+    Napi::Value reportGeometrySimplicity(Napi::CallbackInfo const& info);
+    Napi::Value reportGeometrySimplicitySync(Napi::CallbackInfo const& info);
+    Napi::Value reportGeometryValidity(Napi::CallbackInfo const& info);
+    Napi::Value reportGeometryValiditySync(Napi::CallbackInfo const& info);
 #endif // BOOST_VERSION >= 105800
     // static methods
     static Napi::Value info(Napi::CallbackInfo const& info);
@@ -102,6 +103,7 @@ public:
     void set_buffer_size(Napi::CallbackInfo const& info, const Napi::Value& value);
     inline mapnik::vector_tile_impl::merc_tile_ptr impl() const { return tile_; }
     static Napi::FunctionReference constructor;
-private:
+
+  private:
     mapnik::vector_tile_impl::merc_tile_ptr tile_;
 };

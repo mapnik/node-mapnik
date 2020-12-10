@@ -5,20 +5,23 @@
 #include <memory>
 #include <atomic>
 
-namespace mapnik { class Map; }
+namespace mapnik {
+class Map;
+}
 
 using map_ptr = std::shared_ptr<mapnik::Map>;
 
 namespace detail {
 struct AsyncMapLoad;
 struct AsyncMapFromString;
-}
+} // namespace detail
 class Map : public Napi::ObjectWrap<Map>
 {
     friend struct detail::AsyncMapLoad;
     friend struct detail::AsyncMapFromString;
     friend class VectorTile;
-public:
+
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -77,10 +80,11 @@ public:
     void parameters(Napi::CallbackInfo const& info, Napi::Value const& value);
     Napi::Value aspect_fix_mode(Napi::CallbackInfo const& info);
     void aspect_fix_mode(Napi::CallbackInfo const& info, Napi::Value const& value);
-    inline map_ptr impl() const { return map_;}
-    inline bool acquire() {return not_in_use_.fetch_and(0);}
-    inline void release() {not_in_use_ = 1;}
-private:
+    inline map_ptr impl() const { return map_; }
+    inline bool acquire() { return not_in_use_.fetch_and(0); }
+    inline void release() { not_in_use_ = 1; }
+
+  private:
     Napi::Value query_point_impl(Napi::CallbackInfo const& info, bool geo_coords);
     static Napi::FunctionReference constructor;
     map_ptr map_;

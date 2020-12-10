@@ -1,7 +1,6 @@
 #include "mapnik_vector_tile.hpp"
 #include "vector_tile_load_tile.hpp"
 
-
 /**
  * Return an object containing information about a vector tile buffer. Useful for
  * debugging `.mvt` files with errors.
@@ -64,22 +63,21 @@ Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
     std::string decompressed;
     try
     {
-        if (mapnik::vector_tile_impl::is_gzip_compressed(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length()) ||
-            mapnik::vector_tile_impl::is_zlib_compressed(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length()))
+        if (mapnik::vector_tile_impl::is_gzip_compressed(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length()) ||
+            mapnik::vector_tile_impl::is_zlib_compressed(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length()))
         {
             mapnik::vector_tile_impl::zlib_decompress(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length(), decompressed);
             tile_msg = protozero::pbf_reader(decompressed);
         }
         else
         {
-            tile_msg = protozero::pbf_reader(obj.As<Napi::Buffer<char>>().Data(),obj.As<Napi::Buffer<char>>().Length());
+            tile_msg = protozero::pbf_reader(obj.As<Napi::Buffer<char>>().Data(), obj.As<Napi::Buffer<char>>().Length());
         }
         while (tile_msg.next())
         {
             switch (tile_msg.tag())
             {
-            case mapnik::vector_tile_impl::Tile_Encoding::LAYERS:
-            {
+            case mapnik::vector_tile_impl::Tile_Encoding::LAYERS: {
                 Napi::Object layer_obj = Napi::Object::New(env);
                 std::uint64_t point_feature_count = 0;
                 std::uint64_t line_feature_count = 0;
@@ -105,10 +103,10 @@ Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
                                                          unknown_feature_count,
                                                          raster_feature_count);
                 std::uint64_t feature_count = point_feature_count +
-                    line_feature_count +
-                    polygon_feature_count +
-                    unknown_feature_count +
-                    raster_feature_count;
+                                              line_feature_count +
+                                              polygon_feature_count +
+                                              unknown_feature_count +
+                                              raster_feature_count;
                 if (!layer_name.empty())
                 {
                     auto p = layer_names_set.insert(layer_name);
@@ -165,7 +163,7 @@ Napi::Value VectorTile::info(Napi::CallbackInfo const& info)
 
     out.Set("layers", layers);
     has_errors = has_errors || !errors.empty();
-    out.Set("errors",  Napi::Boolean::New(env, has_errors));
+    out.Set("errors", Napi::Boolean::New(env, has_errors));
     if (!errors.empty())
     {
         Napi::Array err_arr = Napi::Array::New(env);

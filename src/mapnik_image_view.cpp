@@ -1,7 +1,7 @@
 // mapnik
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/image_view.hpp>        // for image_view, etc
-#include <mapnik/image_view_any.hpp>    // for image_view_any, etc
+#include <mapnik/color.hpp>          // for color
+#include <mapnik/image_view.hpp>     // for image_view, etc
+#include <mapnik/image_view_any.hpp> // for image_view_any, etc
 #include <mapnik/image_util.hpp>
 
 #include "mapnik_image.hpp"
@@ -18,14 +18,14 @@ struct AsyncIsSolid : Napi::AsyncWorker
     AsyncIsSolid(image_view_ptr const& image_view, Napi::Function const& callback)
         : Base(callback),
           image_view_(image_view)
-    {}
+    {
+    }
 
     void Execute() override
     {
         if (image_view_ && image_view_->width() > 0 && image_view_->height() > 0)
         {
             solid_ = mapnik::is_solid(*image_view_);
-
         }
         else
         {
@@ -39,17 +39,17 @@ struct AsyncIsSolid : Napi::AsyncWorker
         return result;
     }
 
-private:
+  private:
     bool solid_;
     image_view_ptr image_view_;
 };
-}
+} // namespace
 
 Napi::FunctionReference ImageView::constructor;
 
 Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
+    // clang-format off
     Napi::Function func = DefineClass(env, "ImageView", {
             InstanceMethod<&ImageView::width>("width", prop_attr),
             InstanceMethod<&ImageView::height>("height", prop_attr),
@@ -60,6 +60,7 @@ Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports, napi_pro
             InstanceMethod<&ImageView::isSolid>("isSolid", prop_attr),
             InstanceMethod<&ImageView::getPixel>("getPixel", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("ImageView", func);
@@ -83,12 +84,10 @@ Napi::Object ImageView::Initialize(Napi::Env env, Napi::Object exports, napi_pro
  */
 
 ImageView::ImageView(Napi::CallbackInfo const& info)
-    :Napi::ObjectWrap<ImageView>(info)
+    : Napi::ObjectWrap<ImageView>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() == 5 && info[0].IsExternal()
-        && info[1].IsNumber() && info[2].IsNumber()
-        && info[3].IsNumber() && info[4].IsNumber())
+    if (info.Length() == 5 && info[0].IsExternal() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsNumber() && info[4].IsNumber())
     {
         std::size_t x = info[1].As<Napi::Number>().Int64Value();
         std::size_t y = info[2].As<Napi::Number>().Int64Value();
@@ -120,7 +119,7 @@ Napi::Value ImageView::isSolid(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    auto * worker = new AsyncIsSolid(image_view_, callback_val.As<Napi::Function>());
+    auto* worker = new AsyncIsSolid(image_view_, callback_val.As<Napi::Function>());
     worker->Queue();
     return env.Undefined();
 }
@@ -136,7 +135,7 @@ Napi::Value ImageView::isSolidSync(Napi::CallbackInfo const& info)
     }
 
     Napi::TypeError::New(env, "image does not have valid dimensions").ThrowAsJavaScriptException();
-    return scope.Escape(env.Undefined());
+    return env.Undefined();
 }
 
 Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
@@ -187,8 +186,7 @@ Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    if (x >= 0 && x < static_cast<int>(image_view_->width())
-        && y >= 0 && y < static_cast<int>(image_view_->height()))
+    if (x >= 0 && x < static_cast<int>(image_view_->width()) && y >= 0 && y < static_cast<int>(image_view_->height()))
     {
         if (get_color)
         {
@@ -196,7 +194,7 @@ Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
             mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_view_, x, y);
             Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
             Napi::Object obj = Color::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         else
         {
@@ -207,7 +205,6 @@ Napi::Value ImageView::getPixel(Napi::CallbackInfo const& info)
     return env.Undefined();
 }
 
-
 Napi::Value ImageView::width(Napi::CallbackInfo const& info)
 {
     return Napi::Number::New(info.Env(), image_view_->width());
@@ -217,7 +214,6 @@ Napi::Value ImageView::height(Napi::CallbackInfo const& info)
 {
     return Napi::Number::New(info.Env(), image_view_->height());
 }
-
 
 void ImageView::encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette)
 {
@@ -273,13 +269,16 @@ struct AsyncEncode : Napi::AsyncWorker
           image_view_(image_view),
           palette_(palette),
           format_(format)
-    {}
+    {
+    }
     void Execute() override
     {
         try
         {
-            if (palette_) result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_, *palette_));
-            else result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_));
+            if (palette_)
+                result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_, *palette_));
+            else
+                result_ = std::make_unique<std::string>(save_to_string(*image_view_, format_));
         }
         catch (std::exception const& ex)
         {
@@ -290,30 +289,31 @@ struct AsyncEncode : Napi::AsyncWorker
     {
         if (result_)
         {
-            std::string & str = *result_;
-            auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
-                                                  [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                      if (str_ptr != nullptr) {
-                                                          Napi::MemoryManagement::AdjustExternalMemory
-                                                              (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                      }
-                                                      delete str_ptr;
-                                                  },
-                                                  result_.release());
+            std::string& str = *result_;
+            auto buffer = Napi::Buffer<char>::New(
+                env, &str[0], str.size(),
+                [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
+                    if (str_ptr != nullptr)
+                    {
+                        Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                    }
+                    delete str_ptr;
+                },
+                result_.release());
             Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
             return {env.Null(), buffer};
         }
         return Base::GetResult(env);
     }
-private:
+
+  private:
     image_view_ptr image_view_;
     palette_ptr palette_;
     std::string format_;
     std::unique_ptr<std::string> result_;
 };
 
-}
-
+} // namespace
 
 Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 {
@@ -325,18 +325,21 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
     try
     {
         std::unique_ptr<std::string> result;
-        if (palette) result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
-        else result = std::make_unique<std::string>(save_to_string(*image_, format));
-        std::string & str = *result;
-        auto buffer = Napi::Buffer<char>::New(env, &str[0], str.size(),
-                                              [](Napi::Env env_, char* /*unused*/, std::string * str_ptr) {
-                                                  if (str_ptr != nullptr) {
-                                                      Napi::MemoryManagement::AdjustExternalMemory
-                                                          (env_, -static_cast<std::int64_t>(str_ptr->size()));
-                                                  }
-                                                  delete str_ptr;
-                                              },
-                                              result.release());
+        if (palette)
+            result = std::make_unique<std::string>(save_to_string(*image_, format, *palette));
+        else
+            result = std::make_unique<std::string>(save_to_string(*image_, format));
+        std::string& str = *result;
+        auto buffer = Napi::Buffer<char>::New(
+            env, &str[0], str.size(),
+            [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
+                if (str_ptr != nullptr)
+                {
+                    Napi::MemoryManagement::AdjustExternalMemory(env_, -static_cast<std::int64_t>(str_ptr->size()));
+                }
+                delete str_ptr;
+            },
+            result.release());
         Napi::MemoryManagement::AdjustExternalMemory(env, static_cast<std::int64_t>(str.size()));
         return scope.Escape(buffer);
     }
@@ -350,13 +353,11 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
 Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-
     std::string format = "png";
     palette_ptr palette;
 
     encode_common_args_(info, format, palette);
-     // ensure callback is a function
+    // ensure callback is a function
     Napi::Value callback_val = info[info.Length() - 1];
     if (!callback_val.IsFunction())
     {

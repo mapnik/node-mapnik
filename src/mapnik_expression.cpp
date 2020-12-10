@@ -8,21 +8,21 @@
 #include <mapnik/expression_string.hpp>
 #include <mapnik/expression_evaluator.hpp>
 
-
 Napi::FunctionReference Expression::constructor;
 
 Napi::Object Expression::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
+    // clang-format off
     Napi::Function func = DefineClass(env, "Expression", {
             InstanceMethod<&Expression::evaluate>("evaluate", prop_attr),
             InstanceMethod<&Expression::toString>("toString", prop_attr)
         });
+    // clang-format on
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Expression", func);
     return exports;
 }
-
 
 Expression::Expression(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<Expression>(info)
@@ -76,7 +76,7 @@ Napi::Value Expression::evaluate(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    Feature *f = Napi::ObjectWrap<Feature>::Unwrap(obj);
+    Feature* f = Napi::ObjectWrap<Feature>::Unwrap(obj);
 
     mapnik::attributes vars;
     if (info.Length() > 1)
@@ -100,6 +100,6 @@ Napi::Value Expression::evaluate(Napi::CallbackInfo const& info)
         }
     }
     using namespace mapnik;
-    value val =util::apply_visitor(mapnik::evaluate<feature_impl, value, attributes>(*f->impl(), vars),*expression_);
+    value val = util::apply_visitor(mapnik::evaluate<feature_impl, value, attributes>(*f->impl(), vars), *expression_);
     return scope.Escape(util::apply_visitor(node_mapnik::value_converter(env), val));
 }

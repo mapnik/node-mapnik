@@ -1,30 +1,28 @@
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
-#include <mapnik/image_scaling.hpp>
-#include "mapnik_image.hpp"
-
+#include <mapnik/image_any.hpp>     // NOLINT for image_any
+#include <mapnik/image_util.hpp>    // NOLINT for save_to_string, guess_type, etc
+#include <mapnik/image_scaling.hpp> // NOLINT
+#include "mapnik_image.hpp"         // NOLINT
 
 namespace {
 
 struct resize_visitor
 {
 
-    resize_visitor(mapnik::image_any & im1,
+    resize_visitor(mapnik::image_any& im1,
                    mapnik::scaling_method_e scaling_method,
                    double image_ratio_x,
                    double image_ratio_y,
                    double filter_factor,
                    double offset_x,
-                   double offset_y) :
-        im1_(im1),
-        scaling_method_(scaling_method),
-        image_ratio_x_(image_ratio_x),
-        image_ratio_y_(image_ratio_y),
-        filter_factor_(filter_factor),
-        offset_x_(offset_x),
-        offset_y_(offset_y) {}
+                   double offset_y) : im1_(im1),
+                                      scaling_method_(scaling_method),
+                                      image_ratio_x_(image_ratio_x),
+                                      image_ratio_y_(image_ratio_y),
+                                      filter_factor_(filter_factor),
+                                      offset_x_(offset_x),
+                                      offset_y_(offset_y) {}
 
-    void operator()(mapnik::image_rgba8 & im2) const
+    void operator()(mapnik::image_rgba8& im2) const
     {
         bool remultiply = false;
         if (!im1_.get_premultiplied())
@@ -32,6 +30,7 @@ struct resize_visitor
             remultiply = true;
             mapnik::premultiply_alpha(im1_);
         }
+        // NOLINTNEXTLINE
         mapnik::scale_image_agg(im2,
                                 mapnik::util::get<mapnik::image_rgba8>(im1_),
                                 scaling_method_,
@@ -40,14 +39,16 @@ struct resize_visitor
                                 offset_x_,
                                 offset_y_,
                                 filter_factor_);
-        if (remultiply) {
+        if (remultiply)
+        {
             mapnik::demultiply_alpha(im2);
         }
     }
 
     template <typename T>
-    void operator()(T & im2) const
+    void operator()(T& im2) const
     {
+        // NOLINTNEXTLINE
         mapnik::scale_image_agg(im2,
                                 mapnik::util::get<T>(im1_),
                                 scaling_method_,
@@ -58,59 +59,57 @@ struct resize_visitor
                                 filter_factor_);
     }
 
-    void operator()(mapnik::image_null &) const
+    void operator()(mapnik::image_null&) const
     {
         // Should be caught earlier so no test coverage should reach here.
         throw std::runtime_error("Can not resize null images");
     }
 
-    void operator()(mapnik::image_gray8s &) const
+    void operator()(mapnik::image_gray8s&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing signed 8 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray16s &) const
+    void operator()(mapnik::image_gray16s&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing signed 16 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray32 &) const
+    void operator()(mapnik::image_gray32&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing unsigned 32 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray32s &) const
+    void operator()(mapnik::image_gray32s&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing signed 32 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray64 &) const
+    void operator()(mapnik::image_gray64&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing unsigned 64 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray64s &) const
+    void operator()(mapnik::image_gray64s&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing signed 64 bit integer rasters");
     }
 
-    void operator()(mapnik::image_gray64f &) const
+    void operator()(mapnik::image_gray64f&) const
     {
         throw std::runtime_error("Mapnik currently does not support resizing 64 bit floating point rasters");
     }
 
-
   private:
-    mapnik::image_any & im1_;
+    mapnik::image_any& im1_;
     mapnik::scaling_method_e scaling_method_;
     double image_ratio_x_;
     double image_ratio_y_;
     double filter_factor_;
     int offset_x_;
     int offset_y_;
-
 };
-} // ns
+} // namespace
 
 namespace detail {
 struct AsyncResize : Napi::AsyncWorker
@@ -130,7 +129,8 @@ struct AsyncResize : Napi::AsyncWorker
           offset_width_{offset_width},
           offset_height_{offset_height},
           filter_factor_{filter_factor}
-    {}
+    {
+    }
 
     void Execute() override
     {
@@ -183,7 +183,7 @@ struct AsyncResize : Napi::AsyncWorker
         return Base::GetResult(env);
     }
 
-private:
+  private:
     image_ptr image_in_;
     image_ptr image_out_;
     mapnik::scaling_method_e scaling_method_;
@@ -196,7 +196,7 @@ private:
     double filter_factor_;
 };
 
-}
+} // namespace detail
 
 /**
  * Resize this image (makes a copy)
@@ -386,7 +386,6 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
     return env.Undefined();
 }
 
-
 /**
  * Resize this image (makes a copy). Synchronous version of {@link mapnik.Image.resize}.
  *
@@ -430,7 +429,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             if (width_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Width parameter must be an integer greater then zero").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             width = static_cast<std::size_t>(width_tmp);
         }
@@ -438,7 +437,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         {
             Napi::TypeError::New(env, "Width must be a number").ThrowAsJavaScriptException();
 
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
         if (info[1].IsNumber())
         {
@@ -446,20 +445,20 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             if (height_tmp <= 0)
             {
                 Napi::TypeError::New(env, "Height parameter must be an integer greater then zero").ThrowAsJavaScriptException();
-                return scope.Escape(env.Undefined());
+                return env.Undefined();
             }
             height = static_cast<std::size_t>(height_tmp);
         }
         else
         {
             Napi::TypeError::New(env, "Height must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
     else
     {
         Napi::TypeError::New(env, "Resize requires at least a width and height parameter").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
 
     if (info.Length() >= 3)
@@ -540,7 +539,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "scaling_method argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
@@ -554,19 +553,19 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         else
         {
             Napi::TypeError::New(env, "filter_factor argument must be a number").ThrowAsJavaScriptException();
-            return scope.Escape(env.Undefined());
+            return env.Undefined();
         }
     }
 
     if (image_->is<mapnik::image_null>())
     {
         Napi::TypeError::New(env, "Can not resize a null image").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     if (offset_width <= 0 || offset_height <= 0)
     {
         Napi::TypeError::New(env, "Image width or height is zero or less then zero.").ThrowAsJavaScriptException();
-        return scope.Escape(env.Undefined());
+        return env.Undefined();
     }
     try
     {

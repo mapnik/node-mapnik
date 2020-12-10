@@ -10,10 +10,9 @@
 #define cairo_status_t int
 #endif
 
-
 class CairoSurface : public Napi::ObjectWrap<CairoSurface>
 {
-public:
+  public:
     // initializer
     static Napi::Object Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr);
     // ctor
@@ -22,8 +21,8 @@ public:
     Napi::Value getData(Napi::CallbackInfo const& info);
     Napi::Value width(Napi::CallbackInfo const& info);
     Napi::Value height(Napi::CallbackInfo const& info);
-    static cairo_status_t write_callback(void * stream,
-                                         const unsigned char *data,
+    static cairo_status_t write_callback(void* stream,
+                                         const unsigned char* data,
                                          unsigned int length)
     {
 #if defined(HAVE_CAIRO)
@@ -38,7 +37,7 @@ public:
             // LCOV_EXCL_STOP
         }
         std::stringstream* fin = reinterpret_cast<std::stringstream*>(stream);
-        *fin << std::string((const char*)data,(size_t)length);
+        *fin << std::string((const char*)data, (size_t)length);
         return CAIRO_STATUS_SUCCESS;
 #else
         return CAIRO_STATUS_WRITE_ERROR;
@@ -48,12 +47,13 @@ public:
     inline unsigned width() const { return width_; }
     inline unsigned height() const { return height_; }
     inline std::string const& format() const { return format_; }
-    inline std::stringstream & stream() { return stream_; }
-    inline void flush() { data_ = stream_.str();}
-    inline void set_data(std::string const& data) { data_ = data;}
-    inline std::string const& data() const { return data_;}
+    inline std::stringstream& stream() { return stream_; }
+    inline void flush() { data_ = stream_.str(); }
+    inline void set_data(std::string const& data) { data_ = data; }
+    inline std::string const& data() const { return data_; }
     static Napi::FunctionReference constructor;
-private:
+
+  private:
     unsigned width_;
     unsigned height_;
     std::string format_;

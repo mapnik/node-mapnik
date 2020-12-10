@@ -1,8 +1,8 @@
 // mapnik
-#include <mapnik/color.hpp>             // for color
-#include <mapnik/image.hpp>             // for image types
-#include <mapnik/image_any.hpp>         // for image_any
-#include <mapnik/image_util.hpp>        // for save_to_string, guess_type, etc
+#include <mapnik/color.hpp>      // for color
+#include <mapnik/image.hpp>      // for image types
+#include <mapnik/image_any.hpp>  // for image_any
+#include <mapnik/image_util.hpp> // for save_to_string, guess_type, etc
 #include "mapnik_image.hpp"
 #include "mapnik_image_view.hpp"
 #include "mapnik_palette.hpp"
@@ -11,15 +11,14 @@
 
 // std
 #include <exception>
-#include <sstream>                      // for basic_ostringstream, etc
+#include <sstream> // for basic_ostringstream, etc
 #include <cstdlib>
 
 Napi::FunctionReference Image::constructor;
 
 Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_property_attributes prop_attr)
 {
-    Napi::HandleScope scope(env);
-
+    // clang-format off
     Napi::Function func = DefineClass(env, "Image", {
             InstanceAccessor<&Image::offset, &Image::offset>("offset", prop_attr),
             InstanceAccessor<&Image::scaling, &Image::scaling>("scaling", prop_attr),
@@ -66,6 +65,7 @@ Napi::Object Image::Initialize(Napi::Env env, Napi::Object exports, napi_propert
             StaticMethod<&Image::fromSVGBytesSync>("fromSVGBytesSync", prop_attr),
             StaticMethod<&Image::fromSVGBytes>("fromSVGBytes", prop_attr)
         });
+    // clang-format off
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
     exports.Set("Image", func);
@@ -309,7 +309,7 @@ Napi::Value Image::getPixel(Napi::CallbackInfo const& info)
             mapnik::color col = mapnik::get_pixel<mapnik::color>(*image_, x, y);
             Napi::Value arg = Napi::External<mapnik::color>::New(env, &col);
             Napi::Object obj = Color::constructor.New({arg});
-            return scope.Escape(napi_value(obj)).ToObject();
+            return scope.Escape(obj);
         }
         else
         {
@@ -644,7 +644,7 @@ Napi::Value Image::view(Napi::CallbackInfo const& info)
     Napi::Number h = info[3].As<Napi::Number>();
     Napi::Value image_obj = Napi::External<image_ptr>::New(env, &image_);
     Napi::Object obj = ImageView::constructor.New({image_obj, x, y, w, h });
-    return scope.Escape(napi_value(obj)).ToObject();
+    return scope.Escape(obj);
 }
 
 Napi::Value Image::offset(Napi::CallbackInfo const& info)
@@ -707,7 +707,7 @@ void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
 Napi::Value Image::data(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<char>::Copy(env, reinterpret_cast<char const*>(image_->bytes()), image_->size());
+    if (image_) return Napi::Buffer<unsigned char>::Copy(env, image_->bytes(), image_->size());
     return info.Env().Null();
 }
 
@@ -730,6 +730,6 @@ Napi::Value Image::data(Napi::CallbackInfo const& info)
 Napi::Value Image::buffer(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<char>::New(env, reinterpret_cast<char*>(image_->bytes()), image_->size());
+    if (image_) return Napi::Buffer<unsigned char>::New(env, image_->bytes(), image_->size());
     return info.Env().Null();
 }

@@ -2,7 +2,6 @@
 
 #include <napi.h>
 
-
 // stl
 #include <string>
 #include <memory>
@@ -31,38 +30,39 @@ struct value_converter
     explicit value_converter(Napi::Env env)
         : env_(env) {}
 
-    Napi::Value operator () ( value_integer val ) const
+    Napi::Value operator()(value_integer val) const
     {
         return Napi::Number::New(env_, val);
     }
 
-    Napi::Value operator () (mapnik::value_bool val ) const
+    Napi::Value operator()(mapnik::value_bool val) const
     {
         return Napi::Boolean::New(env_, val);
     }
 
-    Napi::Value operator () ( double val ) const
+    Napi::Value operator()(double val) const
     {
         return Napi::Number::New(env_, val);
     }
 
-    Napi::Value operator () ( std::string const& val ) const
+    Napi::Value operator()(std::string const& val) const
     {
         return Napi::String::New(env_, val.c_str());
     }
 
-    Napi::Value operator () ( mapnik::value_unicode_string const& val) const
+    Napi::Value operator()(mapnik::value_unicode_string const& val) const
     {
         std::string buffer;
-        mapnik::to_utf8(val,buffer);
+        mapnik::to_utf8(val, buffer);
         return Napi::String::New(env_, buffer.c_str());
     }
 
-    Napi::Value operator () ( mapnik::value_null const& ) const
+    Napi::Value operator()(mapnik::value_null const&) const
     {
         return env_.Null();
     }
-private:
+
+  private:
     Napi::Env env_;
 };
 
@@ -70,4 +70,4 @@ inline void params_to_object(Napi::Env env, Napi::Object& params, std::string co
 {
     params.Set(key, mapnik::util::apply_visitor(value_converter(env), val));
 }
-} // end ns
+} // namespace node_mapnik
