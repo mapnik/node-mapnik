@@ -88,8 +88,8 @@ function run() {
     echo "export ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer)" >> ${config}
     echo "export UBSAN_OPTIONS=print_stacktrace=1" >> ${config}
     echo "export LSAN_OPTIONS=suppressions=${SUPPRESSION_FILE}" >> ${config}
-    echo "export ASAN_OPTIONS=symbolize=1:abort_on_error=1:detect_container_overflow=1:check_initialization_order=1:detect_stack_use_after_return=1" >> ${config}
-    echo 'export MASON_SANITIZE="-fsanitize=address,undefined -fno-sanitize=vptr,function"' >> ${config}
+    echo "export ASAN_OPTIONS=detect_leaks=1:symbolize=1:abort_on_error=1:detect_container_overflow=1:check_initialization_order=1:detect_stack_use_after_return=1" >> ${config}
+    echo 'export MASON_SANITIZE="-fsanitize=address,undefined,integer,leak -fno-sanitize=vptr,function"' >> ${config}
     echo 'export MASON_SANITIZE_CXXFLAGS="${MASON_SANITIZE} -fno-sanitize=vptr,function -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-common"' >> ${config}
     echo 'export MASON_SANITIZE_LDFLAGS="${MASON_SANITIZE}"' >> ${config}
 
