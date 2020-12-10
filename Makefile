@@ -65,9 +65,9 @@ distclean: clean
 	rm -rf node_modules
 	rm -rf mason_packages
 	# remove remains from running './scripts/setup.sh'
-	#rm -rf .mason
-	#rm -rf .toolchain
-	#rm -f local.env
+	rm -rf .mason
+	rm -rf .toolchain
+	rm -f local.env
 
 xcode: ./node_modules/.bin/node-pre-gyp
 	./node_modules/.bin/node-pre-gyp configure -- -f xcode
