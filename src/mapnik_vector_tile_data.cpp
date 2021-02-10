@@ -98,7 +98,7 @@ struct AsyncGetData : Napi::AsyncWorker
             std::string& data = *data_;
             auto buffer = Napi::Buffer<char>::New(
                 Env(),
-                &data[0],
+                data.empty() ? nullptr : &data[0],
                 data.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                     if (str_ptr != nullptr)
@@ -119,7 +119,7 @@ struct AsyncGetData : Napi::AsyncWorker
                 std::string& data = *ptr;
                 auto buffer = Napi::Buffer<char>::New(
                     Env(),
-                    &data[0],
+                    data.empty() ? nullptr : &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                         if (str_ptr != nullptr)
@@ -502,7 +502,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                     std::string& data = *ptr;
                     auto buffer = Napi::Buffer<char>::New(
                         Env(),
-                        &data[0],
+                        data.empty() ? nullptr : &data[0],
                         data.size(),
                         [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                             if (str_ptr != nullptr)
@@ -533,7 +533,7 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
                 std::string& data = *compressed;
                 auto buffer = Napi::Buffer<char>::New(
                     Env(),
-                    &data[0],
+                    data.empty() ? nullptr : &data[0],
                     data.size(),
                     [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                         if (str_ptr != nullptr)
