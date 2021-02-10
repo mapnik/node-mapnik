@@ -6,7 +6,7 @@
         </Rule>
     </Style>
 
-    <Layer name="lines" srs="+init=epsg:4326">
+    <Layer name="lines" srs="epsg:4326">
         <StyleName>lines</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>
@@ -17,5 +17,5 @@ wkt
             </Parameter>
         </Datasource>
     </Layer>
-    
+
 </Map>

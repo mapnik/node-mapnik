@@ -233,7 +233,7 @@ test('should validate with raster', (assert) => {
   assert.deepEqual(expected,describe);
 
   // Test that if added to layer, can get datasource back
-  var layer = new mapnik.Layer('foo', '+init=epsg:4326');
+  var layer = new mapnik.Layer('foo', 'epsg:4326');
   layer.datasource = ds;
   var ds2 = layer.datasource;
   assert.ok(ds2);

@@ -6,7 +6,7 @@
         </Rule>
     </Style>
 
-    <Layer name="points" srs="+init=epsg:4326">
+    <Layer name="points" srs="epsg:4326">
         <StyleName>points</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>
@@ -15,5 +15,5 @@ x,y
 0,0
             </Parameter>
         </Datasource>
-    </Layer>    
+    </Layer>
 </Map>

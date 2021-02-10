@@ -2270,7 +2270,7 @@ test('should render a vector_tile of the whole world with threading auto', (asse
   var vtile = new mapnik.VectorTile(0, 0, 0);
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/data/map.xml');
-  map.srs = "+init=epsg:3857";
+  map.srs = "epsg:3857";
   map.extent = vtile.extent();
   // until bug is fixed in std::future do not run this test on osx
   if (process.platform == 'darwin') {
@@ -2309,7 +2309,7 @@ test('should render a vector_tile of the whole world with threading async', (ass
   var vtile = new mapnik.VectorTile(0, 0, 0);
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/data/map.xml');
-  map.srs = "+init=epsg:3857";
+  map.srs = "epsg:3857";
   map.extent = vtile.extent();
   // until bug is fixed in std::future do not run this test on osx
   if (process.platform == 'darwin') {

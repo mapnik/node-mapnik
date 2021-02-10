@@ -85,7 +85,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports, napi_property_
  * @param {int} width in pixels
  * @param {int} height in pixels
  * @param {string} [projection='+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'] projection as a proj4 code
- * typically used with '+init=epsg:3857'
+ * typically used with 'epsg:3857'
  * @property {string} src
  * @property {number} width
  * @property {number} height
@@ -97,7 +97,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports, napi_property_
  * @property {} parameters
  * @property {} aspect_fix_mode
  * @example
- * var map = new mapnik.Map(600, 400, '+init=epsg:3857');
+ * var map = new mapnik.Map(600, 400, 'epsg:3857');
  * console.log(map);
  * // {
  * //   aspect_fix_mode: 0,
@@ -113,7 +113,7 @@ Napi::Object Map::Initialize(Napi::Env env, Napi::Object exports, napi_property_
  * //   bufferSize: 0,
  * //   height: 400,
  * //   width: 600,
- * //   srs: '+init=epsg:3857'
+ * //   srs: 'epsg:3857'
  * // }
  */
 
