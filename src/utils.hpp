@@ -13,13 +13,6 @@
 #include <mapnik/version.hpp>
 #include <mapnik/params.hpp>
 
-inline Napi::Value CallbackError(Napi::Env env, std::string const& message, Napi::Function const& func)
-{
-    Napi::Object obj = Napi::Object::New(env);
-    obj.Set("message", message);
-    return func.Call({obj});
-}
-
 namespace node_mapnik {
 
 using value_integer = mapnik::value_integer;
