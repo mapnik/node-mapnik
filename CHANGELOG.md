@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.5.6
+- Upgrade node-addon-api (>=v3.1.0)
+- Upgrade to @mapbox/node-pre-gyp >= v1.x
+- Check `std::string` is not-empty before accessing internal data via operator[]
+
 ## 4.5.5
 - Remove `reinterpret_cast` by changing `Napi::Buffer<T>` specialisations
 - Replace bogus Object->Value->Object conversions e.g scope.Escape(napi_value(obj)).ToObject() => scope.Escape(obj) (ref #961)
