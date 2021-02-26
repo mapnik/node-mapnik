@@ -4,6 +4,11 @@
 - Upgrade node-addon-api (>=v3.1.0)
 - Upgrade to @mapbox/node-pre-gyp >= v1.x
 - Check `std::string` is not-empty before accessing internal data via operator[]
+- Upgrade to mapnik@c3eda40e0
+  - Fixed `size` to used to `resize` record buffer in csv.input and geojson.input [#4187]
+  - Disable compiler warning using portable macros [#4188] [#4189] [#4194]
+  - Upgrade travis-ci build environment to use `xenial`
+  - Move to travis-ci.com
 
 ## 4.5.5
 - Remove `reinterpret_cast` by changing `Napi::Buffer<T>` specialisations
