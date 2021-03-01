@@ -56,7 +56,22 @@
 
 ## 4.4.0
 
-- Update mapnik to 3be9ce8fa
+- Update mapnik@3be9ce8fa
+  - SVG renderer fixes  https://github.com/mapnik/mapnik/pull/4113
+  - Add "darkslategray" and "rebeccapurple" named colors (ref: https://drafts.csswg.org/css-color/#typedef-color)
+  - Use std::round (ref:https://en.cppreference.com/w/cpp/numeric/math/round) mapnik@ed194a3
+  - Move 0.5 up/down rounding into rounding expression (via  @lightmare https://github.com/mapnik/mapnik/pull/4113/commits/7f54e947485df0a35e0dab9b5aacea8db2cff88c#r369294323) [#4116](https://github.com/mapnik/mapnik/issues/4116)
+  - SVG: only use reflection of the second control point on the previous command relative to the current point as first control point when both last and prev( NOTE: before last command in AGG logic!) are curve commands. This fixes long outstanding SVG rendering bug aka `Octocat` bug [#4115](https://github.com/mapnik/mapnik/issues/4115)
+  - SVG parser: fix typo (stroke gradient was applied instead if fill gradient) mapnik@1a0b1a1e77
+  - Add support for `scale-factor` parameter - useful for debugging SVG issues (ref #4112)
+  - Don't attempt to rasterize ARCs with very small sweep_angles, just resort to LINETO (#4112)
+  - SVG parser: ix typo in agg_bezier_arc initialisation mapnik@0420b13055
+  - SVG parser: use numeric parser for arc flags mapnik@60a33a9b
+  - SVG parser: parse arc and sweep flags using special single digit parser, numeric `int_` parser was over greedy and didn't handle compact notation produced by svgo (https://github.com/svg/svgo) mapnik@222835e73
+  - Use official colospace HSL/HSV converters from boost source tree (BOOST_VERSION > 1_69) mapnik@7f2c8b756a
+  - Only push new elements to `parenStack` when needed [#4096](https://github.com/mapnik/mapnik/issues/4096)
+  - Use `& mask` for array bounds clipping (provided array size is 2^n) mapnik@1edd3b7a930
+  - Avoid potential out-of-bounds array access (undefined behaviour) + add c++ `C-array` size implementation mapnik@dec6bc095081
 - Update protozero to v1.6.8
 - Update geometry.hpp to v1.0.0
 - Update wagyu to 0.5.0
