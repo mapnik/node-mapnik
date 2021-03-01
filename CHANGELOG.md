@@ -5,8 +5,12 @@
 - Upgrade to @mapbox/node-pre-gyp >= v1.x
 - Check `std::string` is not-empty before accessing internal data via operator[]
 - Upgrade to mapnik@c3eda40e0
-  - Fixed size value used to `resize` record buffer in csv.input and geojson.input [#4187]
-  - Disable compiler warning using portable macros [#4188] [#4189] [#4194]
+  - Fixed size value used to `resize` record buffer in csv.input and geojson.input
+       [#4187](https://github.com/mapnik/mapnik/issues/4187)
+  - Disable compiler warning using portable macros
+       [#4188](https://github.com/mapnik/mapnik/issues/4188)
+       [#4189](https://github.com/mapnik/mapnik/issues/4189)
+       [#4194](https://github.com/mapnik/mapnik/issues/4194)
   - Upgrade travis-ci build environment to use `xenial`
   - Move to travis-ci.com
 
@@ -34,7 +38,18 @@
 ## 4.5.0
 - Ported to N-API.
 - Now supporting node v14 using a "universal binary" (same binary will be used for all major node versions)
-- Update mapnik to 26d3084ea
+- Update mapnik@26d3084ea
+  - SVG CSS support https://github.com/mapnik/mapnik/pull/4123
+  - Use mapnik::value_integer for `id` type in feature generator
+  - GeoJSON - allow 'null' properties in `Feature` objects [#4177](https://github.com/mapnik/mapnik/issues/4177)
+  - Implement `is_solid` using stdlib <algorithm> `find_if
+  - Add perfect forwarding in apply_visitor alias
+  - Re-implement feature_json_generator by adapting feature_impl into boost::fusion container and removing use semantic actions (simpler code + boost_1_73 support) [#4143](https://github.com/mapnik/mapnik/issues/4143)
+  - Relax bounding box extracting grammar [#4140](https://github.com/mapnik/mapnik/issues/4140)
+  - mapnik::color - fix operator== [#4137](https://github.com/mapnik/mapnik/issues/4137)
+  - color::swap - add missing premultiplied_ [#4137](https://github.com/mapnik/mapnik/issues/4137)
+  - Add `spacing-offset` option https://github.com/mapnik/mapnik/pull/4132
+  - Add Int32 support for gdal driver
 - Ported tests from mocha to tape
 - Upgraded to boost 1.73.0
 - Binaries now compiled with clang++ 10.x
