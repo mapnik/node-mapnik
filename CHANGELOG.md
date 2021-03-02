@@ -5,6 +5,7 @@
 - Upgrade to @mapbox/node-pre-gyp >= v1.x
 - Check `std::string` is not-empty before accessing internal data via operator[]
 - Upgrade to mapnik@c3eda40e0
+  (https://github.com/mapnik/mapnik/compare/c6fc956a7...c3eda40e0)
   - Fixed size value used to `resize` record buffer in csv.input and geojson.input
        [#4187](https://github.com/mapnik/mapnik/issues/4187)
   - Disable compiler warning using portable macros
@@ -15,6 +16,19 @@
   - Move to travis-ci.com
 
 ## 4.5.5
+- Upgrade to mapnik@c6fc956a7
+  (https://github.com/mapnik/mapnik/compare/26d3084ea...c6fc956a7)
+  - SVG CSS support https://github.com/mapnik/mapnik/pull/4123
+  - Use mapnik::value_integer for `id` type in feature generator
+  - GeoJSON - allow 'null' properties in `Feature` objects [#4177](https://github.com/mapnik/mapnik/issues/4177)
+  - Implement `is_solid` using stdlib <algorithm> `find_if`
+  - Add perfect forwarding in apply_visitor alias
+  - Re-implement feature_json_generator by adapting feature_impl into boost::fusion container and removing use semantic actions (simpler code + boost_1_73 support) [#4143](https://github.com/mapnik/mapnik/issues/4143)
+  - Relax bounding box extracting grammar [#4140](https://github.com/mapnik/mapnik/issues/4140)
+  - mapnik::color - fix operator== [#4137](https://github.com/mapnik/mapnik/issues/4137)
+  - color::swap - add missing premultiplied_ [#4137](https://github.com/mapnik/mapnik/issues/4137)
+  - Add `spacing-offset` option https://github.com/mapnik/mapnik/pull/4132
+  - Add Int32 support for gdal driver
 - Remove `reinterpret_cast` by changing `Napi::Buffer<T>` specialisations
 - Replace bogus Object->Value->Object conversions e.g scope.Escape(napi_value(obj)).ToObject() => scope.Escape(obj) (ref #961)
 - Remove `Escape`from `env.Undefined()` (ref #961)
@@ -39,17 +53,6 @@
 - Ported to N-API.
 - Now supporting node v14 using a "universal binary" (same binary will be used for all major node versions)
 - Update mapnik@26d3084ea
-  - SVG CSS support https://github.com/mapnik/mapnik/pull/4123
-  - Use mapnik::value_integer for `id` type in feature generator
-  - GeoJSON - allow 'null' properties in `Feature` objects [#4177](https://github.com/mapnik/mapnik/issues/4177)
-  - Implement `is_solid` using stdlib <algorithm> `find_if
-  - Add perfect forwarding in apply_visitor alias
-  - Re-implement feature_json_generator by adapting feature_impl into boost::fusion container and removing use semantic actions (simpler code + boost_1_73 support) [#4143](https://github.com/mapnik/mapnik/issues/4143)
-  - Relax bounding box extracting grammar [#4140](https://github.com/mapnik/mapnik/issues/4140)
-  - mapnik::color - fix operator== [#4137](https://github.com/mapnik/mapnik/issues/4137)
-  - color::swap - add missing premultiplied_ [#4137](https://github.com/mapnik/mapnik/issues/4137)
-  - Add `spacing-offset` option https://github.com/mapnik/mapnik/pull/4132
-  - Add Int32 support for gdal driver
 - Ported tests from mocha to tape
 - Upgraded to boost 1.73.0
 - Binaries now compiled with clang++ 10.x
@@ -57,6 +60,7 @@
 ## 4.4.0
 
 - Update mapnik@3be9ce8fa
+  (https://github.com/mapnik/mapnik/compare/a0ea7db1a...3be9ce8fa)
   - SVG renderer fixes  https://github.com/mapnik/mapnik/pull/4113
   - Add "darkslategray" and "rebeccapurple" named colors (ref: https://drafts.csswg.org/css-color/#typedef-color)
   - Use std::round (ref:https://en.cppreference.com/w/cpp/numeric/math/round) mapnik@ed194a3
@@ -80,6 +84,18 @@
 
 ## 4.3.1
 - Update to mapnik@a0ea7db1a
+  (https://github.com/mapnik/mapnik/compare/da69fdf66...a0ea7db1a)
+  - Accept explicit parameter "application_name" in postgis and pgraster datasources https://github.com/mapnik/mapnik/pull/3984
+  - Use `ST_MakeEnvelope` https://github.com/mapnik/mapnik/pull/3319
+  - postgis.input: always put decimal point in substituted tokens in SQL  https://github.com/mapnik/mapnik/pull/3942
+  - Replace MAPNIK_INIT_PRIORITY workaround
+  - Ensure 'scaling' and `comp-op` stored as enumeration_wrappers + fix image `scaling` property https://github.com/mapnik/mapnik/pull/4066
+  - New raster colorizer mode for Terrain-RGB https://github.com/mapnik/mapnik/pull/4058
+  - mapnik@831e353c5 SVG parser:  better stderr - don't assume fill/stroke ref is a <gradient>, can be a <pattern> also
+  - Adaptive `smooth` https://github.com/mapnik/mapnik/pull/4031
+  - CSS parser - use appropriate storage type for `hue` value (0..320) https://github.com/mapnik/mapnik/issues/4020
+  - mapnik@776fa0d2f True global pattern alignment, fixed local alignment
+  - mapnik@692fc7f10 render_pattern() needs its own rasterizer
 - Remove remaining "SVG parse error" error message headers
 
 ## 4.3.0
