@@ -2,7 +2,7 @@
 
 'use strict';
 
-var binary = require('node-pre-gyp'),
+var binary = require('@mapbox/node-pre-gyp'),
     path = require('path'),
     bindingPath = binary.find(path.resolve(__dirname, '..', 'package.json')),
     program = path.join(path.dirname(bindingPath), 'bin', 'mapnik-index'),

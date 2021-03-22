@@ -291,7 +291,9 @@ struct AsyncEncode : Napi::AsyncWorker
         {
             std::string& str = *result_;
             auto buffer = Napi::Buffer<char>::New(
-                env, &str[0], str.size(),
+                env,
+                str.empty() ? nullptr : &str[0],
+                str.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                     if (str_ptr != nullptr)
                     {
@@ -331,7 +333,9 @@ Napi::Value ImageView::encodeSync(Napi::CallbackInfo const& info)
             result = std::make_unique<std::string>(save_to_string(*image_, format));
         std::string& str = *result;
         auto buffer = Napi::Buffer<char>::New(
-            env, &str[0], str.size(),
+            env,
+            str.empty() ? nullptr : &str[0],
+            str.size(),
             [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                 if (str_ptr != nullptr)
                 {

@@ -474,7 +474,9 @@ struct AsyncBlend : Napi::AsyncWorker
         {
             std::string& str = *output_buffer_;
             auto buffer = Napi::Buffer<char>::New(
-                env, &str[0], str.size(),
+                env,
+                str.empty() ? nullptr : &str[0],
+                str.size(),
                 [](Napi::Env env_, char* /*unused*/, std::string* str_ptr) {
                     if (str_ptr != nullptr)
                     {
