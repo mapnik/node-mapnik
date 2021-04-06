@@ -68,7 +68,7 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     Image* im = Napi::ObjectWrap<Image>::Unwrap(obj);
     if (im->impl()->width() <= 0 || im->impl()->height() <= 0)
     {
-        Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Image width and height must be greater than zero").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
@@ -262,7 +262,7 @@ Napi::Value VectorTile::addImage(Napi::CallbackInfo const& info)
     Image* im = Napi::ObjectWrap<Image>::Unwrap(obj);
     if (im->impl()->width() <= 0 || im->impl()->height() <= 0)
     {
-        Napi::Error::New(env, "Image width and height must be greater then zero").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Image width and height must be greater than zero").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 

@@ -154,7 +154,7 @@ struct AsyncResize : Napi::AsyncWorker
             image_out_->set_scaling(scaling);
             if (offset_width_ <= 0 || offset_height_ <= 0)
             {
-                SetError("Image width or height is zero or less then zero.");
+                SetError("Image width or height is zero or less than zero.");
                 return;
             }
 
@@ -252,7 +252,7 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
             auto width_tmp = info[0].As<Napi::Number>().Int32Value();
             if (width_tmp <= 0)
             {
-                Napi::TypeError::New(env, "Width must be a integer greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "Width must be an integer greater than zero").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             width = static_cast<std::size_t>(width_tmp);
@@ -267,7 +267,7 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
             auto height_tmp = info[1].As<Napi::Number>().Int32Value();
             if (height_tmp <= 0)
             {
-                Napi::TypeError::New(env, "Height must be a integer greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "Height must be an integer greater than zero").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             height = static_cast<std::size_t>(height_tmp);
@@ -326,7 +326,7 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
         offset_width = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_width <= 0.0)
         {
-            Napi::TypeError::New(env, "optional arg 'offset_width' must be a integer greater then zero").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "optional arg 'offset_width' must be an integer greater than zero").ThrowAsJavaScriptException();
             return env.Undefined();
         }
     }
@@ -341,7 +341,7 @@ Napi::Value Image::resize(Napi::CallbackInfo const& info)
         offset_height = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_height <= 0.0)
         {
-            Napi::TypeError::New(env, "optional arg 'offset_height' must be a integer greater then zero").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "optional arg 'offset_height' must be an integer greater than zero").ThrowAsJavaScriptException();
             return env.Undefined();
         }
     }
@@ -428,7 +428,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             int width_tmp = info[0].As<Napi::Number>().Int32Value();
             if (width_tmp <= 0)
             {
-                Napi::TypeError::New(env, "Width parameter must be an integer greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "Width parameter must be an integer greater than zero").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             width = static_cast<std::size_t>(width_tmp);
@@ -444,7 +444,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
             int height_tmp = info[1].As<Napi::Number>().Int32Value();
             if (height_tmp <= 0)
             {
-                Napi::TypeError::New(env, "Height parameter must be an integer greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "Height parameter must be an integer greater than zero").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
             height = static_cast<std::size_t>(height_tmp);
@@ -504,7 +504,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         offset_width = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_width <= 0.0)
         {
-            Napi::TypeError::New(env, "optional arg 'offset_width' must be a integer greater then zero").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "optional arg 'offset_width' must be an integer greater than zero").ThrowAsJavaScriptException();
             return env.Undefined();
         }
     }
@@ -519,7 +519,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
         offset_height = bind_opt.As<Napi::Number>().DoubleValue();
         if (offset_height <= 0.0)
         {
-            Napi::TypeError::New(env, "optional arg 'offset_height' must be a integer greater then zero").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "optional arg 'offset_height' must be an integer greater than zero").ThrowAsJavaScriptException();
             return env.Undefined();
         }
     }
@@ -564,7 +564,7 @@ Napi::Value Image::resizeSync(Napi::CallbackInfo const& info)
     }
     if (offset_width <= 0 || offset_height <= 0)
     {
-        Napi::TypeError::New(env, "Image width or height is zero or less then zero.").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "Image width or height is zero or less than zero.").ThrowAsJavaScriptException();
         return env.Undefined();
     }
     try
