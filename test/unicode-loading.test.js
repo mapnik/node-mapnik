@@ -18,7 +18,7 @@ function xmlWithFont(font) {
   var val = '<Map><Style name="text"><Rule>';
   val += '<TextSymbolizer size="12" face-name="' + font + '"><![CDATA[[name]]]></TextSymbolizer>';
   val += '</Rule></Style>';
-  val += '<Layer name="text" srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">';
+  val += '<Layer name="text" srs="epsg:4326">';
   val += '<StyleName>text</StyleName>';
   val += '<Datasource>'
   val += '<Parameter name="type">csv</Parameter>';

@@ -100,7 +100,7 @@ test('should have settable properties', (assert) => {
     assert.deepEqual(map.extent,world);
   }
 
-  assert.equal(map.srs, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
+  assert.equal(map.srs, "epsg:4326");
   assert.throws(function() { map.srs = 100; });
   map.srs = 'epsg:3857';
   assert.equal(map.srs, 'epsg:3857');
@@ -128,7 +128,7 @@ test('should fail to load a stylesheet async', (assert) => {
   var map = new mapnik.Map(600, 400);
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
   map.load('./test/stylesheet.xml', {base: '/DOESNOTEXIST' }, function(err, result_map) {
@@ -143,7 +143,7 @@ test('should load a stylesheet async', (assert) => {
 
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
 
@@ -167,7 +167,7 @@ test('should load a stylesheet async', (assert) => {
     var layers = result_map.layers();
     assert.equal(layers.length, 1);
     assert.equal(layers[0].name, 'world');
-    assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+    assert.equal(layers[0].srs, 'epsg:3857');
     assert.deepEqual(layers[0].styles, ['style']);
     assert.equal(layers[0].datasource.type, 'vector');
     assert.equal(layers[0].datasource.parameters().type, 'shape');
@@ -187,7 +187,7 @@ test('should load a stylesheet sync', (assert) => {
 
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
 
@@ -212,7 +212,7 @@ test('should load a stylesheet sync', (assert) => {
   var layers = map.layers();
   assert.equal(layers.length, 1);
   assert.equal(layers[0].name, 'world');
-  assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+  assert.equal(layers[0].srs, 'epsg:3857');
   assert.deepEqual(layers[0].styles, ['style']);
   assert.equal(layers[0].datasource.type, 'vector');
   assert.equal(layers[0].datasource.parameters().type, 'shape');
@@ -358,7 +358,7 @@ test('should allow access to layers', (assert) => {
   var layers = map.layers();
   assert.equal(layers.length, 1);
   assert.equal(layers[0].name, 'world');
-  assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+  assert.equal(layers[0].srs, 'epsg:3857');
   assert.deepEqual(layers[0].styles, ['style']);
   assert.equal(layers[0].datasource.type, 'vector');
   assert.equal(layers[0].datasource.parameters().type, 'shape');
