@@ -3,7 +3,6 @@
 ## 4.5.7
 - Use mapnik@d70f20757
   (SVG: restore default values in `parse_svg_value` on failure to preserve "viewport/viewBox" logic when using boost > 1.65.1)
-- Downgrade travis-ci build environment to use `precise`
 - Upgrade to boost 1.75.0
 
 ## 4.5.6
