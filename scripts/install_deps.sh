@@ -8,7 +8,7 @@ function install() {
     mason link $1 $2
 }
 
-ICU_VERSION="57.1"
+ICU_VERSION="58.1"
 BOOST_VERSION="1.75.0"
 # setup mason
 # NOTE: update the mason version inside setup.sh
