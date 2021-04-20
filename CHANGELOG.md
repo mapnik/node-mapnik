@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.5.8
+- Upgrade to mapnik@e553f55dc
+  (https://github.com/mapnik/mapnik/compare/c3eda40e0...e553f55dc)
+   - SVG: restore default values in `parse_svg_value` on failure to preserve "viewport/viewBox" logic when using boost > 1.65.1
+   - Upgrade to boost 1.75
+
 ## 4.5.6
 - Upgrade node-addon-api (>=v3.1.0)
 - Upgrade to @mapbox/node-pre-gyp >= v1.x
