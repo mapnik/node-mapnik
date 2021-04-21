@@ -66,18 +66,15 @@ fs.writeFileSync("output.geojson",JSON.stringify(geojson,null,2));
 
 For more sample code see [the tests](./test) and [sample code](https://github.com/mapnik/node-mapnik-sample-code).
 
-## Depends
+## Requirements
 
-OS|Node.js|C++ minimum requirements|OS versions
----|---|---|---
-Mac|v0.10.x, v4, v6, v8|C++11|Mac OS X > 10.10
-Linux|v0.10.x, v4, v6, v8|C++11|Ubuntu Linux > 16.04 or other Linux distributions with g++ >= 5 toolchain (>= GLIBCXX_3.4.21 from libstdc++)
-Windows|v0.10.x, v4, v6, v8|C++11|See the [Windows requirements](https://github.com/mapnik/node-mapnik#windows-specific) section
+Starting from `v4.5.0`, `node-mapnik` module is published as "universal" binaries using [node-addon-api](https://github.com/nodejs/node-addon-api)
+All Node.js versions >= 10 are known to work, consult N-API documentation for more details: https://nodejs.org/dist/latest/docs/api/n-api.html#n_api_node_api_version_matrix
 
 An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
 
 ```
-Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.21 not found (required by /node_modules/osrm/lib/binding/osrm.node)
+Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.21 not found (required by /node_modules/mapnik/lib/binding/mapnik.node)
 ```
 
 If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++ version like:
@@ -85,7 +82,7 @@ If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++
 ```
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 sudo apt-get update -y
-sudo apt-get install -y libstdc++-5-dev
+sudo apt-get install -y libstdc++-6-dev
 ```
 
 To upgrade libstdc++ on travis (without sudo) you can do:
@@ -100,7 +97,7 @@ addons:
     sources:
      - ubuntu-toolchain-r-test
     packages:
-     - libstdc++-5-dev # upgrade libstdc++ on linux to support C++11
+     - libstdc++-6-dev # upgrade libstdc++
 ```
 
 
@@ -110,33 +107,7 @@ Just do:
 
     npm install mapnik
 
-Note: This will install the latest node-mapnik 3.x series, which is recommended. There is also an [1.x series](https://github.com/mapnik/node-mapnik/tree/1.x) which maintains API compatibility with Mapnik 2.3.x and 2.2.x and a [v0.7.x series](https://github.com/mapnik/node-mapnik/tree/v0.7.x) which is not recommended unless you need to support Mapnik 2.1 or older.
-
-By default, binaries are provided for:
-
- - 64 bit OS X >= 10.10, 64 bit Linux (>= Ubuntu Trusty)
- - several node versions:
-   - [versions for Linux/Mac](<https://github.com/mapnik/node-mapnik/blob/master/.travis.yml#L19-L47>)
-
-On those platforms no external dependencies are needed.
-
-Other platforms will fall back to a source compile: see [Source Build](#source-build) for details.
-
-Binaries started being provided at node-mapnik >= 1.4.2 for OSX and Linux and at 1.4.8 for Windows. After 3.6.2 no Windows binaries are provided.
-
-### Windows specific
-
-**NOTE:** Windows binaries for the **3.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2015**:
-
-  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2015/vcredist_x64.exe>
-  - <https://mapbox.s3.amazonaws.com/windows-builds/visual-studio-runtimes/vcredist-VS2015/vcredist_x86.exe>
-
-See https://github.com/mapnik/node-mapnik/wiki/WindowsBinaries for more details.
-
-The **1.x** series require the Visual C++ Redistributable Packages for **Visual Studio 2013**:
-
- - http://www.microsoft.com/en-us/download/details.aspx?id=40784
-
+Note: This will install the latest node-mapnik 4.5.x series, which is recommended. There is also an [1.x series](https://github.com/mapnik/node-mapnik/tree/1.x) which maintains API compatibility with Mapnik 2.3.x and 2.2.x and a [v0.7.x series](https://github.com/mapnik/node-mapnik/tree/v0.7.x) which is not recommended unless you need to support Mapnik 2.1 or older.
 
 ## Source Build
 
