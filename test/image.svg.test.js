@@ -308,3 +308,15 @@ test('svg scaling', (assert) =>  {
   assert.equal(img.premultiplied(), false);
   assert.end();
 });
+
+test('svg viewBox', (assert) => {
+  var svgdata = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"/>';
+  // "em" units are not supported, use viewBox to determine viewport
+  var buffer = Buffer.from(svgdata);
+  var img = mapnik.Image.fromSVGBytesSync(buffer, {scale: 1.0});
+  assert.ok(img);
+  assert.ok(img instanceof mapnik.Image);
+  assert.equal(img.width(), 24);
+  assert.equal(img.height(), 24);
+  assert.end();
+});
