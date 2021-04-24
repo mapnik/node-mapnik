@@ -137,7 +137,7 @@ VectorTile::VectorTile(Napi::CallbackInfo const& info)
         !info[1].IsNumber() ||
         !info[2].IsNumber())
     {
-        Napi::TypeError::New(env, "required parameters (z, x, and y) must be a integers").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "required parameters (z, x, and y) must be integers").ThrowAsJavaScriptException();
         return;
     }
 
@@ -146,7 +146,7 @@ VectorTile::VectorTile(Napi::CallbackInfo const& info)
     std::int64_t y = info[2].As<Napi::Number>().Int64Value();
     if (z < 0 || x < 0 || y < 0)
     {
-        Napi::TypeError::New(env, "required parameters (z, x, and y) must be greater then or equal to zero").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "required parameters (z, x, and y) must be greater than or equal to zero").ThrowAsJavaScriptException();
         return;
     }
     std::int64_t max_at_zoom = pow(2, z);
@@ -183,7 +183,7 @@ VectorTile::VectorTile(Napi::CallbackInfo const& info)
             int tile_size_tmp = opt.As<Napi::Number>().Int32Value();
             if (tile_size_tmp <= 0)
             {
-                Napi::TypeError::New(env, "optional arg 'tile_size' must be greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "optional arg 'tile_size' must be greater than zero").ThrowAsJavaScriptException();
                 return;
             }
             tile_size = tile_size_tmp;
@@ -476,7 +476,7 @@ void VectorTile::set_tile_x(Napi::CallbackInfo const& info, const Napi::Value& v
         int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Napi::Error::New(env, "tile x coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            Napi::Error::New(env, "tile x coordinate must be greater than or equal to zero").ThrowAsJavaScriptException();
             return;
         }
         tile_->x(val);
@@ -495,7 +495,7 @@ void VectorTile::set_tile_y(Napi::CallbackInfo const& info, const Napi::Value& v
         int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Napi::Error::New(env, "tile y coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            Napi::Error::New(env, "tile y coordinate must be greater than or equal to zero").ThrowAsJavaScriptException();
             return;
         }
         tile_->y(val);
@@ -514,7 +514,7 @@ void VectorTile::set_tile_z(Napi::CallbackInfo const& info, const Napi::Value& v
         int val = value.As<Napi::Number>().Int32Value();
         if (val < 0)
         {
-            Napi::Error::New(env, "tile z coordinate must be greater then or equal to zero").ThrowAsJavaScriptException();
+            Napi::Error::New(env, "tile z coordinate must be greater than or equal to zero").ThrowAsJavaScriptException();
             return;
         }
         tile_->z(val);
@@ -533,7 +533,7 @@ void VectorTile::set_tile_size(Napi::CallbackInfo const& info, const Napi::Value
         int val = value.As<Napi::Number>().Int32Value();
         if (val <= 0)
         {
-            Napi::Error::New(env, "tile size must be greater then zero").ThrowAsJavaScriptException();
+            Napi::Error::New(env, "tile size must be greater than zero").ThrowAsJavaScriptException();
             return;
         }
         tile_->tile_size(val);

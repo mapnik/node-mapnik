@@ -740,7 +740,7 @@ test('should accept optional bufferSize', (assert) => {
   assert.throws(function() { new mapnik.VectorTile(0,0,0,{buffer_size:null});});
   assert.throws(function() { new mapnik.VectorTile(0,0,0,{buffer_size:-2048});});
   assert.throws(function() { vtile.bufferSize = 'asdf'; });
-  assert.throws(function() { vtile.bufferSize = -2048; }); // buffer size greater then tilesize supports
+  assert.throws(function() { vtile.bufferSize = -2048; }); // buffer size greater than tilesize supports
   assert.equal(vtile.bufferSize, 18);
   vtile.bufferSize = 512;
   assert.equal(vtile.bufferSize, 512);

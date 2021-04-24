@@ -266,7 +266,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
 
     if (width <= 0 || height <= 0)
     {
-        Napi::TypeError::New(env, "width and height must be greater then zero").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "width and height must be greater than zero").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 

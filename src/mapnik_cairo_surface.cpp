@@ -33,7 +33,7 @@ CairoSurface::CairoSurface(Napi::CallbackInfo const& info)
         format_ = info[0].As<Napi::String>();
         if (!info[1].IsNumber() || !info[2].IsNumber())
         {
-            Napi::TypeError::New(env, "CairoSurface 'width' and 'height' must be a integers").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "CairoSurface 'width' and 'height' must be integers").ThrowAsJavaScriptException();
             return;
         }
         width_ = info[1].As<Napi::Number>().Int32Value();

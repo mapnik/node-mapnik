@@ -113,7 +113,7 @@ Image::Image(Napi::CallbackInfo const& info)
         bool painted = false;
         if (!info[0].IsNumber() || !info[1].IsNumber())
         {
-            Napi::TypeError::New(env, "Image 'width' and 'height' must be a integers").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "Image 'width' and 'height' must be integers").ThrowAsJavaScriptException();
             return;
         }
         if (info.Length() >= 3)

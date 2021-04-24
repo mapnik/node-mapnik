@@ -165,7 +165,7 @@ Grid::Grid(Napi::CallbackInfo const& info)
     {
         if (!info[0].IsNumber() || !info[1].IsNumber())
         {
-            Napi::TypeError::New(env, "Grid 'width' and 'height' must be a integers").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "Grid 'width' and 'height' must be integers").ThrowAsJavaScriptException();
             return;
         }
 

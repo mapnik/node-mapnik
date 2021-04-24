@@ -212,7 +212,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
             scale_factor = bind_opt.As<Napi::Number>().DoubleValue();
             if (scale_factor <= 0.0)
             {
-                Napi::TypeError::New(env, "optional arg 'scale' must be greater then zero").ThrowAsJavaScriptException();
+                Napi::TypeError::New(env, "optional arg 'scale' must be greater than zero").ThrowAsJavaScriptException();
                 return env.Undefined();
             }
         }
