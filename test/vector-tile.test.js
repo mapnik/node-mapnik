@@ -185,6 +185,35 @@ test('should fail when adding bad parameters to add geoJSON', (assert) => {
   assert.end();
 });
 
+test('should accept "use_id_from_source" param when adding geojson', (assert) => {
+  var vtile = new mapnik.VectorTile(0,0,0);
+  var geojson = {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "id": 12345,
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -122,
+            48
+          ]
+        },
+        "properties": {
+          "name": "geojson data"
+        }
+      }
+    ]
+  };
+  vtile.addGeoJSON(JSON.stringify(geojson),"layer-name", { use_id_from_source: true });
+  var out = JSON.parse(vtile.toGeoJSON(0));
+  assert.equal(out.type,'FeatureCollection');
+  assert.equal(out.features.length,1);
+  assert.equal(out.features[0].id, 12345);
+  assert.end();
+});
+
 test('should be able to create a vector tile from geojson', (assert) => {
   var vtile = new mapnik.VectorTile(0,0,0);
   var geojson = {

@@ -85,6 +85,21 @@ test('should match known features', (assert) => {
   assert.end();
 });
 
+test('should accept option to use_id_from_source', (assert) => {
+  var expected = {
+    id: 12345,
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[[1,1],[2,1],[2,2],[1,2],[1,1]]]
+    }
+  };
+  var feature = new mapnik.Feature.fromJSON(JSON.stringify(expected), { use_id_from_source: true });
+  assert.equal(expected.id, feature.id());
+  assert.end();
+});
+
 test('should output the same geojson that it read', (assert) => {
   var expected = {
     type: "Feature",

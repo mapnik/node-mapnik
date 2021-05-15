@@ -1003,6 +1003,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
     bool multi_polygon_union = false;
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
     bool process_all_rings = false;
+    bool use_id_from_source = false;
 
     if (info.Length() > 2)
     {
@@ -1089,6 +1090,16 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
             }
             process_all_rings = param_val.As<Napi::Boolean>();
         }
+        if (options.Has("use_id_from_source"))
+        {
+            Napi::Value param_val = options.Get("use_id_from_source");
+            if (!param_val.IsBoolean())
+            {
+                Napi::TypeError::New(env, "option 'use_id_from_source' must be a boolean").ThrowAsJavaScriptException();
+                return env.Undefined();
+            }
+            use_id_from_source = param_val.As<Napi::Boolean>();
+        }
     }
 
     try
@@ -1099,6 +1110,7 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
         mapnik::parameters p;
         p["type"] = "geojson";
         p["inline"] = geojson_string;
+        p["use_id_from_source"] = use_id_from_source;
         mapnik::layer lyr(geojson_name, "+init=epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
         map.add_layer(lyr);
