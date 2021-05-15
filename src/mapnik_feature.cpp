@@ -76,16 +76,38 @@ Napi::Value Feature::fromJSON(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
+    Napi::Object options = Napi::Object::New(env);
 
     if (info.Length() < 1 || !info[0].IsString())
     {
         Napi::TypeError::New(env, "requires one argument: a string representing a GeoJSON feature").ThrowAsJavaScriptException();
         return env.Undefined();
     }
+    bool use_id_from_source = false;
+    if (info.Length() > 1)
+    {
+        // options object
+        if (!info[1].IsObject())
+        {
+            Napi::Error::New(env, "optional second argument must be an options object").ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+        options = info[1].As<Napi::Object>();
+        if (options.Has("use_id_from_source"))
+        {
+            Napi::Value param_val = options.Get("use_id_from_source");
+            if (!param_val.IsBoolean())
+            {
+                Napi::TypeError::New(env, "option 'use_id_from_source' must be a boolean").ThrowAsJavaScriptException();
+                return env.Undefined();
+            }
+            use_id_from_source = param_val.As<Napi::Boolean>();
+        }
+    }
     std::string json = info[0].As<Napi::String>();
     try
     {
-        mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(), 1));
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(), 1, use_id_from_source));
         if (!mapnik::json::from_geojson(json, *feature))
         {
             Napi::Error::New(env, "Failed to read GeoJSON").ThrowAsJavaScriptException();
