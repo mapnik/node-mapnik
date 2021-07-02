@@ -1,12 +1,3 @@
-[submodule "deps/wagyu"]
-	path = deps/wagyu
-	url = https://github.com/mapbox/wagyu.git
-[submodule "deps/geometry"]
-	path = deps/geometry
-	url = https://github.com/mapbox/geometry.hpp.git
-[submodule "deps/protozero"]
-	path = deps/protozero
-	url = https://github.com/mapbox/protozero.git
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/mathisloge/vcpkg
