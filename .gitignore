@@ -27,3 +27,4 @@ mason-postgis-config.env
 local-postgres/
 postgres.log
 local-unix-socket/
+package-lock.json
