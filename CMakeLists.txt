@@ -96,7 +96,29 @@ target_link_libraries(node-mapnik
     ${CMAKE_JS_LIB}
 )
 
-file(GENERATE OUTPUT mapnik_settings.js
+# post build
+set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding")
+set(MODULE_BIN_PATH "${MODULE_PATH}/bin")
+set(MODULE_FONTS_DIR "${MODULE_PATH}/mapnik/fonts")
+set(MODULE_PLUGINS_DIR "${MODULE_PATH}/mapnik/input")
+
+
+file(GENERATE OUTPUT ${MODULE_FONTS_DIR}/mapnik_settings.js
     INPUT mapnik_settings.js.in
     TARGET node-mapnik
 )
+
+file(COPY "${MAPNIK_FONTS_DIR}/" DESTINATION "${MODULE_FONTS_DIR}/")
+file(COPY "${MAPNIK_PLUGINS_DIR}/" DESTINATION "${MODULE_PLUGINS_DIR}/")
+
+
+add_custom_command(TARGET node-mapnik POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:node-mapnik>/" "${MODULE_BIN_PATH}/")
+
+find_program(PATH_MAPNIK_INDEX mapnik-index)
+find_program(PATH_SHAPEINDEX shapeindex)
+message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
+message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
+file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
+file(COPY "${PATH_SHAPEINDEX}" DESTINATION "${MODULE_BIN_PATH}/")
