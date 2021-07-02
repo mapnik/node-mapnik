@@ -315,7 +315,7 @@ Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << x << "," << y << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                  << x << "," << y << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
                 Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
@@ -334,7 +334,7 @@ Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                  << box << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
@@ -385,7 +385,7 @@ Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << x << "," << y << " from " << proj_transform_->dest().params() << " to: " << proj_transform_->source().params();
+                  << x << "," << y << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }
@@ -404,7 +404,7 @@ Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << box << " from " << proj_transform_->source().params() << " to " << proj_transform_->dest().params();
+                  << box << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }

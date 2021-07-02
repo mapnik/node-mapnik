@@ -81,10 +81,17 @@ target_include_directories(node-mapnik PRIVATE
     node_modules/mapnik-vector-tile/src
 )
 
-target_compile_definitions(node-mapnik PRIVATE _USE_MATH_DEFINES MAPNIK_GIT_REVISION=1)
+target_compile_definitions(node-mapnik PRIVATE 
+    _USE_MATH_DEFINES 
+    MAPNIK_GIT_REVISION=1 
+    MAPNIK_VECTOR_TILE_LIBRARY=1
+    NAPI_VERSION=3
+)
 
 target_link_libraries(node-mapnik 
     mapnik::core
+    mapnik::json
+    mapnik::wkt
     mapnik::mapnik
     ${CMAKE_JS_LIB}
 )
