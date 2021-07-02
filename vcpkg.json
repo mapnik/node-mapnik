@@ -1,0 +1,23 @@
+{
+  "name": "node-mapnik",
+  "version-string": "0.0.1",
+  "description": "",
+  "dependencies":[
+    "mapbox-wagyu",
+    "mapbox-geometry",
+    "protozero",
+    {
+      "name": "mapnik",
+      "features": [
+        "jpeg",
+        "png",
+        "tiff",
+        "proj",
+        "webp",
+        "cairo",
+        "input-geojson",
+        "grid-renderer"
+      ]
+    }
+  ]
+}

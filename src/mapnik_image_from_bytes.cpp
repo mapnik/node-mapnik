@@ -4,7 +4,7 @@
 #include <mapnik/image_reader.hpp> // for get_image_reader, etc
 
 #include "mapnik_image.hpp"
-
+#include <sstream>
 namespace detail {
 
 struct AsyncFromBytes : Napi::AsyncWorker
