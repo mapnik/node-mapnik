@@ -85,7 +85,7 @@ target_compile_definitions(node-mapnik PRIVATE
     _USE_MATH_DEFINES 
     MAPNIK_GIT_REVISION=1 
     MAPNIK_VECTOR_TILE_LIBRARY=1
-    NAPI_VERSION=3
+    NAPI_VERSION=${napi_build_version}
 )
 
 target_link_libraries(node-mapnik 
@@ -95,7 +95,6 @@ target_link_libraries(node-mapnik
     mapnik::mapnik
     ${CMAKE_JS_LIB}
 )
-
 # post build
 set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding")

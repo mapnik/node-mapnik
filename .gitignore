@@ -28,3 +28,4 @@ local-postgres/
 postgres.log
 local-unix-socket/
 package-lock.json
+prebuilds/
