@@ -95,3 +95,8 @@ target_link_libraries(node-mapnik
     mapnik::mapnik
     ${CMAKE_JS_LIB}
 )
+
+file(GENERATE OUTPUT mapnik_settings.js
+    INPUT mapnik_settings.js.in
+    TARGET node-mapnik
+)

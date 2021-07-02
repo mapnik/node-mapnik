@@ -28,7 +28,9 @@
         "input-raster",
         "input-shape",
         "input-sqlite",
-        "input-topojson"
+        "input-topojson",
+        "utility-mapnik-index",
+        "utility-shapeindex"
       ]
     }
   ]
