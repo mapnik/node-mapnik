@@ -1,9 +1,9 @@
 var path = require('path');
 module.exports.paths = {
-    'fonts': path.join(__dirname, 'build/vcpkg_installed/x64-windows/bin/fonts'),
-    'input_plugins': path.join(__dirname, 'build/vcpkg_installed/x64-windows/bin/mapnik/input'),
-    'mapnik_index': path.join(__dirname, 'bin/mapnik-index'),
-    'shape_index': path.join(__dirname, 'bin/shapeindex')
+    'fonts': path.join(__dirname, '@MODULE_FONTS_DIR_REL@'),
+    'input_plugins': path.join(__dirname, '@MODULE_PLUGINS_DIR_REL@'),
+    'mapnik_index': path.join(__dirname, '@MODULE_MAPNIK_INDEX_REL@'),
+    'shape_index': path.join(__dirname, '@MODULE_SHAPEINDEX_REL@')
 };
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
