@@ -7,3 +7,6 @@
 [submodule "deps/protozero"]
 	path = deps/protozero
 	url = https://github.com/mapbox/protozero.git
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/mathisloge/vcpkg
