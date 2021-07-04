@@ -8,5 +8,5 @@ module.exports.paths = {
 module.exports.env = {
     'ICU_DATA': path.join(__dirname, 'share/icu'),
     'GDAL_DATA': path.join(__dirname, 'share/gdal'),
-    'PROJ_LIB': path.join(__dirname, 'share/proj')
+    'PROJ_LIB': path.join(__dirname, '@MODULE_PROJ_PATH_REL@')
 };
