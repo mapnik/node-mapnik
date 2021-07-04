@@ -8,11 +8,11 @@
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
-    "module_name": "mapnik",
-    "module_path": "./lib/binding/",
+    "module_name": "node-mapnik",
+    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{name}/n{version}/{configuration}/{toolset}/",
-    "package_name": "{platform}-{arch}.tar.gz",
     "napi_versions": [
       3
     ]
@@ -43,8 +43,7 @@
     "bindings": "^1.5.0",
     "cmake-js": "^6.1.0",
     "mapnik-vector-tile": "^3.0.1",
-    "node-addon-api": "^3.2.1",
-    "prebuild-install": "^6.1.3"
+    "node-addon-api": "^3.2.1"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -54,17 +53,18 @@
   },
   "scripts": {
     "test": "tape test/*.test.js",
-    "install": "prebuild-install -r napi || cmake-js compile --CDCMAKE_TOOLCHAIN_FILE=\"./vcpkg/scripts/buildsystems/vcpkg.cmake\" --CNAPI_VERSION=3 --target node-mapnik",
-    "prebuild": "prebuild -r napi --all --verbose --backend cmake-js -- --CDCMAKE_TOOLCHAIN_FILE=\"./vcpkg/scripts/buildsystems/vcpkg.cmake\"",
+    "build": "cmake-js compile --CDCMAKE_TOOLCHAIN_FILE=\"./vcpkg/scripts/buildsystems/vcpkg.cmake\" --CDnapi_build_version=3 --target node-mapnik",
+    "xprebuild": "prebuild -r napi --all --verbose --backend cmake-js -- --CDCMAKE_TOOLCHAIN_FILE=\"./vcpkg/scripts/buildsystems/vcpkg.cmake\"",
+    "install": "node-pre-gyp install || npm run build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
-    "old-install": "node-pre-gyp install --fallback-to-build"
+    "package": "node-pre-gyp package",
+    "publish": "npm run package && node-pre-gyp publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
     "nyc": "^14.1.1",
-    "prebuild": "^10.0.1",
     "tape": "^4.13.3"
   },
   "jshintConfig": {
