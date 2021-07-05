@@ -112,11 +112,39 @@ add_custom_command(TARGET node-mapnik POST_BUILD
 file(COPY "${MAPNIK_FONTS_DIR}/" DESTINATION "${MODULE_FONTS_DIR}/")
 file(COPY "${MAPNIK_PLUGINS_DIR}/" DESTINATION "${MODULE_PLUGINS_DIR}/" PATTERN "*.input")
 
+# copy mapnik-index and shapeindex
+find_program(PATH_MAPNIK_INDEX mapnik-index)
+find_program(PATH_SHAPEINDEX shapeindex)
+message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
+message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
+file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
+file(COPY "${PATH_SHAPEINDEX}" DESTINATION "${MODULE_BIN_PATH}/")
+
+# write settings file
+# determine relative paths to the settings file
+file(RELATIVE_PATH MODULE_FONTS_DIR_REL "${MODULE_SETTINGS_PATH}" "${MODULE_FONTS_DIR}")
+file(RELATIVE_PATH MODULE_PLUGINS_DIR_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PLUGINS_DIR}")
+file(RELATIVE_PATH MODULE_PROJ_PATH_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PROJ_PATH}")
+
+# get mapnik-index and shapeindex name without extension
+get_filename_component(MAPNIK_INDEX_NAME "${PATH_MAPNIK_INDEX}" NAME)
+get_filename_component(SHAPEINDEX_NAME "${PATH_SHAPEINDEX}" NAME)
+# determine relative paths to the settings file for mapnik-index and shapeindex
+file(RELATIVE_PATH MODULE_MAPNIK_INDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}")
+file(RELATIVE_PATH MODULE_SHAPEINDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}")
+file(COPY "${PROJ4_DIR}/" DESTINATION "${MODULE_PROJ_PATH}/" PATTERN "*.cmake" EXCLUDE PATTERN "vcpkg_*.txt" EXCLUDE)
+# write settings file
+configure_file("mapnik_settings.js.in" "${MODULE_SETTINGS_PATH}/mapnik_settings.js")
+
+# copy dlls on windows
 if(WIN32)
     file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_install_deps.cmake CONTENT "
     file(GET_RUNTIME_DEPENDENCIES
         RESOLVED_DEPENDENCIES_VAR RESOLVED_DEPS
         UNRESOLVED_DEPENDENCIES_VAR UNRESOLVED_DEPS
+        EXECUTABLES
+            ${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}
+            ${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}
         LIBRARIES 
             ${MODULE_PLUGINS_DIR}/csv.input 
             ${MODULE_PLUGINS_DIR}/gdal.input
@@ -143,27 +171,3 @@ if(WIN32)
     ")
     add_custom_command(TARGET node-mapnik POST_BUILD COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_install_deps.cmake)
 endif()
-
-# copy mapnik-index and shapeindex
-find_program(PATH_MAPNIK_INDEX mapnik-index)
-find_program(PATH_SHAPEINDEX shapeindex)
-message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
-message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
-file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
-file(COPY "${PATH_SHAPEINDEX}" DESTINATION "${MODULE_BIN_PATH}/")
-
-# write settings file
-# determine relative paths to the settings file
-file(RELATIVE_PATH MODULE_FONTS_DIR_REL "${MODULE_SETTINGS_PATH}" "${MODULE_FONTS_DIR}")
-file(RELATIVE_PATH MODULE_PLUGINS_DIR_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PLUGINS_DIR}")
-file(RELATIVE_PATH MODULE_PROJ_PATH_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PROJ_PATH}")
-
-# get mapnik-index and shapeindex name without extension
-get_filename_component(MAPNIK_INDEX_NAME "${PATH_MAPNIK_INDEX}" NAME)
-get_filename_component(SHAPEINDEX_NAME "${PATH_SHAPEINDEX}" NAME)
-# determine relative paths to the settings file for mapnik-index and shapeindex
-file(RELATIVE_PATH MODULE_MAPNIK_INDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}")
-file(RELATIVE_PATH MODULE_SHAPEINDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}")
-file(COPY "${PROJ4_DIR}/" DESTINATION "${MODULE_PROJ_PATH}/" PATTERN "*.cmake" EXCLUDE PATTERN "vcpkg_*.txt" EXCLUDE)
-# write settings file
-configure_file("mapnik_settings.js.in" "${MODULE_SETTINGS_PATH}/mapnik_settings.js")
