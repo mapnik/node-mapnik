@@ -8,7 +8,7 @@
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
-    "module_name": "node-mapnik",
+    "module_name": "mapnik",
     "module_path": "./lib/binding/napi-v{napi_build_version}",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
