@@ -37,3 +37,5 @@ deps/protozero/test
 mason-postgis-config.env
 local.env
 postgres.log
+vcpkg
+.vscode

@@ -88,6 +88,10 @@ target_compile_definitions(node-mapnik PRIVATE
     NAPI_VERSION=${napi_build_version}
 )
 
+if(MSVC)
+    target_compile_definitions(node-mapnik PRIVATE /wd4068)
+endif()
+
 target_link_libraries(node-mapnik 
     mapnik::core
     mapnik::json
