@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
-project(node-mapnik)
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 endif()
+project(node-mapnik)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -123,8 +123,8 @@ file(COPY "${PATH_SHAPEINDEX}" DESTINATION "${MODULE_BIN_PATH}/")
 # write settings file
 # determine relative paths to the settings file
 file(RELATIVE_PATH MODULE_FONTS_DIR_REL "${MODULE_SETTINGS_PATH}" "${MODULE_FONTS_DIR}")
-file(RELATIVE_PATH MODULE_PLUGINS_DIR_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PLUGINS_DIR}")
-file(RELATIVE_PATH MODULE_PROJ_PATH_REL "${MODULE_SETTINGS_PATH} ""${MODULE_PROJ_PATH}")
+file(RELATIVE_PATH MODULE_PLUGINS_DIR_REL "${MODULE_SETTINGS_PATH}" "${MODULE_PLUGINS_DIR}")
+file(RELATIVE_PATH MODULE_PROJ_PATH_REL "${MODULE_SETTINGS_PATH}" "${MODULE_PROJ_PATH}")
 
 # get mapnik-index and shapeindex name without extension
 get_filename_component(MAPNIK_INDEX_NAME "${PATH_MAPNIK_INDEX}" NAME)

@@ -53,7 +53,7 @@
   },
   "scripts": {
     "test": "tape test/*.test.js",
-    "build": "cmake-js compile --CDCMAKE_TOOLCHAIN_FILE=\"./vcpkg/scripts/buildsystems/vcpkg.cmake\" --CDnapi_build_version=3 --target node-mapnik",
+    "build": "cmake-js compile --CDnapi_build_version=3 --target node-mapnik",
     "install": "node-pre-gyp install || npm run build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
