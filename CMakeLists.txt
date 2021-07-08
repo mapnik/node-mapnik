@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 endif()
 project(node-mapnik)
 
