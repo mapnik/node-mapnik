@@ -1,0 +1,37 @@
+{
+  "name": "node-mapnik",
+  "version-string": "0.0.1",
+  "description": "",
+  "dependencies":[
+    "mapbox-wagyu",
+    "mapbox-geometry",
+    "protozero",
+    {
+      "name": "mapnik",
+      "features": [
+        "jpeg",
+        "png",
+        "tiff",
+        "proj",
+        "webp",
+        "cairo",
+        "grid-renderer",
+        "svg-renderer",
+        "input-geojson",
+        "input-csv",
+        "input-gdal",
+        "input-geobuf",
+        "input-geojson",
+        "input-ogr",
+        "input-pgraster",
+        "input-postgis",
+        "input-raster",
+        "input-shape",
+        "input-sqlite",
+        "input-topojson",
+        "utility-mapnik-index",
+        "utility-shapeindex"
+      ]
+    }
+  ]
+}

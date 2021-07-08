@@ -9,10 +9,13 @@
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
-    "module_path": "./lib/binding/",
+    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
-    "package_name": "{platform}-{arch}.tar.gz"
+    "napi_versions": [
+      3
+    ]
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -36,9 +39,11 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.x",
-    "mapnik-vector-tile": "3.0.1",
-    "node-addon-api": "~3.1.x"
+    "@mapbox/node-pre-gyp": "^1.0.5",
+    "bindings": "^1.5.0",
+    "cmake-js": "^6.1.0",
+    "mapnik-vector-tile": "^3.0.1",
+    "node-addon-api": "^3.2.1"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -48,8 +53,13 @@
   },
   "scripts": {
     "test": "tape test/*.test.js",
-    "install": "node-pre-gyp install --fallback-to-build",
-    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
+    "clean": "node scripts/clean.js",
+    "configure": "cmake-js configure --CDnapi_build_version=3 --target node-mapnik",
+    "build": "npm run clean && npm run configure && cmake-js compile --CDnapi_build_version=3 --target node-mapnik",
+    "install": "node-pre-gyp install || npm run build",
+    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
+    "package": "node-pre-gyp package",
+    "publish": "npm run package && node-pre-gyp publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
