@@ -136,7 +136,10 @@ get_filename_component(SHAPEINDEX_NAME "${PATH_SHAPEINDEX}" NAME)
 # determine relative paths to the settings file for mapnik-index and shapeindex
 file(RELATIVE_PATH MODULE_MAPNIK_INDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}")
 file(RELATIVE_PATH MODULE_SHAPEINDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}")
-file(COPY "${PROJ4_DIR}/" DESTINATION "${MODULE_PROJ_PATH}/" PATTERN "*.cmake" EXCLUDE PATTERN "vcpkg_*.txt" EXCLUDE)
+
+# TODO: proj db dir is a bit buggy at vcpkg. needs further investigation
+# file(COPY "${PROJ_DIR}/" DESTINATION "${MODULE_PROJ_PATH}/" PATTERN "*.cmake" EXCLUDE PATTERN "vcpkg_*.txt" EXCLUDE)
+
 # write settings file
 configure_file("mapnik_settings.js.in" "${MODULE_SETTINGS_PATH}/mapnik_settings.js")
 
