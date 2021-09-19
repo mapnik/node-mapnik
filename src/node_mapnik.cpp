@@ -443,7 +443,7 @@ Napi::Object init(Napi::Env env, Napi::Object exports)
     supports.Set("webp", Napi::Boolean::New(env, false));
 #endif
 
-#if defined(MAPNIK_USE_PROJ4)
+#if defined(MAPNIK_USE_PROJ)
     supports.Set("proj4", Napi::Boolean::New(env, true));
 #else
     supports.Set("proj4", Napi::Boolean::New(env, false));
