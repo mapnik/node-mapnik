@@ -4,6 +4,10 @@ if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 project(node-mapnik)
 
+if(NOT ${napi_build_version})
+    message(FATAL_ERROR "-Dnapi_build_version not set")
+endif()
+
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE NODE_ADDON_API_DIR
@@ -13,7 +17,9 @@ string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
 
 find_path(MAPBOX_GEOMETRY_INCLUDE_DIRS "mapbox/geometry.hpp" REQUIRED)
 find_path(MAPBOX_PROTOZERO_INCLUDE_DIRS "protozero/pbf_message.hpp")
-find_package(mapnik CONFIG REQUIRED)
+find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
+mapnik_find_plugin_dir(MAPNIK_PLUGINS_DIR)
+message(STATUS "Using plugins from ${MAPNIK_PLUGINS_DIR}")
 
 add_library(node-mapnik SHARED
     src/mapnik_logger.cpp
@@ -117,8 +123,8 @@ file(COPY "${MAPNIK_FONTS_DIR}/" DESTINATION "${MODULE_FONTS_DIR}/")
 file(COPY "${MAPNIK_PLUGINS_DIR}/" DESTINATION "${MODULE_PLUGINS_DIR}/" PATTERN "*.input")
 
 # copy mapnik-index and shapeindex
-find_program(PATH_MAPNIK_INDEX mapnik-index)
-find_program(PATH_SHAPEINDEX shapeindex)
+find_program(PATH_MAPNIK_INDEX mapnik-index HINTS mapnik::mapnik-index REQUIRED NO_DEFAULT_PATH)
+find_program(PATH_SHAPEINDEX shapeindex HINTS mapnik::shapeindex REQUIRED NO_DEFAULT_PATH)
 message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
 message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
 file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
@@ -165,7 +171,7 @@ if(WIN32)
             ${MODULE_PLUGINS_DIR}/sqlite.input
             ${MODULE_PLUGINS_DIR}/topojson.input
             ${MODULE_FILE_PATH}
-        DIRECTORIES \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/\"
+        DIRECTORIES \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/$<$<CONFIG:Debug>:debug/>bin/\"
         PRE_EXCLUDE_REGEXES \"api-ms-*\" \"ext-ms-*\"
         POST_EXCLUDE_REGEXES \".*system32/.*\\\\.dll\"
     )

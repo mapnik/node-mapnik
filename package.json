@@ -54,8 +54,9 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "clean": "node scripts/clean.js",
-    "configure": "cmake-js configure --CDnapi_build_version=3 --target node-mapnik",
-    "build": "npm run clean && npm run configure && cmake-js compile --CDnapi_build_version=3 --target node-mapnik",
+    "configure": "cmake-js configure -B Release --CDnapi_build_version=3 --target node-mapnik",
+    "compile": "cmake-js compile -B Release --CDnapi_build_version=3 --target node-mapnik",
+    "build": "npm run clean && npm run configure && npm run compile",
     "install": "node-pre-gyp install || npm run build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
