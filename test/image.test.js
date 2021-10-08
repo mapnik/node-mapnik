@@ -1653,7 +1653,6 @@ test('be able to create image with zero allocation / from raw buffer', (assert) 
   var im2 = new mapnik.Image.fromBufferSync(im.width(), im.height(), data);
   // We attach `data` onto the image so that v8 will not
   // clean it up before im2 is destroyed
-  assert.equal(im2._buffer,data);
   assert.equal(im2.premultiplied(), false);
   assert.equal(0, im.compare(im2, {threshold:0}));
   im.premultiplySync();
