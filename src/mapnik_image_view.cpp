@@ -87,7 +87,9 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<ImageView>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() == 5 && info[0].IsExternal() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsNumber() && info[4].IsNumber())
+    if (info.Length() >=5 && info[0].IsExternal()
+        && info[1].IsNumber() && info[2].IsNumber()
+        && info[3].IsNumber() && info[4].IsNumber())
     {
         std::size_t x = info[1].As<Napi::Number>().Int64Value();
         std::size_t y = info[2].As<Napi::Number>().Int64Value();
@@ -98,6 +100,10 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
         {
             image_ = *ext.Data();
             image_view_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*image_, x, y, w, h));
+            if (info.Length() == 6)
+            {
+                buf_ref_ = Napi::Persistent(info[5].As<Napi::Buffer<unsigned char>>());
+            }
             return;
         }
     }

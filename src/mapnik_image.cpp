@@ -105,6 +105,20 @@ Image::Image(Napi::CallbackInfo const& info)
         if (ext) image_ = *ext.Data();
         return;
     }
+
+    if (info.Length() == 1 && info[0].IsBuffer())
+    {
+        auto buf = info[0].As<Napi::Buffer<unsigned char>>();
+        auto obj = info[0].As<Napi::Object>();
+        bool premultiplied = obj.Get("premultiplied").As<Napi::Boolean>();
+        bool painted = obj.Get("painted").As<Napi::Boolean>();
+        int width = obj.Get("width").As<Napi::Number>().Int32Value();
+        int height = obj.Get("height").As<Napi::Number>().Int32Value();
+        mapnik::image_rgba8 im_wrapper(width, height, buf.Data(), premultiplied, painted);
+        image_ = std::make_shared<mapnik::image_any>(im_wrapper);
+        buf_ref_ = Napi::Persistent(buf);
+        return;
+    }
     if (info.Length() >= 2)
     {
         mapnik::image_dtype type = mapnik::image_dtype_rgba8;
@@ -643,7 +657,11 @@ Napi::Value Image::view(Napi::CallbackInfo const& info)
     Napi::Number w = info[2].As<Napi::Number>();
     Napi::Number h = info[3].As<Napi::Number>();
     Napi::Value image_obj = Napi::External<image_ptr>::New(env, &image_);
-    Napi::Object obj = ImageView::constructor.New({image_obj, x, y, w, h });
+    if (buf_ref_.IsEmpty())
+    {
+        return scope.Escape(ImageView::constructor.New({image_obj, x, y, w, h}));
+    }
+    Napi::Object obj = ImageView::constructor.New({image_obj, x, y, w, h, buf_ref_.Value()});
     return scope.Escape(obj);
 }
 
@@ -707,7 +725,8 @@ void Image::scaling(Napi::CallbackInfo const& info, Napi::Value const& value)
 Napi::Value Image::data(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<unsigned char>::Copy(env, image_->bytes(), image_->size());
+    Napi::EscapableHandleScope scope(env);
+    if (image_) return scope.Escape(Napi::Buffer<unsigned char>::Copy(env, image_->bytes(), image_->size()));
     return info.Env().Null();
 }
 
@@ -730,6 +749,7 @@ Napi::Value Image::data(Napi::CallbackInfo const& info)
 Napi::Value Image::buffer(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    if (image_) return Napi::Buffer<unsigned char>::New(env, image_->bytes(), image_->size());
+    Napi::EscapableHandleScope scope(env);
+    if (image_) return scope.Escape(Napi::Buffer<unsigned char>::New(env, image_->bytes(), image_->size()));
     return info.Env().Null();
 }
