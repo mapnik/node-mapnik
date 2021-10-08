@@ -87,9 +87,7 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<ImageView>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() >=5 && info[0].IsExternal()
-        && info[1].IsNumber() && info[2].IsNumber()
-        && info[3].IsNumber() && info[4].IsNumber())
+    if (info.Length() >= 5 && info[0].IsExternal() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsNumber() && info[4].IsNumber())
     {
         std::size_t x = info[1].As<Napi::Number>().Int64Value();
         std::size_t y = info[2].As<Napi::Number>().Int64Value();
