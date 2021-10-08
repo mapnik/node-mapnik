@@ -1669,13 +1669,6 @@ test('be able to create image with zero allocation / from raw buffer', (assert) 
   });
   assert.equal(im3.premultiplied(), true);
   assert.equal(im3.painted(), true);
-
-  // Just for testing (not good practice) we modify data
-  // and ensure that im2._buffer also reflects the modification
-  // as another way to prove they are the same instance
-  assert.equal(im2._buffer[0],23);
-  data[0] = 99;
-  assert.equal(im2._buffer[0],99);
   assert.end();
 });
 
