@@ -123,8 +123,8 @@ file(COPY "${MAPNIK_FONTS_DIR}/" DESTINATION "${MODULE_FONTS_DIR}/")
 file(COPY "${MAPNIK_PLUGINS_DIR}/" DESTINATION "${MODULE_PLUGINS_DIR}/" PATTERN "*.input")
 
 # copy mapnik-index and shapeindex
-find_program(PATH_MAPNIK_INDEX mapnik-index HINTS mapnik::mapnik-index REQUIRED NO_DEFAULT_PATH)
-find_program(PATH_SHAPEINDEX shapeindex HINTS mapnik::shapeindex REQUIRED NO_DEFAULT_PATH)
+find_program(PATH_MAPNIK_INDEX mapnik-index HINTS $<TARGET_FILE_DIR:mapnik::mapnik-index> REQUIRED)
+find_program(PATH_SHAPEINDEX shapeindex HINTS $<TARGET_FILE_DIR:mapnik::shapeindex> REQUIRED)
 message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
 message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
 file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
