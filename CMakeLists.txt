@@ -105,28 +105,29 @@ target_link_libraries(node-mapnik
     mapnik::mapnik
     ${CMAKE_JS_LIB}
 )
+
 # post build
 set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding/napi-v${napi_build_version}")
+set(MODULE_FILE_PATH "${MODULE_PATH}/mapnik.node")
+add_custom_command(TARGET node-mapnik POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}")
+
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_create_settings.cmake CONTENT [[
+message(STATUS "creating mapnik_settings.js")
 set(MODULE_BIN_PATH "${MODULE_PATH}/bin")
 set(MODULE_SHARE_PATH "${MODULE_PATH}/share")
 set(MODULE_FONTS_DIR "${MODULE_PATH}/mapnik/fonts")
 set(MODULE_PLUGINS_DIR "${MODULE_PATH}/mapnik/input")
 set(MODULE_SETTINGS_PATH "${MODULE_PATH}")
 set(MODULE_PROJ_PATH "${MODULE_SHARE_PATH}/proj")
-set(MODULE_FILE_PATH "${MODULE_PATH}/mapnik.node")
-
-add_custom_command(TARGET node-mapnik POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}")
 
 file(COPY "${MAPNIK_FONTS_DIR}/" DESTINATION "${MODULE_FONTS_DIR}/")
 file(COPY "${MAPNIK_PLUGINS_DIR}/" DESTINATION "${MODULE_PLUGINS_DIR}/" PATTERN "*.input")
 
-# copy mapnik-index and shapeindex
 find_program(PATH_MAPNIK_INDEX mapnik-index HINTS $<TARGET_FILE_DIR:mapnik::mapnik-index> REQUIRED)
 find_program(PATH_SHAPEINDEX shapeindex HINTS $<TARGET_FILE_DIR:mapnik::shapeindex> REQUIRED)
-message(STATUS "mapnik-index: ${PATH_MAPNIK_INDEX}")
-message(STATUS "shape-index: ${PATH_SHAPEINDEX}")
+
 file(COPY "${PATH_MAPNIK_INDEX}" DESTINATION "${MODULE_BIN_PATH}/")
 file(COPY "${PATH_SHAPEINDEX}" DESTINATION "${MODULE_BIN_PATH}/")
 
@@ -143,15 +144,22 @@ get_filename_component(SHAPEINDEX_NAME "${PATH_SHAPEINDEX}" NAME)
 file(RELATIVE_PATH MODULE_MAPNIK_INDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}")
 file(RELATIVE_PATH MODULE_SHAPEINDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}")
 
-# TODO: proj db dir is a bit buggy at vcpkg. needs further investigation
-# file(COPY "${PROJ_DIR}/" DESTINATION "${MODULE_PROJ_PATH}/" PATTERN "*.cmake" EXCLUDE PATTERN "vcpkg_*.txt" EXCLUDE)
-
 # write settings file
 configure_file("mapnik_settings.js.in" "${MODULE_SETTINGS_PATH}/mapnik_settings.js")
+]])
+add_custom_command(TARGET node-mapnik POST_BUILD
+    COMMAND ${CMAKE_COMMAND} 
+        -DMODULE_PATH=${MODULE_PATH} 
+        -DMAPNIK_FONTS_DIR=${MAPNIK_FONTS_DIR} 
+        -DMAPNIK_PLUGINS_DIR=${MAPNIK_PLUGINS_DIR}
+        -P ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_create_settings.cmake  
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # copy dlls on windows
 if(WIN32)
-    file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_install_deps.cmake CONTENT "
+    file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_install_deps.cmake CONTENT [[
+    message(STATUS "copy deps")
     file(GET_RUNTIME_DEPENDENCIES
         RESOLVED_DEPENDENCIES_VAR RESOLVED_DEPS
         UNRESOLVED_DEPENDENCIES_VAR UNRESOLVED_DEPS
@@ -171,16 +179,16 @@ if(WIN32)
             ${MODULE_PLUGINS_DIR}/sqlite.input
             ${MODULE_PLUGINS_DIR}/topojson.input
             ${MODULE_FILE_PATH}
-        DIRECTORIES \"${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/$<$<CONFIG:Debug>:debug/>bin/\"
-        PRE_EXCLUDE_REGEXES \"api-ms-*\" \"ext-ms-*\"
-        POST_EXCLUDE_REGEXES \".*system32/.*\\\\.dll\"
+        DIRECTORIES "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/$<$<CONFIG:Debug>:debug/>bin/"
+        PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\\\.dll"
     )
-    foreach(dep \${RESOLVED_DEPS})
-        file(COPY \${dep} DESTINATION ${MODULE_PATH})
+    foreach(dep ${RESOLVED_DEPS})
+        file(COPY ${dep} DESTINATION ${MODULE_PATH})
     endforeach()
-    foreach(dep \${UNRESOLVED_DEPS})
-        message(WARNING \"Runtime dependency \${dep} could not be resolved.\")
+    foreach(dep ${UNRESOLVED_DEPS})
+        message(WARNING "Runtime dependency ${dep} could not be resolved.")
     endforeach()
-    ")
+    ]])
     add_custom_command(TARGET node-mapnik POST_BUILD COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_install_deps.cmake)
 endif()
