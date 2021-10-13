@@ -36,7 +36,7 @@ Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports, napi_pr
  * @throws {Error} the projection could not be initialized - it was not found
  * in proj4's tables or the string was malformed
  * @example
- * var wgs84 = new mapnik.Projection('+init=epsg:4326');
+ * var wgs84 = new mapnik.Projection('epsg:4326');
  */
 
 Projection::Projection(Napi::CallbackInfo const& info)
@@ -87,7 +87,7 @@ Projection::Projection(Napi::CallbackInfo const& info)
  * @param {Array<number>} position as [x, y] or extent as [minx,miny,maxx,maxy]
  * @returns {Array<number>} projected coordinates
  * @example
- * var merc = new mapnik.Projection('+init=epsg:3857');
+ * var merc = new mapnik.Projection('epsg:3857');
  * var long_lat_coords = [-122.33517, 47.63752];
  * var projected = merc.forward(long_lat_coords);
  */
@@ -315,7 +315,7 @@ Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << x << "," << y << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
+                  << x << "," << y << " " << proj_transform_->definition();
                 Napi::Error::New(env, s.str().c_str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
@@ -334,7 +334,7 @@ Napi::Value ProjTransform::forward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to forward project "
-                  << box << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
+                  << box << " " << proj_transform_->definition();
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Undefined();
             }
@@ -385,7 +385,7 @@ Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << x << "," << y << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
+                  << x << "," << y << " " << proj_transform_->definition();
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }
@@ -404,7 +404,7 @@ Napi::Value ProjTransform::backward(Napi::CallbackInfo const& info)
             {
                 std::ostringstream s;
                 s << "Failed to back project "
-                  << box << " from " /*<< proj_transform_->source().params() << " to " << proj_transform_->dest().params()*/;
+                  << box << " " << proj_transform_->definition();
                 Napi::Error::New(env, s.str()).ThrowAsJavaScriptException();
                 return env.Null();
             }

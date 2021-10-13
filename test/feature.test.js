@@ -184,8 +184,8 @@ test('should be able to create feature from geojson and turn back into geojson',
   assert.deepEqual(geom.extent(),[ 1, 1, 2, 2 ]);
   var expected_geom = JSON.stringify(expected.geometry);
   assert.equal(expected_geom,geom.toJSON());
-  var source_proj = new mapnik.Projection('+init=epsg:4326');
-  var dest_proj = new mapnik.Projection('+init=epsg:3857');
+  var source_proj = new mapnik.Projection('epsg:4326');
+  var dest_proj = new mapnik.Projection('epsg:3857');
   var trans = new mapnik.ProjTransform(source_proj,dest_proj);
   var transformed = geom.toJSON({transform:trans});
   assert.notEqual(expected_geom,transformed);
@@ -264,8 +264,8 @@ test('should be able to reproject geojson feature', (assert) => {
   assert.ok(Math.abs(ext[0] - expected_ext[0]) < 0.001);
   var input_geom = JSON.stringify(input.geometry);
   assert.equal(input_geom,geom.toJSON());
-  var dest_proj = new mapnik.Projection('+init=epsg:4326');
-  var source_proj = new mapnik.Projection('+init=epsg:3857');
+  var dest_proj = new mapnik.Projection('epsg:4326');
+  var source_proj = new mapnik.Projection('epsg:3857');
   var trans = new mapnik.ProjTransform(source_proj,dest_proj);
   var expected_transformed = {
     "type": "MultiPolygon",

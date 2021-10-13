@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Map srs="+init=epsg:3857">
-  <Layer name="field_shapes" status="on" srs="+init=epsg:4326">
+<Map srs="epsg:3857">
+  <Layer name="field_shapes" status="on" srs="epsg:4326">
     <Datasource>
       <Parameter name="type">postgis</Parameter>
       <Parameter name="host">localhost</Parameter>

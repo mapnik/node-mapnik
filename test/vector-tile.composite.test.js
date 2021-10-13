@@ -284,7 +284,7 @@ test('should support compositing tiles and clipping to max_extent (reencode)', (
   };
   var vtile2 = new mapnik.VectorTile(0,0,0);
   vtile2.setData(fs.readFileSync('./test/data/v6-0_0_0.mvt'));
-  var xml = '<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" background-color="#000000" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">';
+  var xml = '<Map srs="epsg:3857" background-color="#000000" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">';
   xml += vtile2.names().map(function(name) {
     var rgb = color(name).join(',');
     return util.format(map_template, name, rgb, rgb, rgb, rgb, rgb, name, name);
