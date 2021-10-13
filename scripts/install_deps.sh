@@ -8,8 +8,8 @@ function install() {
     mason link $1 $2
 }
 
-ICU_VERSION="57.1"
-
+ICU_VERSION="58.1"
+BOOST_VERSION="1.75.0"
 # setup mason
 # NOTE: update the mason version inside setup.sh
 ./scripts/setup.sh --config local.env
@@ -27,10 +27,10 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     install cairo 1.14.8
     install webp 0.6.0
     install libgdal 2.1.3
-    install boost 1.74.0
-    install boost_libsystem 1.74.0
-    install boost_libfilesystem 1.74.0
-    install boost_libregex_icu57 1.74.0
+    install boost ${BOOST_VERSION}
+    install boost_libsystem ${BOOST_VERSION}
+    install boost_libfilesystem ${BOOST_VERSION}
+    install boost_libregex_icu57 ${BOOST_VERSION}
     install freetype 2.7.1
     install harfbuzz 1.4.2-ft
 
@@ -38,5 +38,5 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # NOTE: sync this version with the `mapnik_version` in package.json (which is used for windows builds)
     # In the future we could pull from that version automatically if mason were to support knowing the right dep
     # versions to install automatically. Until then there is not much point since the deps are still hardcoded here.
-    install mapnik c6fc956a7
+    install mapnik e553f55dc
 fi
