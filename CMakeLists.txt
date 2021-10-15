@@ -156,6 +156,8 @@ if(WIN32)
             ${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}
             ${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}
         LIBRARIES 
+            ${MODULE_FILE_PATH}
+        MODULES 
             ${MODULE_PLUGINS_DIR}/csv.input 
             ${MODULE_PLUGINS_DIR}/gdal.input
             ${MODULE_PLUGINS_DIR}/geobuf.input
@@ -167,7 +169,6 @@ if(WIN32)
             ${MODULE_PLUGINS_DIR}/shape.input
             ${MODULE_PLUGINS_DIR}/sqlite.input
             ${MODULE_PLUGINS_DIR}/topojson.input
-            ${MODULE_FILE_PATH}
         DIRECTORIES "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/$<$<CONFIG:Debug>:debug/>bin/"
         PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
         POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
