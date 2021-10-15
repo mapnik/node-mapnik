@@ -21,7 +21,7 @@ find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 mapnik_find_plugin_dir(MAPNIK_PLUGINS_DIR)
 message(STATUS "Using plugins from ${MAPNIK_PLUGINS_DIR}")
 
-add_library(node-mapnik SHARED
+add_library(node-mapnik MODULE
     src/mapnik_logger.cpp
     src/node_mapnik.cpp
     src/blend.cpp
@@ -155,9 +155,8 @@ if(WIN32)
         EXECUTABLES
             ${MODULE_BIN_PATH}/${MAPNIK_INDEX_NAME}
             ${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}
-        LIBRARIES 
-            ${MODULE_FILE_PATH}
         MODULES 
+            ${MODULE_FILE_PATH}
             ${MODULE_PLUGINS_DIR}/csv.input 
             ${MODULE_PLUGINS_DIR}/gdal.input
             ${MODULE_PLUGINS_DIR}/geobuf.input
