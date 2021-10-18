@@ -268,13 +268,14 @@ struct AsyncEncode : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
     // ctor
-    AsyncEncode(ImageView * obj, image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+    AsyncEncode(ImageView* obj, image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
         : Base(callback),
           obj_(obj),
           image_view_(image_view),
           palette_(palette),
           format_(format)
-    {}
+    {
+    }
     ~AsyncEncode() {}
     void OnWorkComplete(Napi::Env env, napi_status status) override
     {
@@ -320,8 +321,9 @@ struct AsyncEncode : Napi::AsyncWorker
         }
         return Base::GetResult(env);
     }
+
   private:
-    ImageView * obj_;
+    ImageView* obj_;
     image_view_ptr image_view_;
     palette_ptr palette_;
     std::string format_;

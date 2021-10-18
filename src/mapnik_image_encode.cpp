@@ -56,7 +56,7 @@ struct AsyncEncode : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
     // ctor
-    AsyncEncode(Image * obj, image_ptr image, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+    AsyncEncode(Image* obj, image_ptr image, palette_ptr palette, std::string const& format, Napi::Function const& callback)
         : Base(callback),
           obj_(obj),
           image_(image),
@@ -111,7 +111,7 @@ struct AsyncEncode : Napi::AsyncWorker
     }
 
   private:
-    Image * obj_;
+    Image* obj_;
     image_ptr image_;
     palette_ptr palette_;
     std::string format_;
