@@ -36,7 +36,7 @@ static bool hexToUInt32Color(char const* hex, std::uint32_t& value)
 {
     if (!hex) return false;
     std::size_t len_original = strlen(hex);
-    // Return is the length of the string is less then six
+    // Return if the length of the string is less than six
     // otherwise the line after this could go to some other
     // pointer in memory, resulting in strange behaviours.
     if (len_original < 6) return false;
