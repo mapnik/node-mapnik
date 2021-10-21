@@ -1,7 +1,7 @@
 # Changelog
 
-## 4.5.9-dev2 (WIP)
-- Image - fix object lifetimes (#978)
+## 4.5.9
+- Image - fix object lifetimes/scopes in relevant async methods (#978)
 
 ## 4.5.8
 - Upgrade to mapnik@e553f55dc
