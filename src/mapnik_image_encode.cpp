@@ -216,6 +216,8 @@ Napi::Value Image::encode(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
+    // Increment reference count here to ensure 'Image' object is not GC'ed during async op.
+    // `Unref()` is called on completion in `OnWorkComplete`
     this->Ref();
     auto* worker = new AsyncEncode{this, image_, palette, format, callback};
     worker->Queue();
