@@ -106,14 +106,13 @@ Image::Image(Napi::CallbackInfo const& info)
         return;
     }
 
-    if (info.Length() == 1 && info[0].IsBuffer())
+    if (info.Length() == 5 && info[0].IsBuffer() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsBoolean() && info[4].IsBoolean())
     {
         auto buf = info[0].As<Napi::Buffer<unsigned char>>();
-        auto obj = info[0].As<Napi::Object>();
-        bool premultiplied = obj.Get("premultiplied").As<Napi::Boolean>();
-        bool painted = obj.Get("painted").As<Napi::Boolean>();
-        int width = obj.Get("width").As<Napi::Number>().Int32Value();
-        int height = obj.Get("height").As<Napi::Number>().Int32Value();
+        int width = info[1].As<Napi::Number>().Int32Value();
+        int height = info[2].As<Napi::Number>().Int32Value();
+        bool premultiplied = info[3].As<Napi::Boolean>();
+        bool painted = info[4].As<Napi::Boolean>();
         mapnik::image_rgba8 im_wrapper(width, height, buf.Data(), premultiplied, painted);
         image_ = std::make_shared<mapnik::image_any>(im_wrapper);
         buf_ref_ = Napi::Persistent(buf);

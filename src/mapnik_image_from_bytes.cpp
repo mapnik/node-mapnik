@@ -335,11 +335,11 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
 
     try
     {
-        obj.Set("width", width);
-        obj.Set("height", height);
-        obj.Set("premultiplied", premultiplied);
-        obj.Set("painted", painted);
-        Napi::Object image_obj = constructor.New({obj});
+        Napi::Object image_obj = constructor.New({obj,
+                                                  Napi::Number::New(env, width),
+                                                  Napi::Number::New(env, height),
+                                                  Napi::Boolean::New(env, premultiplied),
+                                                  Napi::Boolean::New(env, painted)});
         return scope.Escape(image_obj);
     }
     catch (std::exception const& ex)
