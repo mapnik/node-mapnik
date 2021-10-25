@@ -25,6 +25,8 @@ for (var name in mapnik.compositeOp) {
   })(name); // jshint ignore:line
 }
 
+// Ensure `composite` op can correctly stitch images together into larger output image
+// and test `view` pixels are identical to those in `input` images
 test('should stitch input images correctly', (assert) => {
   var input = [ [mapnik.Image.open('test/support/a.png'), 0,     0],
                 [mapnik.Image.open('test/support/b.png'), 256,   0],
