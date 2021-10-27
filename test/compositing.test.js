@@ -25,6 +25,8 @@ for (var name in mapnik.compositeOp) {
   })(name); // jshint ignore:line
 }
 
+// Ensure `composite` op can correctly stitch images together into larger output image
+// and test `view` pixels are identical to those in `input` images
 test('should stitch input images correctly', (assert) => {
   var input = [ [mapnik.Image.open('test/support/a.png'), 0,     0],
                 [mapnik.Image.open('test/support/b.png'), 256,   0],
@@ -38,25 +40,24 @@ test('should stitch input images correctly', (assert) => {
     output_image.composite(item[0], {dx: item[1], dy: item[2]}, function(err) {
       if (err) throw err;
       assert.ok(output_image);
-    });
-  });
-  var views = [output_image.view(0, 0, 256, 256),
-               output_image.view(256, 0, 256, 256),
-               output_image.view(256, 256, 256, 256),
-               output_image.view(0, 256, 256, 256)];
+      var views = [output_image.view(0, 0, 256, 256),
+                   output_image.view(256, 0, 256, 256),
+                   output_image.view(256, 256, 256, 256),
+                   output_image.view(0, 256, 256, 256)];
 
-  views.forEach(function(view, index) {
-    var equals = true;
-    for (var x = 0; x < view.width(); ++x) {
-      for (var y = 0; y < view.height(); ++y) {
-        if (view.getPixel(x, y) != input[index][0].getPixel(x, y)) {
-          equals = false;
-          break;
+      views.forEach(function(view, index) {
+        var equals = true;
+        for (var x = 0; x < view.width(); ++x) {
+          for (var y = 0; y < view.height(); ++y) {
+            if (view.getPixel(x, y) != input[index][0].getPixel(x, y)) {
+              equals = false;
+              break;
+            }
+          }
         }
-      }
-    }
-    output_image.save("output.png");
-    assert.equal(equals, true);
+        assert.equal(equals, true);
+      });
+    });
   });
   assert.end();
 });

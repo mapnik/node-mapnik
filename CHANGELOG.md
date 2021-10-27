@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.5.9
+- Image - fix object lifetimes/scopes in relevant async methods (#978)
+
 ## 4.5.8
 - Upgrade to mapnik@e553f55dc
   (https://github.com/mapnik/mapnik/compare/c3eda40e0...e553f55dc)

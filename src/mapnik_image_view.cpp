@@ -87,7 +87,7 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
     : Napi::ObjectWrap<ImageView>(info)
 {
     Napi::Env env = info.Env();
-    if (info.Length() == 5 && info[0].IsExternal() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsNumber() && info[4].IsNumber())
+    if (info.Length() >= 5 && info[0].IsExternal() && info[1].IsNumber() && info[2].IsNumber() && info[3].IsNumber() && info[4].IsNumber())
     {
         std::size_t x = info[1].As<Napi::Number>().Int64Value();
         std::size_t y = info[2].As<Napi::Number>().Int64Value();
@@ -98,6 +98,10 @@ ImageView::ImageView(Napi::CallbackInfo const& info)
         {
             image_ = *ext.Data();
             image_view_ = std::make_shared<mapnik::image_view_any>(mapnik::create_view(*image_, x, y, w, h));
+            if (info.Length() == 6 && info[5].IsBuffer())
+            {
+                buf_ref_ = Napi::Persistent(info[5].As<Napi::Buffer<unsigned char>>());
+            }
             return;
         }
     }
@@ -264,12 +268,22 @@ struct AsyncEncode : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
     // ctor
-    AsyncEncode(image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+    AsyncEncode(ImageView* obj, image_view_ptr image_view, palette_ptr palette, std::string const& format, Napi::Function const& callback)
         : Base(callback),
+          obj_(obj),
           image_view_(image_view),
           palette_(palette),
           format_(format)
     {
+    }
+    ~AsyncEncode() {}
+    void OnWorkComplete(Napi::Env env, napi_status status) override
+    {
+        if (obj_ && !obj_->IsEmpty())
+        {
+            obj_->Unref();
+        }
+        Base::OnWorkComplete(env, status);
     }
     void Execute() override
     {
@@ -309,6 +323,7 @@ struct AsyncEncode : Napi::AsyncWorker
     }
 
   private:
+    ImageView* obj_;
     image_view_ptr image_view_;
     palette_ptr palette_;
     std::string format_;
@@ -369,7 +384,8 @@ Napi::Value ImageView::encode(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto* worker = new AsyncEncode{image_view_, palette, format, callback};
+    this->Ref();
+    auto* worker = new AsyncEncode{this, image_view_, palette, format, callback};
     worker->Queue();
     return env.Undefined();
 }

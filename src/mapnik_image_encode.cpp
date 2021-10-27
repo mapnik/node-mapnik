@@ -56,12 +56,22 @@ struct AsyncEncode : Napi::AsyncWorker
 {
     using Base = Napi::AsyncWorker;
     // ctor
-    AsyncEncode(image_ptr image, palette_ptr palette, std::string const& format, Napi::Function const& callback)
+    AsyncEncode(Image* obj, image_ptr image, palette_ptr palette, std::string const& format, Napi::Function const& callback)
         : Base(callback),
+          obj_(obj),
           image_(image),
           palette_(palette),
           format_(format)
     {
+    }
+    ~AsyncEncode() {}
+    void OnWorkComplete(Napi::Env env, napi_status status) override
+    {
+        if (obj_ && !obj_->IsEmpty())
+        {
+            obj_->Unref();
+        }
+        Base::OnWorkComplete(env, status);
     }
     void Execute() override
     {
@@ -101,6 +111,7 @@ struct AsyncEncode : Napi::AsyncWorker
     }
 
   private:
+    Image* obj_;
     image_ptr image_;
     palette_ptr palette_;
     std::string format_;
@@ -205,7 +216,10 @@ Napi::Value Image::encode(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
     Napi::Function callback = callback_val.As<Napi::Function>();
-    auto* worker = new AsyncEncode{image_, palette, format, callback};
+    // Increment reference count here to ensure 'Image' object is not GC'ed during async op.
+    // `Unref()` is called on completion in `OnWorkComplete`
+    this->Ref();
+    auto* worker = new AsyncEncode{this, image_, palette, format, callback};
     worker->Queue();
     return env.Undefined();
 }

@@ -37,4 +37,5 @@ class ImageView : public Napi::ObjectWrap<ImageView>
     static Napi::FunctionReference constructor;
     image_view_ptr image_view_;
     image_ptr image_;
+    Napi::Reference<Napi::Buffer<unsigned char>> buf_ref_;
 };

@@ -76,4 +76,5 @@ class Image : public Napi::ObjectWrap<Image>
     static void encode_common_args_(Napi::CallbackInfo const& info, std::string& format, palette_ptr& palette);
     static Napi::Value from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_file);
     image_ptr image_;
+    Napi::Reference<Napi::Buffer<unsigned char>> buf_ref_;
 };
