@@ -2,6 +2,9 @@
 
 ## 4.5.9
 - Image - fix object lifetimes/scopes in relevant async methods (#978)
+- Add persistent Buffer reference to Image to ensure underlying buffer stays in scope (in situations when Image doesn't own underlyling data)
+- Image - update ctor and remove ad-hoc _buffer field
+- Use Napi::EscapableHandleScope in Image::buffer and Image::data
 
 ## 4.5.8
 - Upgrade to mapnik@e553f55dc
