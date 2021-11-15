@@ -59,7 +59,7 @@ test('should throw with invalid usage', (assert) => {
   }, /'scale' must be a positive non zero number/);
   assert.throws(function() {
     mapnik.Image.fromSVGSync('./test/data/vector_tile/tile0.corrupt-svg.svg');
-  }, /image created from svg must have a width and height greater then zero/);
+  }, /image created from svg must have a width and height greater than zero/);
 
   mapnik.Image.fromSVGBytes(Buffer.from('a'), { scale: 1 }, function(err, res) {
     assert.ok(err);
@@ -117,7 +117,7 @@ test('max image size blocks dimension*scale', (assert) => {
 test('should err with async file w/o width or height', (assert) => {
   mapnik.Image.fromSVG('./test/data/vector_tile/tile0.corrupt-svg.svg', function(err, svg) {
     assert.ok(err);
-    assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
+    assert.ok(err.message.match(/image created from svg must have a width and height greater than zero/));
     assert.equal(svg, undefined);
     assert.end();
   });
@@ -128,7 +128,7 @@ test('should err with async file w/o width or height as Bytes', (assert) => {
   var buffer = Buffer.from(svgdata);
   mapnik.Image.fromSVGBytes(buffer, function(err, img) {
     assert.ok(err);
-    assert.ok(err.message.match(/image created from svg must have a width and height greater then zero/));
+    assert.ok(err.message.match(/image created from svg must have a width and height greater than zero/));
     assert.equal(img, undefined);
     assert.end();
   });

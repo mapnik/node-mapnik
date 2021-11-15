@@ -266,7 +266,7 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
 
     if (width <= 0 || height <= 0)
     {
-        Napi::TypeError::New(env, "width and height must be greater then zero").ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, "width and height must be greater than zero").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
@@ -335,11 +335,11 @@ Napi::Value Image::fromBufferSync(Napi::CallbackInfo const& info)
 
     try
     {
-        mapnik::image_rgba8 im_wrapper(width, height, obj.As<Napi::Buffer<unsigned char>>().Data(), premultiplied, painted);
-        image_ptr imagep = std::make_shared<mapnik::image_any>(im_wrapper);
-        Napi::Value arg = Napi::External<image_ptr>::New(env, &imagep);
-        Napi::Object image_obj = constructor.New({arg});
-        image_obj.Set("_buffer", obj);
+        Napi::Object image_obj = constructor.New({obj,
+                                                  Napi::Number::New(env, width),
+                                                  Napi::Number::New(env, height),
+                                                  Napi::Boolean::New(env, premultiplied),
+                                                  Napi::Boolean::New(env, painted)});
         return scope.Escape(image_obj);
     }
     catch (std::exception const& ex)

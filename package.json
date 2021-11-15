@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.5.8",
+  "version": "4.5.9",
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
@@ -39,11 +39,11 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.5",
+    "@mapbox/node-pre-gyp": "^1.x",
     "bindings": "^1.5.0",
     "cmake-js": "^6.2.1",
     "mapnik-vector-tile": "file:../mapnik-vector-tile",
-    "node-addon-api": "^3.2.1"
+    "node-addon-api": "^4.2.0"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",

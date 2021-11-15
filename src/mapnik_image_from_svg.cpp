@@ -76,7 +76,7 @@ struct AsyncFromSVG : Napi::AsyncWorker
 
             if (svg_width <= 0 || svg_height <= 0)
             {
-                SetError("image created from svg must have a width and height greater then zero");
+                SetError("image created from svg must have a width and height greater than zero");
                 return;
             }
 
@@ -197,7 +197,7 @@ struct AsyncFromSVGBytes : Napi::AsyncWorker
 
             if (svg_width <= 0 || svg_height <= 0)
             {
-                SetError("image created from svg must have a width and height greater then zero");
+                SetError("image created from svg must have a width and height greater than zero");
                 return;
             }
 
@@ -397,7 +397,7 @@ Napi::Value Image::from_svg_sync_impl(Napi::CallbackInfo const& info, bool from_
 
         if (svg_width <= 0 || svg_height <= 0)
         {
-            Napi::TypeError::New(env, "image created from svg must have a width and height greater then zero").ThrowAsJavaScriptException();
+            Napi::TypeError::New(env, "image created from svg must have a width and height greater than zero").ThrowAsJavaScriptException();
             return env.Undefined();
         }
 
