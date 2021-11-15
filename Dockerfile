@@ -16,4 +16,4 @@ WORKDIR /nodemapnik
 
 RUN npm install
 
-RUN npm run demo
+RUN rm -rf build
