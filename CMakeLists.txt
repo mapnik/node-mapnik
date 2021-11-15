@@ -16,9 +16,11 @@ execute_process(COMMAND node -p "require('node-addon-api').include"
 string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
 string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
 
-find_path(MAPBOX_GEOMETRY_INCLUDE_DIRS "mapbox/geometry.hpp" REQUIRED)
-find_path(MAPBOX_PROTOZERO_INCLUDE_DIRS "protozero/pbf_message.hpp")
+add_subdirectory(deps)
 find_package(Threads REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
+pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
 find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 mapnik_find_plugin_dir(MAPNIK_PLUGINS_DIR)
 message(STATUS "Using plugins from ${MAPNIK_PLUGINS_DIR}")
@@ -84,8 +86,6 @@ set_target_properties(node-mapnik PROPERTIES PREFIX "" SUFFIX ".node")
 target_include_directories(node-mapnik PRIVATE 
     ${CMAKE_JS_INC} 
     ${NODE_ADDON_API_DIR}
-    ${MAPBOX_GEOMETRY_INCLUDE_DIRS}
-    ${MAPBOX_PROTOZERO_INCLUDE_DIRS}
     node_modules/mapnik-vector-tile/src
 )
 
@@ -105,6 +105,9 @@ target_link_libraries(node-mapnik
     mapnik::json
     mapnik::wkt
     mapnik::mapnik
+    mapbox-geometry
+    mapbox-wagyu
+    mapbox-protozero
     ${CMAKE_JS_LIB}
 )
 

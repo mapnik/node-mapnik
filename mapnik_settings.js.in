@@ -6,7 +6,7 @@ module.exports.paths = {
     'shape_index': path.join(__dirname, '@MODULE_SHAPEINDEX_REL@')
 };
 module.exports.env = {
-    'ICU_DATA': path.join(__dirname, 'share/icu'),
-    'GDAL_DATA': path.join(__dirname, 'share/gdal'),
+    'ICU_DATA': path.join(__dirname, ''),
+    'GDAL_DATA': path.join(__dirname, ''),
     'PROJ_LIB': path.join(__dirname, '@MODULE_PROJ_PATH_REL@')
 };
