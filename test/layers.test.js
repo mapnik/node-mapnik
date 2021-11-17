@@ -18,7 +18,7 @@ test('should throw with invalid usage', (assert) => {
 
 test('should initialize properly', (assert) => {
   mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
-  var layer = new mapnik.Layer('foo', '+init=epsg:4326');
+  var layer = new mapnik.Layer('foo', 'epsg:4326');
   assert.equal(layer.name, 'foo');
   layer.active = true;
   assert.equal(layer.active, true);
@@ -40,7 +40,7 @@ test('should initialize properly', (assert) => {
   assert.throws(function() { layer.maximum_scale_denominator = null; });
   assert.throws(function() { layer.queryable = null; });
   assert.throws(function() { layer.clear_label_cache = null; });
-  assert.equal(layer.srs, '+init=epsg:4326');
+  assert.equal(layer.srs, 'epsg:4326');
   assert.deepEqual(layer.styles, []);
   // will be empty/undefined
   assert.ok(!layer.datasource);
@@ -61,7 +61,7 @@ test('should initialize properly', (assert) => {
   assert.equal(meta.queryable, false);
   assert.equal(meta.clear_label_cache, false);
   assert.equal(meta.name, 'foo');
-  assert.equal(meta.srs, '+init=epsg:4326');
+  assert.equal(meta.srs, 'epsg:4326');
   assert.deepEqual(meta.styles, []);
   assert.deepEqual(meta.datasource, options);
   assert.end();

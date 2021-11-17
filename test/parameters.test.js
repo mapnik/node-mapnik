@@ -29,14 +29,14 @@ test('should be accessible from map', (assert) => {
 test('should be settable on map', (assert) => {
   var map = new mapnik.Map(1, 1);
   var actual = cleanXml(map.toXML());
-  var expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"/>\n');
+  var expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="epsg:4326"/>\n');
   assert.equal(actual, expected);
   map.parameters = {'a': 'b','bool':false, 'num': 12.2, 'num2': 1};
   actual = cleanXml(map.toXML());
   if (mapnik.versions.mapnik_number >= 300000) {
-    expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">\n    <Parameters>\n        <Parameter name="a">b</Parameter>\n    <Parameter name="bool">false</Parameter>\n    <Parameter name="num">12.2</Parameter>\n    <Parameter name="num2">1</Parameter>\n</Parameters>\n</Map>\n');
+    expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="epsg:4326">\n    <Parameters>\n        <Parameter name="a">b</Parameter>\n    <Parameter name="bool">false</Parameter>\n    <Parameter name="num">12.2</Parameter>\n    <Parameter name="num2">1</Parameter>\n</Parameters>\n</Map>\n');
   } else {
-    expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs">\n    <Parameters>\n        <Parameter name="a" type="string">b</Parameter>\n    </Parameters>\n</Map>\n');
+    expected = cleanXml('<?xml version="1.0" encoding="utf-8"?>\n<Map srs="epsg:4326">\n    <Parameters>\n        <Parameter name="a" type="string">b</Parameter>\n    </Parameters>\n</Map>\n');
   }
   assert.equal(actual, expected);
   assert.end();
