@@ -79,7 +79,7 @@
         "<!(node -e \"require('mapnik-vector-tile')\")"
       ],
       'defines': [
-          'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
+          'MAPNIK_GIT_REVISION="0"',
           'MAPNIK_VECTOR_TILE_LIBRARY=1',
       ],
       'conditions': [
@@ -91,22 +91,18 @@
         ['OS=="win"',
           {
             'include_dirs':[
-              '<!@(mapnik-config --includes)',
-              '<!@(mapnik-config --dep-includes)'
+              '<!@(pkg-config libmapnik --cflags-only-I)'
             ],
-            'defines': ['NOMINMAX','<!@(mapnik-config --defines)'],
+            'defines': ['NOMINMAX','<!@(pkg-config libmapnik --cflags-only-other)'],
             'defines!': ["_HAS_EXCEPTIONS=0"],
             'libraries': [
-              '<!@(mapnik-config --libs)',
-              'mapnik-wkt.lib',
-              'mapnik-json.lib',
-              '<!@(mapnik-config --dep-libs)',
+              '<!@(pkg-config libmapnik --libs)'
             ],
             'msvs_disabled_warnings': [ 4244,4005,4506,4345,4804,4805 ],
             'msvs_settings': {
               'VCLinkerTool': {
                 'AdditionalLibraryDirectories': [
-                  '<!@(mapnik-config --ldflags)'
+                  '<!@(pkg-config libmapnik --libs-only-L)'
                 ],
               },
             }
@@ -114,14 +110,10 @@
           {
             'cflags_cc!': ['-fno-rtti', '-fno-exceptions'],
             'cflags_cc' : [
-              '<!@(mapnik-config --cflags)',
+              '<!@(pkg-config libmapnik --cflags)',
             ],
             'libraries':[
-              '<!@(mapnik-config --libs)',
-              '-lmapnik-wkt',
-              '-lmapnik-json',
-              '<!@(mapnik-config --ldflags)',
-              '<!@(mapnik-config --dep-libs)'
+              '<!@(pkg-config libmapnik --libs)'
             ],
             'ldflags': [
               '-Wl,-z,now',
@@ -130,10 +122,10 @@
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
-                '<!@(mapnik-config --cflags)',
+                '<!@(pkg-config libmapnik --cflags)',
               ],
               'OTHER_CFLAGS':[
-                '<!@(mapnik-config --cflags)'
+                '<!@(pkg-config libmapnik --cflags)'
               ],
               'OTHER_LDFLAGS':[
                 '-Wl,-bind_at_load'

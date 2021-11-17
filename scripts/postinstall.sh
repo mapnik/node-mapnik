@@ -8,7 +8,22 @@ MAPNIK_SDK=./mason_packages/.link
 # Check if we are using Mason's mapnik
 # If not (and we are using a source install of mapnik rather than mason package)
 # then we only dump the mapnik_settings.js and then exit without copying data
-if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_SDK/bin/mapnik-config" ]]; then
+if pkg-config libmapnik --exists ; then
+    echo "
+var path = require('path');
+module.exports.paths = {
+    'fonts':         '$(pkg-config libmapnik --variable prefix)/bin/fonts',
+    'input_plugins': '$(pkg-config libmapnik --variable libdir)/mapnik/input',
+    'mapnik_index':  '$(pkg-config libmapnik --variable prefix)/bin/mapnik-index',
+    'shape_index':   '$(pkg-config libmapnik --variable prefix)/bin/shapeindex'
+};
+module.exports.env = {
+    'ICU_DATA':      '',
+    'GDAL_DATA':     '',
+    'PROJ_LIB':      ''
+};
+" > ${MODULE_PATH}/mapnik_settings.js
+elif [[ ! "$(which mapnik-config)" -ef "$MAPNIK_SDK/bin/mapnik-config" ]]; then
     echo "
 var path = require('path');
 module.exports.paths = {
