@@ -13,9 +13,7 @@
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "napi_versions": [
-      8
-    ]
+    "napi_versions": [3]
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -57,6 +55,7 @@
     "cmakeBuild": "cmake --build build --config Release",
     "build": "npm run clean && npm run cmakeConfigure && npm run cmakeBuild",
     "install": "node-pre-gyp install || npm run build",
+    "xinstall": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
     "publish": "npm run package && node-pre-gyp publish",

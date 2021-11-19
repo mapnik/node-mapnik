@@ -6,12 +6,14 @@ project(node-mapnik)
 include(FetchContent)
 
 FetchContent_Declare(
-  napi
+  napi_modules
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
-  GIT_TAG        7e6eae9a0c608b6639699cc4cd1057efb79a01a9
+  GIT_TAG        068e325e98490cb5aad6058747e5cbcb1ddab52d
 )
-FetchContent_MakeAvailable(napi)
-
+FetchContent_MakeAvailable(napi_modules)
+FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
+list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
+include(napi-gyp)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -117,7 +119,9 @@ set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding/napi-v${NAPI_VERSION}")
 set(MODULE_FILE_PATH "${MODULE_PATH}/mapnik.node")
 add_custom_command(TARGET node-mapnik POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}")
+    COMMAND ${CMAKE_COMMAND} -E rm -r "${MODULE_PATH}/"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}"
+)
 
 file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_copy.cmake CONTENT [[
 message(STATUS "creating mapnik_settings.js")
