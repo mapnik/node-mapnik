@@ -8,7 +8,7 @@ include(FetchContent)
 FetchContent_Declare(
   napi
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
-  GIT_TAG        64ee480416010c4d1c6afa451e60973cdb7ec034
+  GIT_TAG        7e6eae9a0c608b6639699cc4cd1057efb79a01a9
 )
 FetchContent_MakeAvailable(napi)
 
