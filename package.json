@@ -38,9 +38,8 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.x",
-    "bindings": "^1.5.0",
     "mapnik-vector-tile": "file:../mapnik-vector-tile",
-    "node-addon-api": "^4.2.0"
+    "node-addon-api": "4.2.0"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -50,16 +49,8 @@
   },
   "scripts": {
     "test": "tape test/*.test.js",
-    "clean": "node scripts/clean.js",
-    "cmakeConfigure": "cmake -B build -DCMAKE_BUILD_TYPE=Release",
-    "cmakeBuild": "cmake --build build --config Release",
-    "build": "npm run clean && npm run cmakeConfigure && npm run cmakeBuild",
-    "install": "node-pre-gyp install || npm run build",
-    "xinstall": "node-pre-gyp install --fallback-to-build",
-    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
-    "package": "node-pre-gyp package",
-    "publish": "npm run package && node-pre-gyp publish",
-    "demo": "node demo.js"
+    "install": "node-pre-gyp install --fallback-to-build",
+    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
