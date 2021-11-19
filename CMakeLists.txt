@@ -8,7 +8,7 @@ include(FetchContent)
 FetchContent_Declare(
   napi_modules
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
-  GIT_TAG        228cf1645f0b6e9c686967f2d9beb9a2fd74f62a
+  GIT_TAG        ed662f9c989317d4b39a50f2cdee9ef3841fd80e
 )
 FetchContent_MakeAvailable(napi_modules)
 FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
@@ -155,6 +155,9 @@ file(RELATIVE_PATH MODULE_MAPNIK_INDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_B
 file(RELATIVE_PATH MODULE_SHAPEINDEX_REL "${MODULE_SETTINGS_PATH}" "${MODULE_BIN_PATH}/${SHAPEINDEX_NAME}")
 
 # write settings file
+if(WIN32)
+    set(PROJ_DB_PATH "'PROJ_LIB': path.join(__dirname, '${MODULE_PROJ_PATH_REL}')")
+endif()
 configure_file("${SOURCE_DIR}/mapnik_settings.js.in" "${MODULE_SETTINGS_PATH}/mapnik_settings.js")
 # copy dlls on windows
 if(WIN32)

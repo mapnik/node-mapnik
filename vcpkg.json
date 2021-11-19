@@ -1,6 +1,6 @@
 {
   "name": "node-mapnik",
-  "version-string": "0.0.1",
+  "version-string": "master",
   "description": "",
   "dependencies": [
     "mapbox-wagyu",
