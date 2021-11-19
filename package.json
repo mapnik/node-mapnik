@@ -14,7 +14,7 @@
     "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
     "napi_versions": [
-      3
+      8
     ]
   },
   "bugs": {
@@ -41,7 +41,6 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.x",
     "bindings": "^1.5.0",
-    "cmake-js": "^6.2.1",
     "mapnik-vector-tile": "file:../mapnik-vector-tile",
     "node-addon-api": "^4.2.0"
   },
@@ -54,9 +53,9 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "clean": "node scripts/clean.js",
-    "configure": "cmake-js configure -B Release --CDnapi_build_version=3",
-    "compile": "cmake-js compile -B Release --CDnapi_build_version=3",
-    "build": "npm run clean && npm run configure && npm run compile",
+    "cmakeConfigure": "cmake -B build -DCMAKE_BUILD_TYPE=Release",
+    "cmakeBuild": "cmake --build build --config Release",
+    "build": "npm run clean && npm run cmakeConfigure && npm run cmakeBuild",
     "install": "node-pre-gyp install || npm run build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",

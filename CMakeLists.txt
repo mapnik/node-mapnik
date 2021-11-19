@@ -3,11 +3,15 @@ if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 endif()
 project(node-mapnik)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(FetchContent)
 
-if(NOT ${napi_build_version})
-    message(FATAL_ERROR "-Dnapi_build_version not set")
-endif()
+FetchContent_Declare(
+  napi
+  GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
+  GIT_TAG        64ee480416010c4d1c6afa451e60973cdb7ec034
+)
+FetchContent_MakeAvailable(napi)
+
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -80,11 +84,9 @@ add_library(node-mapnik MODULE
     node_modules/mapnik-vector-tile/src/vector_tile_processor.cpp
     node_modules/mapnik-vector-tile/src/vector_tile_raster_clipper.cpp
     node_modules/mapnik-vector-tile/src/vector_tile_tile.cpp
-    ${CMAKE_JS_SRC}
 )
 set_target_properties(node-mapnik PROPERTIES PREFIX "" SUFFIX ".node")
 target_include_directories(node-mapnik PRIVATE 
-    ${CMAKE_JS_INC} 
     ${NODE_ADDON_API_DIR}
     node_modules/mapnik-vector-tile/src
 )
@@ -93,7 +95,6 @@ target_compile_definitions(node-mapnik PRIVATE
     _USE_MATH_DEFINES 
     MAPNIK_GIT_REVISION=1 
     MAPNIK_VECTOR_TILE_LIBRARY=1
-    NAPI_VERSION=${napi_build_version}
 )
 
 if(MSVC)
@@ -108,12 +109,12 @@ target_link_libraries(node-mapnik
     mapbox-geometry
     mapbox-wagyu
     mapbox-protozero
-    ${CMAKE_JS_LIB}
+    node::napi
 )
 
 # post build
 set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding/napi-v${napi_build_version}")
+set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding/napi-v${NAPI_VERSION}")
 set(MODULE_FILE_PATH "${MODULE_PATH}/mapnik.node")
 add_custom_command(TARGET node-mapnik POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}")
