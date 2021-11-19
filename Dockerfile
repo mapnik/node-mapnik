@@ -11,4 +11,4 @@ RUN git clone https://github.com/mapbox/mapnik-vector-tile.git mapnik-vector-til
 
 WORKDIR /nodemapnik
 COPY . .
-RUN npm install && rm -rf build
+RUN npm install && rm -rf build*
