@@ -14,7 +14,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   mapnik_vector_tile
   GIT_REPOSITORY https://github.com/mathisloge/mapnik-vector-tile.git
-  GIT_TAG        4756896c64341c16afabb9af862d631e02ea03fa
+  GIT_TAG        eb7aa1ec3e5906072bdb83b2e3aeef5725143044
   GIT_SUBMODULES "src" # https://gitlab.kitware.com/cmake/cmake/-/issues/20579
 )
 FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
