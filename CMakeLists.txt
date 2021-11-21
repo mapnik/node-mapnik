@@ -10,7 +10,14 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
   GIT_TAG        ed662f9c989317d4b39a50f2cdee9ef3841fd80e
 )
-FetchContent_MakeAvailable(napi_modules)
+
+FetchContent_Declare(
+  mapnik_vector_tile
+  GIT_REPOSITORY https://github.com/mathisloge/mapnik-vector-tile.git
+  GIT_TAG        4756896c64341c16afabb9af862d631e02ea03fa
+  GIT_SUBMODULES "src" # https://gitlab.kitware.com/cmake/cmake/-/issues/20579
+)
+FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
 FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
 list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
 include(napi-gyp)
@@ -77,26 +84,15 @@ add_library(node-mapnik MODULE
     src/mapnik_vector_tile_clear.cpp
     src/mapnik_vector_tile_image.cpp
     src/mapnik_vector_tile_composite.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_compression.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_geometry_decoder.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_geometry_encoder_pbf.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_layer.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_processor.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_raster_clipper.cpp
-    node_modules/mapnik-vector-tile/src/vector_tile_tile.cpp
 )
 set_target_properties(node-mapnik PROPERTIES PREFIX "" SUFFIX ".node")
 target_include_directories(node-mapnik PRIVATE 
     ${NODE_ADDON_API_DIR}
-    node_modules/mapnik-vector-tile/src
 )
 
 target_compile_definitions(node-mapnik PRIVATE 
     _USE_MATH_DEFINES 
     MAPNIK_GIT_REVISION=1 
-    MAPNIK_VECTOR_TILE_LIBRARY=1
 )
 
 if(MSVC)
@@ -112,6 +108,7 @@ target_link_libraries(node-mapnik
     mapbox-wagyu
     mapbox-protozero
     node::napi
+    mapnik::mapnik-vector-tile
 )
 
 # post build

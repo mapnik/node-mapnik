@@ -7,7 +7,7 @@
             {
                 'action_name': 'configure',
                 'message': 'configuring node-mapnik...',
-                'inputs': [],
+                'inputs': ['CMakeLists.txt'],
                 'outputs': ["build/CMakeCache.txt"],
                 'action': ['cmake', '.', '-B', 'build', '-DCMAKE_BUILD_TYPE=Release', '-DNAPI_VERSION=<(napi_build_version)', '-Dnode_root_dir=<(node_root_dir)', '-Dnode_lib_file=<(node_lib_file)'],
             },

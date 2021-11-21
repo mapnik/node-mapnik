@@ -38,7 +38,6 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.x",
-    "mapnik-vector-tile": "file:../mapnik-vector-tile",
     "node-addon-api": "4.2.0"
   },
   "bin": {
