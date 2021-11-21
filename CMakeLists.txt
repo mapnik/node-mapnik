@@ -3,24 +3,34 @@ if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 endif()
 project(node-mapnik)
-include(FetchContent)
 
+set(MAPBOX_WAGYU_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/deps/wagyu/include" CACHE INTERNAL "wagyu include dir")
+set(BUILD_TESTING OFF)
+find_package(Threads REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
+pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
+find_package(Protobuf REQUIRED)
+
+include(FetchContent)
 FetchContent_Declare(
   napi_modules
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
   GIT_TAG        ed662f9c989317d4b39a50f2cdee9ef3841fd80e
 )
-
 FetchContent_Declare(
   mapnik_vector_tile
   GIT_REPOSITORY https://github.com/mathisloge/mapnik-vector-tile.git
-  GIT_TAG        eb7aa1ec3e5906072bdb83b2e3aeef5725143044
+  GIT_TAG        1f5b0d056d3403204f93fdfaf1f1cb6842090897
   GIT_SUBMODULES "src" # https://gitlab.kitware.com/cmake/cmake/-/issues/20579
 )
 FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
 FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
 list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
 include(napi-gyp)
+
+
+find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -30,11 +40,6 @@ string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
 string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
 
 add_subdirectory(deps)
-find_package(Threads REQUIRED)
-find_package(PkgConfig)
-pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
-pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
-find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 mapnik_find_plugin_dir(MAPNIK_PLUGINS_DIR)
 message(STATUS "Using plugins from ${MAPNIK_PLUGINS_DIR}")
 
