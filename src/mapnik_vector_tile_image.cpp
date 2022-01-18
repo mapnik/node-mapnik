@@ -127,8 +127,8 @@ Napi::Value VectorTile::addImageSync(Napi::CallbackInfo const& info)
     try
     {
         // create map object
-        mapnik::Map map(tile_->size(), tile_->size(), "+init=epsg:3857");
-        mapnik::layer lyr(layer_name, "+init=epsg:3857");
+        mapnik::Map map(tile_->size(), tile_->size(), "epsg:3857");
+        mapnik::layer lyr(layer_name, "epsg:3857");
         lyr.set_datasource(ds);
         map.add_layer(lyr);
 
@@ -178,8 +178,8 @@ struct AsyncAddImage : Napi::AsyncWorker
             ds->envelope(); // can be removed later, currently doesn't work with out this.
             ds->set_envelope(tile_->extent());
             // create map object
-            mapnik::Map map(tile_->size(), tile_->size(), "+init=epsg:3857");
-            mapnik::layer lyr(layer_name_, "+init=epsg:3857");
+            mapnik::Map map(tile_->size(), tile_->size(), "epsg:3857");
+            mapnik::layer lyr(layer_name_, "epsg:3857");
             lyr.set_datasource(ds);
             map.add_layer(lyr);
 

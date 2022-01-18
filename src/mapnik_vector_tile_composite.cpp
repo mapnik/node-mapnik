@@ -23,7 +23,7 @@ void _composite(tile_type target_tile,
                 std::launch threading_mode)
 {
     // create map
-    mapnik::Map map(target_tile->size(), target_tile->size(), "+init=epsg:3857");
+    mapnik::Map map(target_tile->size(), target_tile->size(), "epsg:3857");
     if (max_extent)
     {
         map.set_maximum_extent(*max_extent);
@@ -575,7 +575,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
     std::string image_format = "webp";
     mapnik::scaling_method_e scaling_method = mapnik::SCALING_BILINEAR;
     std::launch threading_mode = std::launch::deferred;
-    std::string merc_srs("+init=epsg:3857");
+    std::string merc_srs("epsg:3857");
 
     if (info.Length() > 2)
     {

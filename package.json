@@ -4,15 +4,16 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.5.9",
+  "version": "4.6.0",
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
-    "module_path": "./lib/binding/",
+    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
     "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
-    "package_name": "{platform}-{arch}.tar.gz"
+    "napi_versions": [3]
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -37,7 +38,6 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.x",
-    "mapnik-vector-tile": "3.0.1",
     "node-addon-api": "4.2.0"
   },
   "bin": {
@@ -49,7 +49,9 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
-    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
+    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
+    "package": "node-pre-gyp package",
+    "publish": "node-pre-gyp publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",

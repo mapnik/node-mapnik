@@ -1,6 +1,8 @@
 .DS_Store
 archive
 build
+build-tmp*
+build-cmake
 lib/binding
 lib/mapnik_settings.js
 node_modules
@@ -27,3 +29,5 @@ mason-postgis-config.env
 local-postgres/
 postgres.log
 local-unix-socket/
+package-lock.json
+prebuilds/

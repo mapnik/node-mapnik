@@ -33,9 +33,9 @@ test('should be initialized properly', (assert) => {
 
 test('should be initialized properly with projection', (assert) => {
   // TODO - more tests
-  var map = new mapnik.Map(25,25,'+init=epsg:3857');
+  var map = new mapnik.Map(25,25,'epsg:3857');
   assert.ok(map instanceof mapnik.Map);
-  assert.equal(map.srs, '+init=epsg:3857');
+  assert.equal(map.srs, 'epsg:3857');
   assert.end();
 });
 
@@ -100,10 +100,10 @@ test('should have settable properties', (assert) => {
     assert.deepEqual(map.extent,world);
   }
 
-  assert.equal(map.srs, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
+  assert.equal(map.srs, "epsg:4326");
   assert.throws(function() { map.srs = 100; });
-  map.srs = '+init=epsg:3857';
-  assert.equal(map.srs, '+init=epsg:3857');
+  map.srs = 'epsg:3857';
+  assert.equal(map.srs, 'epsg:3857');
 
   // Test Parameters
   assert.throws(function() { map.parameters = null; });
@@ -128,7 +128,7 @@ test('should fail to load a stylesheet async', (assert) => {
   var map = new mapnik.Map(600, 400);
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
   map.load('./test/stylesheet.xml', {base: '/DOESNOTEXIST' }, function(err, result_map) {
@@ -143,7 +143,7 @@ test('should load a stylesheet async', (assert) => {
 
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
 
@@ -167,7 +167,7 @@ test('should load a stylesheet async', (assert) => {
     var layers = result_map.layers();
     assert.equal(layers.length, 1);
     assert.equal(layers[0].name, 'world');
-    assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+    assert.equal(layers[0].srs, 'epsg:3857');
     assert.deepEqual(layers[0].styles, ['style']);
     assert.equal(layers[0].datasource.type, 'vector');
     assert.equal(layers[0].datasource.parameters().type, 'shape');
@@ -187,7 +187,7 @@ test('should load a stylesheet sync', (assert) => {
 
   assert.equal(map.width, 600);
   assert.equal(map.height, 400);
-  assert.equal(map.srs, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');
+  assert.equal(map.srs, 'epsg:4326');
   assert.equal(map.bufferSize, 0);
   assert.equal(map.maximumExtent, undefined);
 
@@ -212,7 +212,7 @@ test('should load a stylesheet sync', (assert) => {
   var layers = map.layers();
   assert.equal(layers.length, 1);
   assert.equal(layers[0].name, 'world');
-  assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+  assert.equal(layers[0].srs, 'epsg:3857');
   assert.deepEqual(layers[0].styles, ['style']);
   assert.equal(layers[0].datasource.type, 'vector');
   assert.equal(layers[0].datasource.parameters().type, 'shape');
@@ -358,7 +358,7 @@ test('should allow access to layers', (assert) => {
   var layers = map.layers();
   assert.equal(layers.length, 1);
   assert.equal(layers[0].name, 'world');
-  assert.equal(layers[0].srs, '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over');
+  assert.equal(layers[0].srs, 'epsg:3857');
   assert.deepEqual(layers[0].styles, ['style']);
   assert.equal(layers[0].datasource.type, 'vector');
   assert.equal(layers[0].datasource.parameters().type, 'shape');
@@ -388,7 +388,7 @@ test('should allow access to layers', (assert) => {
   // make a change to layer, ensure it sticks
   layer.name = 'a';
   layer.styles = ['a'];
-  layer.srs = '+init=epsg:4326';
+  layer.srs = 'epsg:4326';
   layer.datasource = new mapnik.Datasource(options);
 
   // Assert that add layer throws for bad layers

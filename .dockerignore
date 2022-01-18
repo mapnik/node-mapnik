@@ -1,0 +1,8 @@
+.vscode
+.git
+build
+build-tmp*
+node_modules
+package-lock.json
+vcpkg
+lib/binding

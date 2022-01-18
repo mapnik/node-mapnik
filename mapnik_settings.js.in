@@ -1,0 +1,10 @@
+var path = require('path');
+module.exports.paths = {
+    'fonts': path.join(__dirname, '@MODULE_FONTS_DIR_REL@'),
+    'input_plugins': path.join(__dirname, '@MODULE_PLUGINS_DIR_REL@'),
+    'mapnik_index': path.join(__dirname, '@MODULE_MAPNIK_INDEX_REL@'),
+    'shape_index': path.join(__dirname, '@MODULE_SHAPEINDEX_REL@')
+};
+module.exports.env = {
+    @PROJ_DB_PATH@
+};

@@ -175,8 +175,8 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
         return arr;
     }
 
-    mapnik::projection wgs84("+init=epsg:4326", true);
-    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::projection wgs84("epsg:4326", true);
+    mapnik::projection merc("epsg:3857", true);
     mapnik::proj_transform tr(wgs84, merc);
     double x = lon;
     double y = lat;
@@ -385,8 +385,8 @@ void _queryMany(queryMany_result& result,
 
     // Reproject query => mercator points
     mapnik::box2d<double> bbox;
-    mapnik::projection wgs84("+init=epsg:4326", true);
-    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::projection wgs84("epsg:4326", true);
+    mapnik::projection merc("epsg:3857", true);
     mapnik::proj_transform tr(wgs84, merc);
     std::vector<mapnik::coord2d> points;
     points.reserve(query.size());
