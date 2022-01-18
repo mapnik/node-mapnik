@@ -5,12 +5,16 @@ endif()
 project(node-mapnik)
 
 set(MAPBOX_WAGYU_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/deps/wagyu/include" CACHE INTERNAL "wagyu include dir")
-set(BUILD_TESTING OFF)
+
 find_package(Threads REQUIRED)
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
+find_package(Protobuf REQUIRED)
+
 pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
-find_package(Protobuf REQUIRED)
+
+# needs to be after Cairo and PROJ
+find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -28,9 +32,6 @@ FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
 FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
 list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
 include(napi-gyp)
-
-
-find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
