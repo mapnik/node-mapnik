@@ -1,26 +1,27 @@
 cmake_minimum_required(VERSION 3.15)
-if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
-endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
 project(node-mapnik)
 
 set(MAPBOX_WAGYU_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/deps/wagyu/include" CACHE INTERNAL "wagyu include dir")
 
-find_package(Threads REQUIRED)
-find_package(PkgConfig REQUIRED)
-find_package(Protobuf REQUIRED)
+set(BUILD_TESTING OFF)
 
+find_package(Threads REQUIRED)
+find_package(PkgConfig)
 pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
-
-# needs to be after Cairo and PROJ
-find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
+find_package(Protobuf REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
   napi_modules
   GIT_REPOSITORY https://github.com/mathisloge/cmake-napi.git
-  GIT_TAG        ed662f9c989317d4b39a50f2cdee9ef3841fd80e
+  GIT_TAG        cdc5203c12f7e44ccb260b315256590d54b574af
 )
 FetchContent_Declare(
   mapnik_vector_tile
@@ -32,6 +33,8 @@ FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
 FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
 list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
 include(napi-gyp)
+
+find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

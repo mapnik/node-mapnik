@@ -1,19 +1,25 @@
 {
-  "name": "mapnik",
+  "name": "@mathisloge/mapnik",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mathisloge/node-mapnik.git"
+  },
   "description": "Tile rendering library for node",
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.6.0",
+  "version": "5.0.0-devbuild5",
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
     "module_name": "mapnik",
     "module_path": "./lib/binding/napi-v{napi_build_version}",
-    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "remote_path": "v{version}",
     "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
-    "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "napi_versions": [3]
+    "host": "https://github.com/mathisloge/node-mapnik/releases/download",
+    "napi_versions": [
+      3
+    ]
   },
   "bugs": {
     "email": "dane@mapbox.com",
@@ -27,10 +33,6 @@
     "mapnik",
     "carto"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mapnik/node-mapnik.git"
-  },
   "contributors": [
     "Konstantin Käfer",
     "Blake Thompson"
@@ -50,11 +52,11 @@
     "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
-    "package": "node-pre-gyp package",
-    "publish": "node-pre-gyp publish"
+    "publish": "node-pre-gyp-github publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
+    "@mathisloge/node-pre-gyp-github": "^1.0.6",
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
     "nyc": "^14.1.1",
