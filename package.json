@@ -49,7 +49,9 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
-    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
+    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
+    "package": "node-pre-gyp package",
+    "publish": "node-pre-gyp publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
