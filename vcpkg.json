@@ -2,6 +2,7 @@
   "name": "node-mapnik",
   "version-string": "master",
   "description": "",
+  "builtin-baseline": "431d3810aa9241aed49b14367be417f225d2af5e",
   "dependencies": [
     "mapbox-wagyu",
     "mapbox-geometry",
