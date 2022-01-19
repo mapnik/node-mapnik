@@ -69,4 +69,4 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm install --build-from-source
-      - run: npm test
+      #- run: npm test
