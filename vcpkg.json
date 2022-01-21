@@ -22,7 +22,6 @@
         "input-csv",
         "input-gdal",
         "input-geobuf",
-        "input-geojson",
         "input-ogr",
         "input-pgraster",
         "input-postgis",
