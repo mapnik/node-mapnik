@@ -52,11 +52,12 @@
     "test": "tape test/*.test.js",
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
-    "publish": "node-pre-gyp-github publish"
+    "package": "node-pre-gyp package",
+    "publish": "npm run package && node-pre-gyp-github publish"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
-    "@mathisloge/node-pre-gyp-github": "^1.0.6",
+    "@mathisloge/node-pre-gyp-github": "^1.0.8",
     "aws-sdk": "2.0.12",
     "bytes": "~2.1.0",
     "nyc": "^14.1.1",
