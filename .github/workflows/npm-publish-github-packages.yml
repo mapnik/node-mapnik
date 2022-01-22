@@ -75,8 +75,7 @@ jobs:
 
       - run: npm install
 
-      - name: publish
-        run: npm publish
+      - name: upload release assets
+        run: npm run upload
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_PAT}}
           NODE_PRE_GYP_GITHUB_TOKEN: ${{secrets.NUGET_REGISTRY_PAT}}
