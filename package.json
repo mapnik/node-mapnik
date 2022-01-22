@@ -54,7 +54,7 @@
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
     "upload": "node-pre-gyp-github publish",
-    "publish": "npm run package && npm run package"
+    "publish": "npm run package && npm run upload"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
