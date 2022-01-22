@@ -64,7 +64,7 @@ if(WIN32)
         PRE_EXCLUDE_REGEXES "api-ms-*" "ext-ms-*"
         POST_EXCLUDE_REGEXES ".*system32[/\\].*\\.dll"
     )
-    file(COPY "${RESOLVED_DEPS}" DESTINATION "${MODULE_PATH}")
+    file(COPY ${RESOLVED_DEPS} DESTINATION "${MODULE_PATH}")
     message(STATUS "resolved: ${RESOLVED_DEPS}")
     message(STATUS "conflicting: ${CONFLICTING_DEPS}")
     foreach(dep ${UNRESOLVED_DEPS})

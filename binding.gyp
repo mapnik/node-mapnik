@@ -19,14 +19,7 @@
                     'message': 'Building node-mapnik...',
                     'inputs': ["build/CMakeCache.txt"],
                     'outputs': ["build/Release/mapnik.node"],
-                    'action': ['cmake', '--build', 'build', '--config Release', '--parallel 24'],
-                },
-                {
-                    'action_name': 'install',
-                    'message': 'Installing node-mapnik...',
-                    'inputs': ["build/CMakeCache.txt"],
-                    'outputs': ["<(module_path)/mapnik.node"],
-                    'action': ['cmake', '--build', 'build', '--target install'],
+                    'action': ['cmake', '--build', 'build', '--config Release', '--parallel 24', '--target install'],
                 }
             ]
         }
