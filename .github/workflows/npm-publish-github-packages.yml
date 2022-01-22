@@ -16,9 +16,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            architecture: x64
-            node_version: 16
+          #- os: windows-latest
+          #  architecture: x64
+          #  node_version: 16
 
           - os: ubuntu-latest
             mono: mono
@@ -74,7 +74,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm install
-      #- run: npm test
 
       - name: publish
         run: npm publish

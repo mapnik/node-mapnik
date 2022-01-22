@@ -53,7 +53,8 @@
     "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
-    "publish": "npm run package && node-pre-gyp-github publish"
+    "upload": "node-pre-gyp-github publish",
+    "publish": "npm run package && npm run package"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",

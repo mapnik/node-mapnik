@@ -15,14 +15,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            architecture: x64
-            node_version: 16
-
-          #- os: ubuntu-latest
-          #  mono: mono
+          #- os: windows-latest
           #  architecture: x64
           #  node_version: 16
+
+          - os: ubuntu-latest
+            mono: mono
+            architecture: x64
+            node_version: 16
 
           #- os: macos-latest
           #  mono: mono
@@ -67,8 +67,6 @@ jobs:
           node-version: ${{ matrix.node_version }}
           architecture: ${{ matrix.architecture }}
           registry-url: 'https://registry.npmjs.org'
-
-      - run: Get-PSDrive
 
       - run: npm install --build-from-source
       #- run: npm test
