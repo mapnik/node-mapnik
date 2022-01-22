@@ -1,21 +1,30 @@
 cmake_minimum_required(VERSION 3.15)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
-
 project(node-mapnik)
 
 set(MAPBOX_WAGYU_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/deps/wagyu/include" CACHE INTERNAL "wagyu include dir")
-
 set(BUILD_TESTING OFF)
+set(MAPNIK_VECTOR_TILE_ENABLE_INSTALL OFF)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+# RPATH handling for *nix systems. As we copy mapnik.so into the lib/binding/napi-v* path we need to adjust the RPATH accordingly for node-mapnik
+# use, i.e. don't skip the full RPATH for the build tree
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_INSTALL_RPATH "./lib/binding/napi-v3")
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(Cairo REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(PROJ REQUIRED IMPORTED_TARGET proj)
 find_package(Protobuf REQUIRED)
+find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -26,7 +35,7 @@ FetchContent_Declare(
 FetchContent_Declare(
   mapnik_vector_tile
   GIT_REPOSITORY https://github.com/mathisloge/mapnik-vector-tile.git
-  GIT_TAG        1f5b0d056d3403204f93fdfaf1f1cb6842090897
+  GIT_TAG        1d2198354925a23b05bc96ed11f14629691b9721
   GIT_SUBMODULES "src" # https://gitlab.kitware.com/cmake/cmake/-/issues/20579
 )
 FetchContent_MakeAvailable(mapnik_vector_tile napi_modules)
@@ -34,7 +43,6 @@ FetchContent_GetProperties(napi_modules SOURCE_DIR napi_src)
 list(APPEND CMAKE_MODULE_PATH "${napi_src}/modules")
 include(napi-gyp)
 
-find_package(mapnik CONFIG REQUIRED COMPONENTS shapeindex mapnik-index)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -94,7 +102,7 @@ add_library(node-mapnik MODULE
     src/mapnik_vector_tile_image.cpp
     src/mapnik_vector_tile_composite.cpp
 )
-set_target_properties(node-mapnik PROPERTIES PREFIX "" SUFFIX ".node")
+set_target_properties(node-mapnik PROPERTIES PREFIX "" OUTPUT_NAME "mapnik" SUFFIX ".node")
 target_include_directories(node-mapnik PRIVATE 
     ${NODE_ADDON_API_DIR}
 )
@@ -121,27 +129,32 @@ target_link_libraries(node-mapnik
 )
 
 # post build
-set(NODE_MAPNIK_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(MODULE_PATH "${NODE_MAPNIK_LIB_DIR}/binding/napi-v${NAPI_VERSION}")
-set(MODULE_FILE_PATH "${MODULE_PATH}/mapnik.node")
-add_custom_command(TARGET node-mapnik POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E rm -r "${MODULE_PATH}/"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:node-mapnik>" "${MODULE_FILE_PATH}"
-)
-
+if(EXISTS "${CMAKE_INSTALL_PREFIX}/")
+    add_custom_command(TARGET node-mapnik POST_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E rm -r "${CMAKE_INSTALL_PREFIX}/"
+    )
+endif()
 file(GENERATE 
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_copy.cmake" 
     INPUT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/post_build.cmake"
 )
-add_custom_command(TARGET node-mapnik POST_BUILD
-    COMMAND ${CMAKE_COMMAND} 
-        -DMODULE_FILE_PATH=${MODULE_FILE_PATH}
-        -DMODULE_PATH=${MODULE_PATH} 
-        -DMAPNIK_FONTS_DIR=${MAPNIK_FONTS_DIR} 
-        -DMAPNIK_PLUGINS_DIR=${MAPNIK_PLUGINS_DIR}
-        -DVCPKG_INSTALLED_DIR=${VCPKG_INSTALLED_DIR}
-        -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}
-        -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -P ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_copy.cmake
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+
+# installation
+
+
+macro(install_variable var)
+    install(CODE "set(${var} \"${${var}}\")")
+endmacro()
+
+install(TARGETS node-mapnik 
+    RUNTIME_DEPENDENCY_SET node-mapnik-deps
+    RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}"
 )
+install_variable(MAPNIK_FONTS_DIR)
+install_variable(MAPNIK_PLUGINS_DIR)
+install_variable(VCPKG_INSTALLED_DIR)
+install_variable(VCPKG_TARGET_TRIPLET)
+install(CODE "set(SOURCE_DIR \"${CMAKE_CURRENT_SOURCE_DIR}\")")
+install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_copy.cmake)
