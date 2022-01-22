@@ -8,7 +8,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "5.0.0-devbuild9",
+  "version": "5.0.0-devbuild10",
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
@@ -54,8 +54,7 @@
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik",
     "package": "node-pre-gyp package",
     "upload": "node-pre-gyp-github publish",
-    "postpublish": "npm run package && npm run upload",
-    "publish": "npm run postpublish"
+    "postpublish": "npm run package && npm run upload"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
