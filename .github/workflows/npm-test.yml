@@ -37,8 +37,8 @@ jobs:
       - name: checkout vcpkg
         uses: actions/checkout@v2
         with:
-          repository: "dg0yt/vcpkg"
-          ref: gdal-paths
+          repository: "mathisloge/vcpkg"
+          ref: test/mapnik-static
           path: vcpkg
 
       - name: "Setup vcpkg"
