@@ -8,16 +8,6 @@ set(MAPNIK_VECTOR_TILE_ENABLE_INSTALL OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-# RPATH handling for *nix systems. As we copy mapnik.so into the lib/binding/napi-v* path we need to adjust the RPATH accordingly for node-mapnik
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "./lib/binding/napi-v3")
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig)
