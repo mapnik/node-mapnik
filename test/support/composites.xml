@@ -1,4 +1,4 @@
-<Map srs="+init=epsg:4326">
+<Map srs="epsg:4326">
 
     <!--
     nik2img.py test/support/composites.xml -e -180 -60 180 60 -d 256 256 -l one -f png32 test/support/a.png
@@ -19,7 +19,7 @@
         </Rule>
     </Style>
 
-    <Layer name="one" srs="+init=epsg:4326">
+    <Layer name="one" srs="epsg:4326">
         <StyleName>one</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>
@@ -44,7 +44,7 @@
         </Rule>
     </Style>
 
-    <Layer name="two" srs="+init=epsg:4326">
+    <Layer name="two" srs="epsg:4326">
         <StyleName>two</StyleName>
         <Datasource>
             <Parameter name="type">csv</Parameter>

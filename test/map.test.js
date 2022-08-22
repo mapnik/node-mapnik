@@ -33,9 +33,9 @@ test('should be initialized properly', (assert) => {
 
 test('should be initialized properly with projection', (assert) => {
   // TODO - more tests
-  var map = new mapnik.Map(25,25,'+init=epsg:3857');
+  var map = new mapnik.Map(25,25,'epsg:3857');
   assert.ok(map instanceof mapnik.Map);
-  assert.equal(map.srs, '+init=epsg:3857');
+  assert.equal(map.srs, 'epsg:3857');
   assert.end();
 });
 
@@ -102,8 +102,8 @@ test('should have settable properties', (assert) => {
 
   assert.equal(map.srs, "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs");
   assert.throws(function() { map.srs = 100; });
-  map.srs = '+init=epsg:3857';
-  assert.equal(map.srs, '+init=epsg:3857');
+  map.srs = 'epsg:3857';
+  assert.equal(map.srs, 'epsg:3857');
 
   // Test Parameters
   assert.throws(function() { map.parameters = null; });
@@ -388,7 +388,7 @@ test('should allow access to layers', (assert) => {
   // make a change to layer, ensure it sticks
   layer.name = 'a';
   layer.styles = ['a'];
-  layer.srs = '+init=epsg:4326';
+  layer.srs = 'epsg:4326';
   layer.datasource = new mapnik.Datasource(options);
 
   // Assert that add layer throws for bad layers

@@ -93,7 +93,7 @@ test('should fail to renderFile', (assert) => {
   map.load('./test/stylesheet.xml', function(err,map) {
     if (err) throw err;
     map.zoomAll();
-    map.srs = '+init=pizza';
+    map.srs = 'pizza';
     var im = 'test/data/tmp';
     assert.throws(function() { map.renderFile(); } );
     assert.throws(function() { map.renderFile(im, null); } );

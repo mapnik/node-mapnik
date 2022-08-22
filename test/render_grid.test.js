@@ -262,7 +262,7 @@ if (mapnik.supports.grid) {
     l.datasource = ds;
     map.add_layer(l);
     map.zoomAll();
-    map.srs = '+init=PIZZA';
+    map.srs = 'PIZZA';
     var grid = new mapnik.Grid(map.width, map.height, {key: '__id__'});
     // Requires options layer
     assert.throws(function() { map.render(grid, {}, function(err, result) {}); });
