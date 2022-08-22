@@ -371,8 +371,8 @@ void layer_not_valid(protozero::pbf_reader& layer_msg,
             {
                 if (lat_lon)
                 {
-                    mapnik::projection wgs84("+init=epsg:4326", true);
-                    mapnik::projection merc("+init=epsg:3857", true);
+                    mapnik::projection wgs84("epsg:4326", true);
+                    mapnik::projection merc("epsg:3857", true);
                     mapnik::proj_transform prj_trans(merc, wgs84);
                     unsigned int n_err = 0;
                     mapnik::util::apply_visitor(
