@@ -36,9 +36,11 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.x",
+    "@mapbox/node-pre-gyp": "^1.0.9",
+    "bindings": "^1.5.0",
+    "cmake-js": "^6.3.2",
     "mapnik-vector-tile": "3.0.1",
-    "node-addon-api": "4.2.0"
+    "node-addon-api": "^5.0.0"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -47,8 +49,8 @@
     "mapnik-shapeindex.js": "bin/mapnik-shapeindex.js"
   },
   "scripts": {
+    "install": "cmake-js compile",
     "test": "tape test/*.test.js",
-    "install": "node-pre-gyp install --fallback-to-build",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
