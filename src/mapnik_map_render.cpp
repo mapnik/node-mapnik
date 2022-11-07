@@ -24,8 +24,6 @@
 #include <mapnik/grid/grid.hpp>          // for hit_grid, grid
 #include <mapnik/grid/grid_renderer.hpp> // for grid_renderer
 #endif
-// stl
-#include <future>
 
 namespace detail {
 struct agg_renderer_visitor
