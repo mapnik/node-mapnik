@@ -14,7 +14,7 @@ deps/geometry/include/mapbox/geometry.hpp:
 	git submodule update --init
 
 ./node_modules/.bin/node-pre-gyp:
-	npm install --ignore-scripts --clang
+	npm install --ignore-scripts
 
 mason_packages/.link/bin/mapnik-config:
 	./scripts/install_deps.sh
