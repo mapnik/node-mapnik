@@ -202,6 +202,25 @@ test('test empty geojson datasource', (assert) => {
   assert.end();
 });
 
+test('test geojson datasource with id are read using "use_id_from_source" param', (assert) => {
+  var input = {
+    "id": 12345,
+    "type": "Feature",
+    "properties": {
+      "something": []
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [ 1, 1 ]
+    }
+  };
+  var ds = new mapnik.Datasource({ type:'geojson', inline: JSON.stringify(input), use_id_from_source: true });
+  var fs = ds.featureset()
+  var feat = fs.next();
+  assert.equal(feat.id(), 12345);
+  assert.end();
+});
+
 test('test empty geojson datasource due to invalid json string', (assert) => {
   var input = "{ \"type\": \"FeatureCollection\", \"features\": [{ \"oofda\" } ] }";
   // from string will fail to parse
