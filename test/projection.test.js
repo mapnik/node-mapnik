@@ -5,28 +5,28 @@ var mapnik = require('../');
 
 
 test('should throw with invalid usage', (assert) => {
-  assert.throws(function() { mapnik.Projection('+init=epsg:foo'); } );
-  assert.throws(function() { new mapnik.Projection('+init=epsg:foo'); } );
+  assert.throws(function() { mapnik.Projection('epsg:foo'); } );
+  assert.throws(function() { new mapnik.Projection('epsg:foo'); } );
   assert.throws(function() { new mapnik.Projection('+proj +foo'); } );
   assert.throws(function() { new mapnik.Projection(1); });
   assert.throws(function() { new mapnik.Projection({}); });
-  assert.throws(function() { new mapnik.Projection('+init=epsg:3857', null); } );
-  assert.throws(function() { new mapnik.Projection('+init=epsg:3857', {lazy:null}); } );
+  assert.throws(function() { new mapnik.Projection('epsg:3857', null); } );
+  assert.throws(function() { new mapnik.Projection('epsg:3857', {lazy:null}); } );
   assert.end();
 });
 
 test('should initialize properly', (assert) => {
-  var wgs84 = new mapnik.Projection('+init=epsg:4326');
+  var wgs84 = new mapnik.Projection('epsg:4326');
   assert.equal(wgs84 instanceof mapnik.Projection, true);
 
   var merc;
   try {
     // perhaps we've got a savvy user?
-    merc = new mapnik.Projection('+init=epsg:900913');
+    merc = new mapnik.Projection('epsg:900913');
   }
   catch (err) {
     // newer versions of proj4 have this code which is == 900913
-    merc = new mapnik.Projection('+init=epsg:3857');
+    merc = new mapnik.Projection('epsg:3857');
   }
 
   assert.equal(merc instanceof mapnik.Projection, true,
@@ -59,7 +59,7 @@ test('should initialize properly', (assert) => {
 });
 
 test('should fail some methods with an uninitialized projection', (assert) => {
-  var wgs84 = new mapnik.Projection('+init=epsg:4326', {lazy : true});
+  var wgs84 = new mapnik.Projection('epsg:4326', {lazy : true});
   assert.equal(wgs84 instanceof mapnik.Projection, true);
   var long_lat_coords = [-122.33517, 47.63752];
   assert.throws(function() { wgs84.forward(long_lat_coords); });

@@ -319,8 +319,8 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
                       unsigned z)
 {
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer, x, y, z);
-    mapnik::projection wgs84("+init=epsg:4326", true);
-    mapnik::projection merc("+init=epsg:3857", true);
+    mapnik::projection wgs84("epsg:4326", true);
+    mapnik::projection merc("epsg:3857", true);
     mapnik::proj_transform prj_trans(merc, wgs84);
     // This mega box ensures we capture all features, including those
     // outside the tile extent. Geometries outside the tile extent are
@@ -1095,11 +1095,11 @@ Napi::Value VectorTile::addGeoJSON(Napi::CallbackInfo const& info)
     {
         // create map object
         auto tile_size = tile_->tile_size();
-        mapnik::Map map(tile_size, tile_size, "+init=epsg:3857");
+        mapnik::Map map(tile_size, tile_size, "epsg:3857");
         mapnik::parameters p;
         p["type"] = "geojson";
         p["inline"] = geojson_string;
-        mapnik::layer lyr(geojson_name, "+init=epsg:4326");
+        mapnik::layer lyr(geojson_name, "epsg:4326");
         lyr.set_datasource(mapnik::datasource_cache::instance().create(p));
         map.add_layer(lyr);
 
