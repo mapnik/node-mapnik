@@ -637,17 +637,14 @@ Napi::Value VectorTile::render(Napi::CallbackInfo const& info)
             if (layer_id.IsString())
             {
                 bool found = false;
-                unsigned int idx(0);
                 std::string layer_name = layer_id.As<Napi::String>();
                 for (mapnik::layer const& lyr : layers)
                 {
                     if (lyr.name() == layer_name)
                     {
                         found = true;
-                        //layer_idx = idx; error: Value stored to 'layer_idx' is never read [clang-analyzer-deadcode.DeadStores,-warnings-as-errors]
                         break;
                     }
-                    ++idx;
                 }
                 if (!found)
                 {
