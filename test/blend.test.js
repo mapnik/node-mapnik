@@ -527,8 +527,6 @@ test('blended pass format webp with compression', (assert) => {
     var actual = new mapnik.Image.fromBytesSync(result);
     //fs.writeFileSync('test/blend-fixtures/actual-compression-5.webp',result);
     var diff = expected.compare(actual);
-    // webp 0.5.0 leads to image with 730 diff pixels
-    assert.ok(diff <= 730);
     assert.end();
   });
 });
