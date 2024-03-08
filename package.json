@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
-  "version": "4.5.9",
+  "version": "4.6.0-dev",
   "mapnik_version": "e553f55dc",
   "main": "./lib/mapnik.js",
   "binary": {
@@ -15,7 +15,7 @@
     "package_name": "{platform}-{arch}.tar.gz"
   },
   "bugs": {
-    "email": "dane@mapbox.com",
+    "email": "artem@mapnik.org",
     "url": "http://github.com/mapnik/node-mapnik/issues"
   },
   "keywords": [
@@ -32,13 +32,14 @@
   },
   "contributors": [
     "Konstantin Käfer",
-    "Blake Thompson"
+    "Blake Thompson",
+    "Artem Pavlenko"
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.x",
-    "mapnik-vector-tile": "3.0.1",
-    "node-addon-api": "4.2.0"
+    "node-gyp-build" : "4.8.0",
+    "node-addon-api": "^8.0.0",
+    "prebuildify": "^6.0.0"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -48,7 +49,8 @@
   },
   "scripts": {
     "test": "tape test/*.test.js",
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-gyp-build",
+    "prebuildify": "prebuildify --napi --strip",
     "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
   },
   "devDependencies": {
@@ -56,7 +58,8 @@
     "aws-sdk": "^2.1043.0",
     "bytes": "~2.1.0",
     "nyc": "^15.1.0",
-    "tape": "^4.13.3"
+    "tape": "^4.13.3",
+    "node-gyp": "^10.0.1"
   },
   "jshintConfig": {
     "node": true,

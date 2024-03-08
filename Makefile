@@ -24,12 +24,12 @@ pre_build_check:
 	@echo "Looking for mapnik-config on your PATH..."
 	mapnik-config -v
 
-release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-pre-gyp
-	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --clang
+release_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-gyp
+	V=1 CXXFLAGS="-fno-omit-frame-pointer $(PROFILING_FLAG)" ./node_modules/.bin/node-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --clang
 	@echo "run 'make clean' for full rebuild"
 
-debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-pre-gyp
-	V=1 ./node_modules/.bin/node-pre-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --debug --clang
+debug_base: pre_build_check deps/geometry/include/mapbox/geometry.hpp ./node_modules/.bin/node-gyp
+	V=1 ./node_modules/.bin/node-gyp configure build --ENABLE_GLIBC_WORKAROUND=true --enable_sse=$(SSE_MATH) --loglevel=error --debug --clang
 	@echo "run 'make clean' for full rebuild"
 
 release: mason_packages/.link/bin/mapnik-config
@@ -69,8 +69,8 @@ distclean: clean
 	rm -rf .toolchain
 	rm -f local.env
 
-xcode: ./node_modules/.bin/node-pre-gyp
-	./node_modules/.bin/node-pre-gyp configure -- -f xcode
+xcode: ./node_modules/.bin/node-gyp
+	./node_modules/.bin/node-gyp configure -- -f xcode
 
 	@# If you need more targets, e.g. to run other npm scripts, duplicate the last line and change NPM_ARGUMENT
 	SCHEME_NAME="$(MODULE_NAME)" SCHEME_TYPE=library BLUEPRINT_NAME=$(MODULE_NAME) BUILDABLE_NAME=$(MODULE_NAME).node scripts/create_scheme.sh

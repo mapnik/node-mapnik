@@ -6,8 +6,8 @@
   },
   'targets': [
     {
-      'target_name': '<(module_name)',
-      'product_dir': '<(module_path)',
+      'target_name': 'mapnik',
+      'product_dir': '../lib/binding',
       'sources': [
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
@@ -54,15 +54,15 @@
         "src/mapnik_vector_tile_clear.cpp",
         "src/mapnik_vector_tile_image.cpp",
         "src/mapnik_vector_tile_composite.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_compression.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_geometry_decoder.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_geometry_encoder_pbf.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_layer.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_processor.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_raster_clipper.cpp",
-        "node_modules/mapnik-vector-tile/src/vector_tile_tile.cpp"
+        "deps/mapnik-vector-tile/src/vector_tile_compression.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_datasource_pbf.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_featureset_pbf.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_geometry_decoder.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_geometry_encoder_pbf.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_layer.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_processor.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_raster_clipper.cpp",
+        "deps/mapnik-vector-tile/src/vector_tile_tile.cpp"
       ],
       'include_dirs': [
         './mason_packages/.link/include/',
@@ -76,7 +76,7 @@
         "./deps/geometry/include/",
         "./deps/protozero/include/",
         "./deps/wagyu/include/",
-        "<!(node -e \"require('mapnik-vector-tile')\")"
+        "./deps/mapnik-vector-tile/src"
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
@@ -155,7 +155,7 @@
     {
       'target_name': 'action_after_build',
       'type': 'none',
-      'dependencies': [ '<(module_name)' ],
+      'dependencies': [ 'mapnik' ],
       'hard_dependency': 1,
       'conditions': [
         ['OS!="win"',
