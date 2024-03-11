@@ -1,6 +1,12 @@
 MODULE_NAME := $(shell node -e "console.log(require('./package.json').binary.module_name)")
 
-SSE_MATH ?= true
+ifeq ($(shell uname -p), arm)
+    auto_enable_sse=false
+else
+    auto_enable_sse=true
+endif
+
+SSE_MATH ?= $(auto_enable_sse)
 
 default: release
 
