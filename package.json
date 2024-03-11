@@ -37,8 +37,8 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node-gyp-build" : "4.8.0",
     "node-addon-api": "^8.0.0",
+    "node-gyp-build": "4.8.0",
     "prebuildify": "^6.0.0"
   },
   "bin": {
@@ -57,9 +57,9 @@
     "@mapbox/sphericalmercator": "~1.0.2",
     "aws-sdk": "^2.1043.0",
     "bytes": "~2.1.0",
+    "node-gyp": "^10.0.1",
     "nyc": "^15.1.0",
-    "tape": "^4.13.3",
-    "node-gyp": "^10.0.1"
+    "tape": "^4.13.3"
   },
   "jshintConfig": {
     "node": true,
