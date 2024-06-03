@@ -217,7 +217,7 @@ Napi::Value Map::maximumExtent(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    boost::optional<mapnik::box2d<double>> const& e = map_->maximum_extent();
+    auto const& e = map_->maximum_extent();
     if (!e) return env.Undefined();
 
     Napi::Array arr = Napi::Array::New(env, 4u);
@@ -250,14 +250,12 @@ Napi::Value Map::bufferedExtent(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    boost::optional<mapnik::box2d<double>> const& e = map_->get_buffered_extent();
-    if (!e) return env.Undefined();
-
+    auto e = map_->get_buffered_extent();
     Napi::Array arr = Napi::Array::New(env, 4u);
-    arr.Set(0u, Napi::Number::New(env, e->minx()));
-    arr.Set(1u, Napi::Number::New(env, e->miny()));
-    arr.Set(2u, Napi::Number::New(env, e->maxx()));
-    arr.Set(3u, Napi::Number::New(env, e->maxy()));
+    arr.Set(0u, Napi::Number::New(env, e.minx()));
+    arr.Set(1u, Napi::Number::New(env, e.miny()));
+    arr.Set(2u, Napi::Number::New(env, e.maxx()));
+    arr.Set(3u, Napi::Number::New(env, e.maxy()));
     return scope.Escape(arr);
 }
 
@@ -349,7 +347,7 @@ Napi::Value Map::background(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
     Napi::EscapableHandleScope scope(env);
-    boost::optional<mapnik::color> col = map_->background();
+    auto col = map_->background();
     if (col)
     {
         Napi::Value arg = Napi::External<mapnik::color>::New(env, &(*col));
@@ -551,7 +549,7 @@ Napi::Value Map::fontFiles(Napi::CallbackInfo const& info)
 Napi::Value Map::fontDirectory(Napi::CallbackInfo const& info)
 {
     Napi::Env env = info.Env();
-    boost::optional<std::string> const& font_dir = map_->font_directory();
+    auto font_dir = map_->font_directory();
     if (font_dir)
     {
         return Napi::String::New(env, *font_dir);

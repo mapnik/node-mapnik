@@ -17,7 +17,7 @@ struct AsyncOpen : Napi::AsyncWorker
 
     void Execute() override
     {
-        boost::optional<std::string> type = mapnik::type_from_filename(filename_);
+        auto type = mapnik::type_from_filename(filename_);
         if (type)
         {
             std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename_, *type));
@@ -87,7 +87,7 @@ Napi::Value Image::openSync(Napi::CallbackInfo const& info)
     try
     {
         std::string filename = info[0].As<Napi::String>();
-        boost::optional<std::string> type = mapnik::type_from_filename(filename);
+        auto type = mapnik::type_from_filename(filename);
         if (type)
         {
             std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(filename, *type));

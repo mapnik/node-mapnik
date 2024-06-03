@@ -15,7 +15,7 @@ void _composite(tile_type target_tile,
                 mapnik::vector_tile_impl::polygon_fill_type fill_type,
                 double scale_denominator,
                 bool reencode,
-                boost::optional<mapnik::box2d<double>> const& max_extent,
+                std::optional<mapnik::box2d<double>> const& max_extent,
                 double simplify_distance,
                 bool process_all_rings,
                 std::string const& image_format,
@@ -102,7 +102,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
     double scale_denominator = 0.0;
     bool reencode = false;
-    boost::optional<mapnik::box2d<double>> max_extent;
+    std::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
     bool process_all_rings = false;
     std::string image_format = "webp";
@@ -309,7 +309,7 @@ Napi::Value VectorTile::compositeSync(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
             std::string image_scaling = param_val.As<Napi::String>();
-            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            auto method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")
@@ -394,7 +394,7 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
                              mapnik::vector_tile_impl::polygon_fill_type fill_type,
                              double scale_denominator,
                              bool reencode,
-                             boost::optional<mapnik::box2d<double>> max_extent,
+                             std::optional<mapnik::box2d<double>> max_extent,
                              double simplify_distance,
                              bool process_all_rings,
                              std::string const& image_format,
@@ -468,7 +468,7 @@ struct AsyncCompositeVectorTile : Napi::AsyncWorker
     mapnik::vector_tile_impl::polygon_fill_type fill_type_;
     double scale_denominator_;
     bool reencode_;
-    boost::optional<mapnik::box2d<double>> max_extent_;
+    std::optional<mapnik::box2d<double>> max_extent_;
     double simplify_distance_;
     bool process_all_rings_;
     std::string image_format_;
@@ -569,7 +569,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
     mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::positive_fill;
     double scale_denominator = 0.0;
     bool reencode = false;
-    boost::optional<mapnik::box2d<double>> max_extent;
+    std::optional<mapnik::box2d<double>> max_extent;
     double simplify_distance = 0.0;
     bool process_all_rings = false;
     std::string image_format = "webp";
@@ -777,7 +777,7 @@ Napi::Value VectorTile::composite(Napi::CallbackInfo const& info)
                 return env.Undefined();
             }
             std::string image_scaling = param_val.As<Napi::String>();
-            boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+            auto method = mapnik::scaling_method_from_string(image_scaling);
             if (!method)
             {
                 Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')")

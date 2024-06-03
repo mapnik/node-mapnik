@@ -8,5 +8,5 @@
         path = deps/protozero
         url = https://github.com/mapbox/protozero.git
 [submodule "deps/mapnik-vector-tile"]
-	path = deps/mapnik-vector-tile
-	url = https://github.com/mapbox/mapnik-vector-tile.git
+        path = deps/mapnik-vector-tile
+        url = https://github.com/mapnik/mapnik-vector-tile.git

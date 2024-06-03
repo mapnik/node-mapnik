@@ -74,7 +74,7 @@ static void describe_datasource(Napi::Env env, Napi::Object description, mapnik:
     }
     else
     {
-        boost::optional<mapnik::datasource_geometry_t> geom_type = ds->get_geometry_type();
+        auto geom_type = ds->get_geometry_type();
         if (geom_type)
         {
             mapnik::datasource_geometry_t g_type = *geom_type;

@@ -707,7 +707,7 @@ Napi::Value Map::render(Napi::CallbackInfo const& info)
                     return env.Undefined();
                 }
                 std::string image_scaling = param_val.As<Napi::String>();
-                boost::optional<mapnik::scaling_method_e> method = mapnik::scaling_method_from_string(image_scaling);
+                auto method = mapnik::scaling_method_from_string(image_scaling);
                 if (!method)
                 {
                     Napi::TypeError::New(env, "option 'image_scaling' must be a string and a valid scaling method (e.g 'bilinear')").ThrowAsJavaScriptException();
