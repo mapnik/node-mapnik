@@ -560,21 +560,6 @@ Napi::Value VectorTile::getDataSync(Napi::CallbackInfo const& info)
     }
     return env.Undefined();
 }
-/*
-typedef struct
-{
-    uv_work_t request;
-    VectorTile* d;
-    bool error;
-    std::unique_ptr<std::string> data;
-    bool compress;
-    bool release;
-    int level;
-    int strategy;
-    std::string error_name;
-    Napi::FunctionReference cb;
-} vector_tile_get_data_baton_t;
-*/
 
 /**
  * Get the data in this vector tile as a buffer (asynchronous)
@@ -597,6 +582,7 @@ typedef struct
  *   console.log(data); // buffer
  * });
  */
+
 Napi::Value VectorTile::getData(Napi::CallbackInfo const& info)
 {
     if (info.Length() == 0 || !info[info.Length() - 1].IsFunction())
