@@ -63,7 +63,7 @@ clean:
 	# remove remains from running 'make coverage'
 	rm -f *.profraw
 	rm -f *.profdata
-	find test/ -name *actual* -exec rm {} \;
+	find test/ -name "*actual*" -exec rm {} \;
 	echo "run make distclean to also remove mason_packages and node_modules"
 
 distclean: clean
