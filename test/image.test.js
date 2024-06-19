@@ -43,6 +43,7 @@ test('should initialize image successfully with options', (assert) => {
 
 
 test('should throw with invalid encoding', (assert) => {
+  assert.plan(11);
   var im = new mapnik.Image(256, 256);
   assert.throws(function() { im.encodeSync('foo'); });
   assert.throws(function() { im.encodeSync(1); });
@@ -57,20 +58,18 @@ test('should throw with invalid encoding', (assert) => {
   im.encode('foo', {}, function(err, result) {
     assert.throws(function() { if (err) throw err; });
   });
-  assert.end();
 });
 
 
 test('should encode with a pallete', (assert) => {
   var im = new mapnik.Image(256, 256);
   var pal = new mapnik.Palette(Buffer.from('\xff\x09\x93\xFF\x01\x02\x03\x04','ascii'));
+  assert.plan(2);
   assert.ok(im.encodeSync('png', {palette:pal}));
-
   im.encode('png', {palette:pal}, function(err, result) {
     if (err) throw err;
     assert.ok(result);
   });
-  assert.end();
 });
 
 

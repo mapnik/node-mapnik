@@ -35,6 +35,7 @@ test('should stitch input images correctly', (assert) => {
 
   var output_image = new mapnik.Image(512, 512);
   output_image.premultiply();
+  assert.plan(20);
   input.forEach(function (item, index) {
     item[0].premultiply();
     output_image.composite(item[0], {dx: item[1], dy: item[2]}, function(err) {
@@ -59,7 +60,6 @@ test('should stitch input images correctly', (assert) => {
       });
     });
   });
-  assert.end();
 });
 
 test('should fail with bad parameters', (assert) => {

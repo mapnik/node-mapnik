@@ -464,7 +464,6 @@ test('should render by overzooming+jpeg+near', (assert) => {
     vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"jpeg",image_scaling:"near"},function(err,im) {
       if (err) throw err;
       var expected_file = data_base +'/expected/2-1-1.png';
-      //im.save(data_base +'/expected/2-1-1.png');
       assert.equal(0,compare_to_image(im,expected_file));
       assert.end();
     });
@@ -498,7 +497,6 @@ test('should render by overzooming+webp+biliear', (assert) => {
     vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
       if (err) throw err;
       var expected_file = data_base +'/expected/2-1-1b.png';
-      //im.save(data_base +'/expected/2-1-1b.png');
       assert.equal(0,compare_to_image(im,expected_file));
       assert.end();
     });
@@ -538,7 +536,6 @@ test('should render by overzooming+webp+biliear with threading mode auto', (asse
     vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
       if (err) throw err;
       var expected_file = data_base +'/expected/2-1-1b.png';
-      //im.save(data_base +'/expected/2-1-1b.png');
       assert.equal(0,compare_to_image(im,expected_file));
       assert.end();
     });
@@ -578,7 +575,6 @@ test('should render by overzooming+webp+biliear with threading mode async', (ass
     vtile.render(map,new mapnik.Image(256,256),{buffer_size:256,image_format:"webp",image_scaling:"bilinear"},function(err,im) {
       if (err) throw err;
       var expected_file = data_base +'/expected/2-1-1b.png';
-      //im.save(data_base +'/expected/2-1-1b.png');
       assert.equal(0,compare_to_image(im,expected_file));
       assert.end();
     });
@@ -615,7 +611,6 @@ test('should render by overzooming (drops point)', (assert) => {
   vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
     if (err) throw err;
     var expected_file = data_base +'/expected/2-1-1-no-point.png';
-    //im.save(data_base +'/expected/2-1-1-no-point.png');
     assert.equal(0,compare_to_image(im,expected_file));
     assert.end();
   });
@@ -652,7 +647,6 @@ test('should render by underzooming or mosaicing', (assert) => {
   vtile.render(map,new mapnik.Image(256,256),{buffer_size:256},function(err,im) {
     if (err) throw err;
     var expected_file = data_base +'/expected/0-0-0-mosaic.png';
-    //im.save(data_base + '/expected/0-0-0-mosaic.png');
     assert.equal(0,compare_to_image(im,expected_file));
     assert.end();
   });

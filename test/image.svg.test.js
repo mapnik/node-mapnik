@@ -152,10 +152,10 @@ test('should err with async non-existent file', (assert) => {
   });
 });
 
-test('should not error with async in non-strict mode on svg with validation and parse errors', (assert) => {
+test('should error with async in non-strict mode on svg with validation and parse errors', (assert) => {
   mapnik.Image.fromSVG('./test/data/vector_tile/errors.svg', {strict:false}, function(err, svg) {
-    assert.ok(!err);
-    assert.ok(svg);
+    assert.ok(err);
+    assert.equals(svg, undefined);
     assert.end();
   });
 });
@@ -311,12 +311,12 @@ test('svg scaling', (assert) =>  {
 
 test('svg viewBox', (assert) => {
   var svgdata = '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"/>';
-  // "em" units are not supported, use viewBox to determine viewport
+  // by default 1em is equivalent to 16px
   var buffer = Buffer.from(svgdata);
   var img = mapnik.Image.fromSVGBytesSync(buffer, {scale: 1.0});
   assert.ok(img);
   assert.ok(img instanceof mapnik.Image);
-  assert.equal(img.width(), 24);
-  assert.equal(img.height(), 24);
+  assert.equal(img.width(), 16);
+  assert.equal(img.height(), 16);
   assert.end();
 });

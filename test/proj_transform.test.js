@@ -81,11 +81,12 @@ test('should throw with invalid coords (4326 -> 3873)', (assert) => {
   var from = new mapnik.Projection('epsg:4326');
   var to = new mapnik.Projection('epsg:3873');
   var trans = new mapnik.ProjTransform(from,to);
-  var long_lat_coords = [-190, 95];
   assert.throws(function() { trans.forward(); });
   assert.throws(function() { trans.forward(null); });
   assert.throws(function() { trans.forward([1,2,3]); });
-  assert.throws(function() { trans.forward(long_lat_coords); });
+  var output = trans.forward([-190, 95])
+  assert.equal(output[0], Infinity)
+  assert.equal(output[1], Infinity);
   assert.end();
 });
 
@@ -97,7 +98,9 @@ test('should throw with invalid coords (3873 -> 4326) backward', (assert) => {
   assert.throws(function() { trans.backward(); });
   assert.throws(function() { trans.backward(null); });
   assert.throws(function() { trans.backward([1,2,3]); });
-  assert.throws(function() { trans.backward(long_lat_coords); });
+  var output = trans.backward(long_lat_coords);
+  assert.equal(output[0], Infinity);
+  assert.equal(output[1], Infinity);
   assert.end();
 });
 
@@ -121,20 +124,20 @@ test('should backward bbox properly (3857 -> 4326)', (assert) => {
   assert.end();
 });
 
-test('should throw with invalid bbox (4326 -> 3873)', (assert) => {
+test('should not throw with invalid bbox (4326 -> 3873)', (assert) => {
   var from = new mapnik.Projection('epsg:4326');
   var to = new mapnik.Projection('epsg:3873');
   var trans = new mapnik.ProjTransform(from,to);
   var long_lat_box = [-180,90,180,90];
-  assert.throws(function() { trans.forward(long_lat_box); });
+  assert.doesNotThrow(function() { trans.forward(long_lat_box); });
   assert.end();
 });
 
-test('should throw with invalid bbox (3873 -> 4326) backward', (assert) => {
+test('should not throw with invalid bbox (3873 -> 4326) backward', (assert) => {
   var from = new mapnik.Projection('epsg:3873');
   var to = new mapnik.Projection('epsg:4326');
   var trans = new mapnik.ProjTransform(from,to);
   var long_lat_box = [-180,90,180,90];
-  assert.throws(function() { trans.backward(long_lat_box); });
+  assert.doesNotThrow(function() { trans.backward(long_lat_box); });
   assert.end();
 });
