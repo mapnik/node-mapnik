@@ -64,10 +64,10 @@ else
         # copy plugins
         cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik ${MODULE_PATH}/lib/
         # copy share data
-        mkdir -p ${MODULE_PATH}/_deps/share/gdal
+        mkdir -p ${MODULE_PATH}/share/gdal
         cp -rL ${MAPNIK_DIR}/_deps/share/gdal/*.* ${MODULE_PATH}/share/gdal/
         cp -rL ${MAPNIK_DIR}/_deps/share/proj ${MODULE_PATH}/share/
-        mkdir -p ${MODULE_PATH}/_deps/share/icu
+        mkdir -p ${MODULE_PATH}/share/icu
         cp -rL ${MAPNIK_DIR}/_deps/share/icu/*/*dat ${MODULE_PATH}/share/icu/
     fi
 
