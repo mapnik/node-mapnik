@@ -2,9 +2,9 @@
 
 'use strict';
 
-var binary = require('@mapbox/node-pre-gyp'),
+var binary = require('node-gyp-build'),
     path = require('path'),
-    bindingPath = binary.find(path.resolve(__dirname, '..', 'package.json')),
+    bindingPath = binary.path(),
     program = path.join(path.dirname(bindingPath), 'bin', 'mapnik-index'),
     spawn = require('child_process').spawn,
     fs = require('fs');
