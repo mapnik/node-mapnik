@@ -2,7 +2,6 @@
   'includes': [ 'common.gypi' ],
   'variables': {
       'ENABLE_GLIBC_WORKAROUND%':'false', # can be overriden by a command line variable because of the % sign
-      'enable_sse%':'true'
   },
   'targets': [
     {
@@ -65,14 +64,8 @@
         "deps/mapnik-vector-tile/src/vector_tile_tile.cpp"
       ],
       'include_dirs': [
-        './mason_packages/.link/include/',
-        './mason_packages/.link/include/freetype2',
-        './mason_packages/.link/include/cairo',
-        './mason_packages/.link/include/mapnik',
         './src',
         "<!@(node -p \"require('node-addon-api').include\")",
-        # TODO: move these to mason packages once we have a minimal windows client for mason (@springmeyer)
-        # https://github.com/mapbox/mason/issues/396
         "./deps/geometry/include/",
         "./deps/protozero/include/",
         "./deps/wagyu/include/",
@@ -83,6 +76,9 @@
           'MAPNIK_VECTOR_TILE_LIBRARY=1',
       ],
       'conditions': [
+        ['"<!@(uname -p)"=="x86_64"',{
+           'defines' : [ 'SSE_MATH' ]
+        }],
         ['ENABLE_GLIBC_WORKAROUND != "false"', {
             'sources': [
               "src/glibc_workaround.cpp"
@@ -126,7 +122,7 @@
             'ldflags': [
               '-Wl,-z,now',
               "-Wl,-z,origin",
-              "-Wl,-rpath=\$$ORIGIN/lib"
+              "-Wl,-rpath=$ORIGIN/lib"
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
@@ -146,10 +142,7 @@
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
             }
           },
-        ],
-        ['enable_sse == "true"', {
-          'defines' : [ 'SSE_MATH' ]
-        }]
+        ]
       ]
     },
     {

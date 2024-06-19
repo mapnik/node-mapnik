@@ -1,13 +1,16 @@
 "use strict";
+
 var exists = require('fs').existsSync || require('path').existsSync;
+var os = require('os');
 var path = require('path');
-
-var pjson = require('../package.json');
-var binding_path = path.resolve(path.join(__dirname, "../" + pjson.binary.module_path) + "/mapnik.node");
-// FIXME ^^
-
+var binding_path = require('node-gyp-build').path();
 var settings_path = path.join(path.dirname(binding_path),'mapnik_settings.js');
 var settings = require(settings_path);
+
+// https://github.com/mapnik/node-mapnik/issues/437
+if (process.env.VRT_SHARED_SOURCE === undefined) {
+    process.env.VRT_SHARED_SOURCE = 0;
+}
 
 var separator = (process.platform === 'win32') ? ';' : ':';
 
@@ -25,34 +28,26 @@ if (settings.env) {
     }
 }
 
-// https://github.com/mapnik/node-mapnik/issues/437
-if (process.env.VRT_SHARED_SOURCE === undefined) {
-    process.env.VRT_SHARED_SOURCE = 0;
-}
+var binding = require('node-gyp-build')(__dirname)
+module.exports = binding
 
-var binding = require(binding_path);
-var mapnik = module.exports = exports = binding;
+binding.module_path = path.dirname(binding_path);
+binding.settings = settings;
 
-exports.module_path = path.dirname(binding_path);
-
-exports.settings = settings;
-
-exports.version = require('../package').version;
-
-exports.register_default_fonts = function() {
+binding.register_default_fonts = function() {
     if (settings.paths.fonts) {
-        mapnik.register_fonts(settings.paths.fonts, {recurse: true});
+        binding.register_fonts(settings.paths.fonts, {recurse: true});
     }
 };
 
-exports.register_default_input_plugins = function() {
+binding.register_default_input_plugins = function() {
     if (settings.paths.input_plugins) {
-        mapnik.register_datasources(settings.paths.input_plugins);
+        binding.register_datasources(settings.paths.input_plugins);
     }
 };
 
-exports.register_system_fonts = function() {
-    var num_faces = mapnik.fonts().length;
+binding.register_system_fonts = function() {
+    var num_faces = binding.fonts().length;
     var dirs = [];
     if (process.platform === 'linux' ||
        (process.platform === 'sunos') ||
@@ -69,10 +64,10 @@ exports.register_system_fonts = function() {
     }
     dirs.forEach(function(p) {
         if (exists(p)) {
-            mapnik.register_fonts(p, {recurse: true});
+            binding.register_fonts(p, {recurse: true});
         }
     });
-    if (mapnik.fonts().length == num_faces) {
+    if (binding.fonts().length == num_faces) {
        return false;
     } else {
        return true;
@@ -83,42 +78,42 @@ exports.register_system_fonts = function() {
 if (process.env.MAPNIK_FONT_PATH) {
     process.env.MAPNIK_FONT_PATH.split(separator).forEach(function(p) {
         if (exists(p)) {
-            mapnik.register_fonts(p);
+            binding.register_fonts(p);
         }
     });
 }
 
 function getGeometryType(mapnikType) {
   switch (mapnikType) {
-    case mapnik.Geometry.Point:
+    case binding.Geometry.Point:
       return 'Point';
-    case mapnik.Geometry.LineString:
+    case binding.Geometry.LineString:
       return 'LineString';
-    case mapnik.Geometry.Polygon:
+    case binding.Geometry.Polygon:
       return 'Polygon';
-    case mapnik.Geometry.MultiPoint:
+    case binding.Geometry.MultiPoint:
       return 'MultiPoint';
-    case mapnik.Geometry.MultiLineString:
+    case binding.Geometry.MultiLineString:
       return 'MultiLineString';
-    case mapnik.Geometry.MultiPolygon:
+    case binding.Geometry.MultiPolygon:
       return 'MultiPolygon';
-    case mapnik.Geometry.GeometryCollection:
+    case binding.Geometry.GeometryCollection:
       return 'GeometryCollection';
-    case mapnik.Geometry.Unknown:
+    case binding.Geometry.Unknown:
       return 'Unknown';
     default:
       return 'Unknown';
   }
 }
 
-mapnik.Geometry.prototype.typeName = function() {
+binding.Geometry.prototype.typeName = function() {
   return getGeometryType(this.type());
 };
 
-mapnik.Feature.prototype.toWKB = function() {
+binding.Feature.prototype.toWKB = function() {
     return this.geometry().toWKB();
 };
 
-mapnik.Feature.prototype.toWKT = function() {
+binding.Feature.prototype.toWKT = function() {
     return this.geometry().toWKT();
 };

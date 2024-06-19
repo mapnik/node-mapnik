@@ -5,15 +5,9 @@
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
   "version": "4.6.0-dev",
-  "mapnik_version": "e553f55dc",
-  "main": "./lib/mapnik.js",
-  "binary": {
-    "module_name": "mapnik",
-    "module_path": "./lib/binding/",
-    "host": "https://mapbox-node-binary.s3.amazonaws.com",
-    "remote_path": "./{name}/v{version}/{configuration}/{toolset}/",
-    "package_name": "{platform}-{arch}.tar.gz"
-  },
+  "mapnik_version": "4.0.0",
+  "main": "index.js",
+  "private": true,
   "bugs": {
     "email": "artem@mapnik.org",
     "url": "http://github.com/mapnik/node-mapnik/issues"
@@ -38,8 +32,8 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "node-addon-api": "^8.0.0",
-    "node-gyp-build": "4.8.0",
-    "prebuildify": "^6.0.0"
+    "node-gyp-build": "^4.8.1",
+    "prebuildify": "^6.0.1"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -50,16 +44,13 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-gyp-build",
-    "prebuildify": "prebuildify --napi --strip",
-    "docs": "documentation build src/*.cpp src/mapnik_plugins.hpp --polyglot -o documentation -f html --github --name Mapnik"
+    "prebuildify": "prebuildify --napi --strip"
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
-    "aws-sdk": "^2.1043.0",
     "bytes": "~2.1.0",
-    "node-gyp": "^10.0.1",
     "nyc": "^15.1.0",
-    "tape": "^4.13.3"
+    "tape": "^v5.8.1"
   },
   "jshintConfig": {
     "node": true,
