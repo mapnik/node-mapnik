@@ -5,12 +5,8 @@ set -o pipefail
 MODULE_PATH=./lib/binding
 MAPNIK_DIR=../
 
-# Check if we are using Mason's mapnik
-# If not (and we are using a source install of mapnik rather than mason package)
-# then we only dump the mapnik_settings.js and then exit without copying data
-#if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_DIR/_stage/bin/mapnik-config" ]]; then
-if [[ ! "$(which mapnik-config)" -ef "$(which mapnik-config)" ]]; then
 
+if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_DIR/_stage/bin/mapnik-config" ]]; then
     echo "
 var path = require('path');
 module.exports.paths = {
@@ -27,8 +23,6 @@ module.exports.env = {
 " > ${MODULE_PATH}/mapnik_settings.js
 
 else
-    echo "***** FIXME ******"
-
     # Here we assume we are using the mason mapnik package, and therefore
     # we copy all the data over to make a portable package.
 
@@ -75,15 +69,15 @@ else
     echo "
 var path = require('path');
 module.exports.paths = {
-    'fonts': path.join(__dirname, 'lib/mapnik/fonts'),
+    'fonts': path.join(__dirname, '../../lib/mapnik/fonts'),
     'input_plugins': path.join(__dirname, 'lib/mapnik/input'),
     'mapnik_index': path.join(__dirname, 'bin/mapnik-index'),
     'shape_index': path.join(__dirname, 'bin/shapeindex')
 };
 module.exports.env = {
-    'ICU_DATA': path.join(__dirname, 'share/icu'),
-    'GDAL_DATA': path.join(__dirname, 'share/gdal'),
-    'PROJ_LIB': path.join(__dirname, 'share/proj')
+    'ICU_DATA': path.join(__dirname, '../../share/icu'),
+    'GDAL_DATA': path.join(__dirname, '../../share/gdal'),
+    'PROJ_LIB': path.join(__dirname, '../../share/proj')
 };
 " > ${MODULE_PATH}/mapnik_settings.js
 
