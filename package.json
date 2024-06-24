@@ -3,12 +3,12 @@
   "description": "Node.js bindings for Mapnik (mapnik.org)",
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
-  "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
+  "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
   "version": "4.6.0-dev",
   "mapnik_version": "4.0.0",
   "main": "index.js",
   "directories": {
-    "share" : "./lib/share",
+    "share" : "./share",
     "fonts" : "./lib/mapnik/fonts"
   },
   "private": false,
