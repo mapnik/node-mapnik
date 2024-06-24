@@ -7,6 +7,10 @@
   "version": "4.6.0-dev",
   "mapnik_version": "4.0.0",
   "main": "index.js",
+  "directories": {
+    "share" : "./lib/share",
+    "fonts" : "./lib/mapnik/fonts"
+  },
   "private": false,
   "bugs": {
     "email": "artem@mapnik.org",
