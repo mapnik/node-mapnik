@@ -1,13 +1,13 @@
 {
-  "name": "mapnik",
-  "description": "Tile rendering library for node",
+  "name": "@mapnik/mapnik",
+  "description": "Node.js bindings for Mapnik (mapnik.org)",
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane@mapbox.com> (mapnik.org)",
   "version": "4.6.0-dev",
   "mapnik_version": "4.0.0",
   "main": "index.js",
-  "private": true,
+  "private": false,
   "bugs": {
     "email": "artem@mapnik.org",
     "url": "http://github.com/mapnik/node-mapnik/issues"
@@ -48,8 +48,6 @@
   },
   "devDependencies": {
     "@mapbox/sphericalmercator": "~1.0.2",
-    "bytes": "~2.1.0",
-    "nyc": "^15.1.0",
     "tape": "^v5.8.1"
   },
   "jshintConfig": {
