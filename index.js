@@ -3,7 +3,7 @@
 var exists = require('fs').existsSync || require('path').existsSync;
 var os = require('os');
 var path = require('path');
-var binding_path = require('node-gyp-build').path();
+var binding_path = require('node-gyp-build').path(__dirname);
 var settings_path = path.join(path.dirname(binding_path),'mapnik_settings.js');
 var settings = require(settings_path);
 
