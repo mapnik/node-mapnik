@@ -25,6 +25,7 @@ if (!exists(obj)) {
 }
 
 var mapnik = require('../');
+mapnik.register_default_fonts();
 mapnik.register_default_input_plugins();
 
 var meta = function(ds) {

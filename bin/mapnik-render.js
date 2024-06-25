@@ -22,6 +22,7 @@ if (!image) {
 
 var mapnik = require('../');
 
+mapnik.register_default_fonts();
 mapnik.register_default_input_plugins();
 
 function renderMap(stylesheet, image) {
