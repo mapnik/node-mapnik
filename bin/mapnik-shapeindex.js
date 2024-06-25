@@ -4,7 +4,7 @@
 
 var binary = require('node-gyp-build'),
     path = require('path'),
-    bindingPath = binary.path(),
+    bindingPath = binary.path(__dirname + "/.."),
     shapeindex = path.join(path.dirname(bindingPath), 'bin', 'shapeindex'),
     spawn = require('child_process').spawn,
     fs = require('fs');
