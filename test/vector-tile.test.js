@@ -5,7 +5,6 @@ var mapnik = require('../');
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
-var mercator = new(require('@mapbox/sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 var zlib = require('zlib');
@@ -51,8 +50,7 @@ test( 'before', (assert) => {
       var map2 = new mapnik.Map(256,256);
       map2.loadSync('./test/data/vector_tile/layers.xml');
       var vtile2 = new mapnik.VectorTile(5,28,12);
-      var bbox = mercator.bbox(28, 12, 5, false, '900913');
-      map2.extent = bbox;
+      map2.extent = vtile2.extent();
       map2.render(vtile2,{}, function(err,vtile2) {
         if (err) throw err;
         fs.writeFileSync("./test/data/vector_tile/tile3.mvt",vtile2.getData());
@@ -3106,7 +3104,7 @@ test('should be able to render data->vtile and vtile->image with roughtly the sa
   var x=3;
   var y=2;
   var z=2;
-  var extent = mercator.bbox(x, y, z, false, '900913');
+  var extent = new mapnik.VectorTile(z, x, y).extent();
   var map = new mapnik.Map(256, 256);
   map.loadSync('./test/data/map.xml');
   map.extent = extent;

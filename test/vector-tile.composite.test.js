@@ -5,7 +5,6 @@ var mapnik = require('../');
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
-var mercator = new(require('@mapbox/sphericalmercator'))();
 var existsSync = require('fs').existsSync || require('path').existsSync;
 var overwrite_expected_data = false;
 

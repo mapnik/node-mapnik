@@ -8,8 +8,8 @@
   "mapnik_version": "4.0.0",
   "main": "index.js",
   "directories": {
-    "share" : "./share",
-    "fonts" : "./lib/mapnik/fonts"
+    "share": "./share",
+    "fonts": "./lib/mapnik/fonts"
   },
   "private": false,
   "bugs": {
@@ -51,7 +51,6 @@
     "prebuildify": "prebuildify --napi --strip"
   },
   "devDependencies": {
-    "@mapbox/sphericalmercator": "~1.0.2",
     "tape": "^v5.8.1"
   },
   "jshintConfig": {
