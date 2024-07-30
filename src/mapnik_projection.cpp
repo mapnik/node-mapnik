@@ -13,7 +13,10 @@ Napi::Object Projection::Initialize(Napi::Env env, Napi::Object exports, napi_pr
     // clang-format off
     Napi::Function func = DefineClass(env, "Projection", {
             InstanceMethod<&Projection::forward>("forward", prop_attr),
-            InstanceMethod<&Projection::inverse>("inverse", prop_attr)
+            InstanceMethod<&Projection::inverse>("inverse", prop_attr),
+            InstanceMethod<&Projection::definition>("definition", prop_attr),
+            InstanceMethod<&Projection::description>("description", prop_attr),
+            InstanceMethod<&Projection::area_of_use>("area_of_use", prop_attr)
         });
     // clang-format on
     constructor = Napi::Persistent(func);
@@ -227,6 +230,36 @@ Napi::Value Projection::inverse(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 }
+
+Napi::Value Projection::definition(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, projection_->definition());
+}
+
+Napi::Value Projection::description(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    return Napi::String::New(env, projection_->description());
+}
+
+Napi::Value Projection::area_of_use(Napi::CallbackInfo const& info)
+{
+    Napi::Env env = info.Env();
+    Napi::EscapableHandleScope scope(env);
+    auto area_of_use = projection_->area_of_use();
+    if (area_of_use)
+    {
+        Napi::Array arr = Napi::Array::New(env, 4u);
+        arr.Set(0u, Napi::Number::New(env, area_of_use->minx()));
+        arr.Set(1u, Napi::Number::New(env, area_of_use->miny()));
+        arr.Set(2u, Napi::Number::New(env, area_of_use->maxx()));
+        arr.Set(3u, Napi::Number::New(env, area_of_use->maxy()));
+        return scope.Escape(arr);
+    }
+    return env.Undefined();
+}
+
 
 Napi::FunctionReference ProjTransform::constructor;
 

@@ -26,7 +26,9 @@ class Projection : public Napi::ObjectWrap<Projection>
     // methods
     Napi::Value inverse(Napi::CallbackInfo const& info);
     Napi::Value forward(Napi::CallbackInfo const& info);
-
+    Napi::Value definition(Napi::CallbackInfo const& info);
+    Napi::Value description(Napi::CallbackInfo const& info);
+    Napi::Value area_of_use(Napi::CallbackInfo const& info);
   private:
     static Napi::FunctionReference constructor;
     proj_ptr projection_;
