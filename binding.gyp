@@ -122,7 +122,7 @@
             'ldflags': [
               '-Wl,-z,now',
               "-Wl,-z,origin",
-              "-Wl,-rpath=$ORIGIN/lib"
+              "-Wl,-rpath=\$$ORIGIN/lib"
             ],
             'xcode_settings': {
               'OTHER_CPLUSPLUSFLAGS':[
