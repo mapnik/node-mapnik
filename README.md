@@ -12,7 +12,7 @@ Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 Render a map from a stylesheet:
 
 ```js
-var mapnik = require('mapnik');
+var mapnik = require('@mapnik/mapnik');
 var fs = require('fs');
 
 // register fonts and datasource plugins
@@ -40,14 +40,14 @@ map.load('./test/stylesheet.xml', function(err,map) {
 Convert a jpeg image to a png:
 
 ```js
-var mapnik = require('mapnik');
+var mapnik = require('@mapnik/mapnik');
 new mapnik.Image.open('input.jpg').save('output.png');
 ```
 
 Convert a shapefile to GeoJSON:
 
 ```js
-var mapnik = require('mapnik');
+var mapnik = require('@mapnik/mapnik');
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 var ds = new mapnik.Datasource({type:'shape',file:'test/data/world_merc.shp'});
 var featureset = ds.featureset()
@@ -143,11 +143,11 @@ And you need to have the `mapnik-config` program is available and on your `${PAT
 Then run (within the cloned `node-mapnik` directory:
 
     make release_base
-    
+
 or
-    
+
     make debug_base
-    
+
 for release and debug builds, respectively.
 
 #### Note on SSE:
@@ -172,7 +172,7 @@ To require node-mapnik as a dependency of another package put in your package.js
 ## Tests
 
 To run the tests do:
-  
+
     npm test
 
 ## License
