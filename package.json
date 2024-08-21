@@ -35,7 +35,7 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node-addon-api": "^8.0.0",
+    "node-addon-api": "^8.1.0",
     "node-gyp-build": "^4.8.1",
     "prebuildify": "^6.0.1"
   },
