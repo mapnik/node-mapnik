@@ -5,8 +5,6 @@ set -o pipefail
 MODULE_PATH=$(node -e "console.log(path.dirname(require('node-gyp-build').path()))")
 MAPNIK_DIR=../
 
-echo "MODULE_PATH:"$MODULE_PATH
-
 if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_DIR/_stage/bin/mapnik-config" ]]; then
     echo "
 var path = require('path');
@@ -42,13 +40,18 @@ else
         mkdir -p ${MODULE_PATH}/lib/
         cp ${MAPNIK_DIR}/_stage/lib/libmapnik.* ${MODULE_PATH}/lib/
         # copy plugins
-        cp -r ${MAPNIK_DIR}/_stage/lib/mapnik ${MODULE_PATH}/lib/
+        mkdir -p ${MODULE_PATH}/lib/mapnik
+        cp -r ${MAPNIK_DIR}/_stage/lib/mapnik/input ${MODULE_PATH}/lib/mapnik
+        # copy fonts
+        mkdir -p ./lib/mapnik/
+        cp -r ${MAPNIK_DIR}/_stage/lib/mapnik/fonts ./lib/mapnik
         # copy share data
-        mkdir -p ${MODULE_PATH}/share/gdal
-        cp -L ${MAPNIK_DIR}/_deps/share/gdal/*.* ${MODULE_PATH}/share/gdal/
-        cp -r ${MAPNIK_DIR}/_deps/share/proj ${MODULE_PATH}/share/
-        mkdir -p ${MODULE_PATH}/share/icu
-        cp -L ${MAPNIK_DIR}/_deps/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+        mkdir -p ./share/gdal
+        cp -L ${MAPNIK_DIR}/_deps/share/gdal/*.* ./share/gdal/
+        cp -r ${MAPNIK_DIR}/_deps/share/proj ./share/
+        mkdir -p ./share/icu
+        cp -L ${MAPNIK_DIR}/_deps/share/icu/*/*dat ./share/icu/
+
     else
         cp -L ${MAPNIK_DIR}/_stage/bin/mapnik-index ${MODULE_PATH}/bin/
         # copy shapeindex
@@ -57,13 +60,17 @@ else
         mkdir -p ${MODULE_PATH}/lib/
         cp -L ${MAPNIK_DIR}/_stage/lib/libmapnik.* ${MODULE_PATH}/lib/
         # copy plugins
+        mkdir -p ${MODULE_PATH}/lib/mapnik
         cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik ${MODULE_PATH}/lib/
+        # copy fonts
+        mkdir -p ./lib/mapnik/
+        cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik/fonts ./lib/mapnik
         # copy share data
-        mkdir -p ${MODULE_PATH}/share/gdal
-        cp -rL ${MAPNIK_DIR}/_deps/share/gdal/*.* ${MODULE_PATH}/share/gdal/
-        cp -rL ${MAPNIK_DIR}/_deps/share/proj ${MODULE_PATH}/share/
-        mkdir -p ${MODULE_PATH}/share/icu
-        cp -rL ${MAPNIK_DIR}/_deps/share/icu/*/*dat ${MODULE_PATH}/share/icu/
+        mkdir -p ./share/gdal
+        cp -rL ${MAPNIK_DIR}/_deps/share/gdal/*.* ./share/gdal/
+        cp -rL ${MAPNIK_DIR}/_deps/share/proj ./share/
+        mkdir -p ./share/icu
+        cp -rL ${MAPNIK_DIR}/_deps/share/icu/*/*dat ./share/icu/
     fi
 
     # generate new settings
