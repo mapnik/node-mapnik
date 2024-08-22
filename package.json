@@ -4,8 +4,8 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
-  "version": "4.6.0-rc2",
-  "mapnik_version": "4.0.1",
+  "version": "4.6.0",
+  "mapnik_version": "4.0.2",
   "main": "index.js",
   "directories": {
     "share": "./share",
