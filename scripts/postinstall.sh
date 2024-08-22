@@ -2,9 +2,10 @@
 set -eu
 set -o pipefail
 
-MODULE_PATH=./lib/binding
+MODULE_PATH=$(node -e "console.log(path.dirname(require('node-gyp-build').path()))")
 MAPNIK_DIR=../
 
+echo "MODULE_PATH:"$MODULE_PATH
 
 if [[ ! "$(which mapnik-config)" -ef "$MAPNIK_DIR/_stage/bin/mapnik-config" ]]; then
     echo "
