@@ -71,6 +71,9 @@ else
         cp -rL ${MAPNIK_DIR}/_deps/share/proj ./share/
         mkdir -p ./share/icu
         cp -rL ${MAPNIK_DIR}/_deps/share/icu/*/*dat ./share/icu/
+        # update RPATH
+        patchelf --set-rpath '$ORIGIN/../lib' ${MODULE_PATH}/bin/shapeindex
+        patchelf --set-rpath '$ORIGIN/../lib' ${MODULE_PATH}/bin/mapnik-index
     fi
 
     # generate new settings
