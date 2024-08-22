@@ -61,7 +61,7 @@ else
         cp -L ${MAPNIK_DIR}/_stage/lib/libmapnik.* ${MODULE_PATH}/lib/
         # copy plugins
         mkdir -p ${MODULE_PATH}/lib/mapnik
-        cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik ${MODULE_PATH}/lib/
+        cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik/input ${MODULE_PATH}/lib/mapnik
         # copy fonts
         mkdir -p ./lib/mapnik/
         cp -rL ${MAPNIK_DIR}/_stage/lib/mapnik/fonts ./lib/mapnik
