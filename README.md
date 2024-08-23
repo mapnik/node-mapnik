@@ -2,11 +2,6 @@
 
 Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 
-[![NPM](https://nodei.co/npm/mapnik.png?downloads=true&downloadRank=true)](https://nodei.co/npm/mapnik/)
-
-[![Build Status](https://secure.travis-ci.org/mapnik/node-mapnik.png)](https://travis-ci.org/mapnik/node-mapnik)
-[![Coverage Status](https://coveralls.io/repos/mapnik/node-mapnik/badge.svg)](https://coveralls.io/r/mapnik/node-mapnik)
-
 ## Usage
 
 Render a map from a stylesheet:
@@ -68,106 +63,51 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 ## Requirements
 
-Starting from `v4.5.0`, `node-mapnik` module is published as "universal" binaries using [node-addon-api](https://github.com/nodejs/node-addon-api)
-All Node.js versions >= 10 are known to work, consult N-API documentation for more details: https://nodejs.org/dist/latest/docs/api/n-api.html#n_api_node_api_version_matrix
+Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binaries on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) using[node-addon-api](https://github.com/nodejs/node-addon-api),
+[node-gyp-build](https://github.com/prebuild/node-gyp-build) and [prebuildify](https://github.com/prebuild/prebuildify)
 
-An installation error like below indicates your system does not have a modern enough libstdc++/gcc-base toolchain:
+Currently supported platforms are
 
-```
-Error: /usr/lib/x86_64-linux-gnu/libstdc++.so.6: version GLIBCXX_3.4.21 not found (required by /node_modules/mapnik/lib/binding/mapnik.node)
-```
+* `linux-x64`
+* `darwin-x64`
+* `darwin-arm64`
 
-If you are running Ubuntu older than 16.04 you can easily upgrade your libstdc++ version like:
 
-```
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt-get update -y
-sudo apt-get install -y libstdc++-6-dev
-```
-
-To upgrade libstdc++ on travis (without sudo) you can do:
-
-```yaml
-language: cpp
-
-sudo: false
-
-addons:
-  apt:
-    sources:
-     - ubuntu-toolchain-r-test
-    packages:
-     - libstdc++-6-dev # upgrade libstdc++
-```
+Consult N-API documentation for more details: https://nodejs.org/dist/latest/docs/api/n-api.html#n_api_node_api_version_matrix
 
 
 ## Installing
+
 ### With npm
-Just do:
 
-    npm install mapnik
+Consult "[Installing a package](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
+". You will need to authenticate to GitHub Packages, see "[Authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages)."
 
-Note: This will install the latest node-mapnik 4.5.x series, which is recommended.
 
-## Source Build
+    npm install @mapnik/mapnik
 
-There are two ways to build from source. These work on both OS X and Linux:
+Note: This will install the latest node-mapnik 4.6.x series, which is recommended.
 
- - A) Against a binary package from Mapnik from [mason](https://github.com/mapbox/mason)
- - B) Against an existing version of Mapnik on your system
 
-Using `A)` is recommended. You do not need to have Mapnik installed already, so this is the easiest and most predictable approach. When you use the route a binary package of Mapnik is downloaded dynamically from [mason](https://github.com/mapbox/mason).
+### Source Build [WIP]
 
-You can invoke this method simply by running:
+On macOS and Linux:
 
-  `make release`
+* Ensure `mapnik-config` program is available and on your `${PATH}`.
 
-Or, for debug builds:
+* `npm install --build-from-source`
 
-  `make debug`
-
-If you want to do a full rebuild do:
-
-  `make distclean`
-
-And then re-run the build:
-
-  `make release`
-
-Using `B)` is also possible, if you would like to build node-mapnik against an external, already installed Mapnik version.
-
-In this case you need to have a Mapnik version installed that is at least as recent as the `mapnik_version` property in the [`package.json`](./package.json) for the branch of node-mapnik you want to build.
-
-And you need to have the `mapnik-config` program is available and on your `${PATH}`.
-
-Then run (within the cloned `node-mapnik` directory:
-
-    make release_base
-
-or
-
-    make debug_base
-
-for release and debug builds, respectively.
+* To "prebuild" binaries `npm run prebuildify`  
 
 #### Note on SSE:
 
-By default node mapnik is built with SSE support. If you are building on a platform that is not `x86_64` you will need to disable feature by setting the environment variable `SSE_MATH=false`.
-
-```
-SSE_MATH=false make
-```
-
-### Building against Mapnik 3.0.x
-
-The `master` branch of node-mapnik is not compatible with `3.0.x` series of Mapnik. To build against Mapnik 3.0.x, use [`v3.0.x`](https://github.com/mapnik/node-mapnik/tree/v3.0.x) branch.
-
+SSE support is enabled by default on `x86_64`.
 
 ## Using node-mapnik from your node app
 
 To require node-mapnik as a dependency of another package put in your package.json:
 
-    "dependencies"  : { "mapnik":"*" } // replace * with a given semver version string
+    "dependencies"  : { "@mapnik/mapnik":"*" } // replace * with a given semver version string
 
 ## Tests
 
@@ -178,3 +118,4 @@ To run the tests do:
 ## License
 
 BSD, see LICENSE.txt
+
