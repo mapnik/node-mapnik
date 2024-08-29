@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.6.0
+
+- Mapnik [v4.0.2](https://github.com/mapnik/mapnik/releases/tag/v4.0.2)
+- Bundle [mapnik-vector-tile](https://github.com/mapnik/mapnik-vector-tile) as submodule
+- Remove [node-pre-gyp](https://github.com/mapbox/node-pre-gyp) dependency
+- Use [node-gyp-build](https://github.com/prebuild/node-gyp-build) and [prebuildify](https://github.com/prebuild/prebuildify) to package "prebuilds" for native modules
+- Publish binary packages on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry)
+- Pre-built binaries for `linux-x64`, `dariwin-x64` and `darwin-arm64` via `npm install @mapnik/mapnik`
+- Add `definition`, `description` and `area_of_use` methods to `mapnik.Projection`
+
 ## 4.5.9
 - Image - fix object lifetimes/scopes in relevant async methods (#978)
 - Add persistent Buffer reference to Image to ensure underlying buffer stays in scope (in situations when Image doesn't own underlyling data)
