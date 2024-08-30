@@ -7,8 +7,8 @@ Bindings to [Mapnik](http://mapnik.org) for [node](http://nodejs.org).
 Render a map from a stylesheet:
 
 ```js
-var mapnik = require('@mapnik/mapnik');
-var fs = require('fs');
+const fs = require('node:fs');
+const mapnik = require('@mapnik/mapnik');
 
 // register fonts and datasource plugins
 mapnik.register_default_fonts();
@@ -42,7 +42,10 @@ new mapnik.Image.open('input.jpg').save('output.png');
 Convert a shapefile to GeoJSON:
 
 ```js
-var mapnik = require('@mapnik/mapnik');
+const fs = require('node:fs');
+const path = require('node:path');
+const mapnik = require('@mapnik/mapnik');
+
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
 var ds = new mapnik.Datasource({type:'shape',file:'test/data/world_merc.shp'});
 var featureset = ds.featureset()
@@ -97,7 +100,7 @@ On macOS and Linux:
 
 * `npm install --build-from-source`
 
-* To "prebuild" binaries `npm run prebuildify`  
+* To "prebuild" binaries `npm run prebuildify`
 
 #### Note on SSE:
 
@@ -118,4 +121,3 @@ To run the tests do:
 ## License
 
 BSD, see LICENSE.txt
-
