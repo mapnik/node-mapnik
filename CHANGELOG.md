@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.6.1
+
+- Fix bogus shared library (libzstd.1.dylib) used in gdal.input and ogr.input plugins (darwin-arm64)
+- Correct example code to use '@mapnik/mapnik'
+
 ## 4.6.0
 
 - Mapnik [v4.0.2](https://github.com/mapnik/mapnik/releases/tag/v4.0.2)
