@@ -21,6 +21,14 @@ test('should throw with invalid usage', (assert) => {
   assert.throws(function() { new mapnik.Map('foo'); });
   assert.throws(function() { new mapnik.Map('a', 'b', 'c'); });
   assert.throws(function() { new mapnik.Map(new mapnik.Map(1, 1)); });
+  assert.throws(function() { new mapnik.Map(0, 1);});
+  assert.throws(function() { new mapnik.Map(1, 0);});
+  assert.throws(function() { new mapnik.Map(-1, 1);});
+  assert.throws(function() { new mapnik.Map(1, -1);});
+  assert.throws(function() { new mapnik.Map(NaN, 1);});
+  assert.throws(function() { new mapnik.Map(1, NaN);});
+  assert.throws(function() { new mapnik.Map(Infinity, 1);});
+  assert.throws(function() { new mapnik.Map(1, Infinity);});
   assert.end();
 });
 
