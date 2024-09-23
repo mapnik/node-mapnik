@@ -10,6 +10,8 @@
 #include <mapnik/save_map.hpp> // for save_map, etc
 // stl
 #include <sstream> // for basic_ostringstream, etc
+#include <cmath>
+#include <limits>
 
 Napi::FunctionReference Map::constructor;
 
@@ -128,35 +130,46 @@ Map::Map(Napi::CallbackInfo const& info)
         return;
     }
 
-    if (info.Length() == 2)
+    if (info.Length() > 1  && info.Length() < 4 )
     {
-        if (!info[0].IsNumber() || !info[1].IsNumber())
+        if (info[0].IsNumber() && info[1].IsNumber())
         {
-            Napi::TypeError::New(env, "'width' and 'height' must be integers").ThrowAsJavaScriptException();
-            return;
+            std::int32_t width = info[0].As<Napi::Number>().Int32Value();
+            std::int32_t height = info[1].As<Napi::Number>().Int32Value();
+            if (width > 0 &&  width <= std::numeric_limits<std::int32_t>::max()
+                && height > 0 && height <= std::numeric_limits<std::int32_t>::max())
+            {
+
+                if (info.Length() == 3)
+                {
+                    if (!info[2].IsString())
+                    {
+                        Napi::Error::New(env, "'srs' value must be a string").ThrowAsJavaScriptException();
+                        return;
+                    }
+
+                    map_ = std::make_shared<mapnik::Map>(width, height, info[2].As<Napi::String>());
+                }
+                else
+                {
+                    map_ = std::make_shared<mapnik::Map>(width, height);
+                }
+            }
+            else
+            {
+                Napi::TypeError::New(env, "'width' and 'height' must be positive finite numbers").ThrowAsJavaScriptException();
+                return;
+            }
         }
-        map_ = std::make_shared<mapnik::Map>(info[0].As<Napi::Number>().Int32Value(), info[1].As<Napi::Number>().Int32Value());
-        return;
-    }
-    else if (info.Length() == 3)
-    {
-        if (!info[0].IsNumber() || !info[1].IsNumber())
+        else
         {
-            Napi::TypeError::New(env, "'width' and 'height' must be integers").ThrowAsJavaScriptException();
-            return;
+              Napi::TypeError::New(env, "'width' and 'height' must positive finite numbers").ThrowAsJavaScriptException();
+              return;
         }
-        if (!info[2].IsString())
-        {
-            Napi::Error::New(env, "'srs' value must be a string").ThrowAsJavaScriptException();
-            return;
-        }
-        map_ = std::make_shared<mapnik::Map>(info[0].As<Napi::Number>().Int32Value(),
-                                             info[1].As<Napi::Number>().Int32Value(),
-                                             info[2].As<Napi::String>());
     }
     else
     {
-        Napi::Error::New(env, "please provide Map width and height and optional srs").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "please provide Map width, height and optional srs").ThrowAsJavaScriptException();
     }
 }
 
