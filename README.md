@@ -66,7 +66,7 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 ## Requirements
 
-Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binaries on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) using[node-addon-api](https://github.com/nodejs/node-addon-api),
+Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binaries on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) using [node-addon-api](https://github.com/nodejs/node-addon-api),
 [node-gyp-build](https://github.com/prebuild/node-gyp-build) and [prebuildify](https://github.com/prebuild/prebuildify)
 
 Currently supported platforms are
