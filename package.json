@@ -4,8 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
-  "version": "4.6.1",
-  "mapnik_version": "4.0.2",
+  "version": "4.6.2-dev",
   "main": "index.js",
   "directories": {
     "share": "./share",
@@ -39,6 +38,11 @@
     "node-gyp-build": "^4.8.1",
     "prebuildify": "^6.0.1"
   },
+  "optionalDependencies": {
+    "@mapnik/core-darwin-arm64": "4.0.2-experimental",
+    "@mapnik/core-darwin-x64": "4.0.2-experimental",
+    "@mapnik/core-linux-x64": "4.0.2-experimental"
+  },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
     "mapnik-inspect.js": "bin/mapnik-inspect.js",
@@ -48,7 +52,8 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-gyp-build",
-    "prebuildify": "prebuildify --napi --strip"
+    "prebuildify": "prebuildify --napi --strip",
+    "postinstall": "./scripts/postinstall.sh"
   },
   "devDependencies": {
     "tape": "^v5.8.1"
