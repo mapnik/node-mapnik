@@ -12,12 +12,16 @@ if [ -z ${MAPNIK_VERSION+x} ]; then
     exit 1
 fi
 
-MAPNIK_CORE_PATH=`npm ls --parseable @mapnik/core-${PLATFORM}-${ARCH}`
+NODE_MODULES_DIR=${MODULE_PATH%%node_modules/*}/node_modules
+MAPNIK_CORE_PATH=${NODE_MODULES_DIR}/@mapnik/core-${PLATFORM}-${ARCH}
+echo "MODULE_PATH:${MODULE_PATH}"
+echo "MAPNIK_CORE_PATH:${MAPNIK_CORE_PATH}"
 
-if [[ -z "$MAPNIK_CORE_PATH" ]]; then
+if [[ ! -d $MAPNIK_CORE_PATH ]]; then
     echo -e "\033[31m Missing Mapnik Core package - @mapnik/core-${PLATFORM}-${ARCH}-${MAPNIK_VERSION}"
     exit 1
 fi
+
 
 cd ${MODULE_PATH}
 ln -sf ${MAPNIK_CORE_PATH}/bin .
