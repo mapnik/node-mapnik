@@ -271,7 +271,7 @@ Napi::Value Datasource::featureset(Napi::CallbackInfo const& info)
         return env.Undefined();
     }
 
-    if (fs && mapnik::is_valid(fs))
+    if (fs && !mapnik::is_empty(fs))
     {
         Napi::Value arg = Napi::External<mapnik::featureset_ptr>::New(env, &fs);
         Napi::Object obj = Featureset::constructor.New({arg});

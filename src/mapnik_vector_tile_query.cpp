@@ -202,7 +202,7 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
                 tile->y(),
                 tile->z());
             mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
-            if (fs && mapnik::is_valid(fs))
+            if (fs && !mapnik::is_empty(fs))
             {
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
@@ -241,7 +241,7 @@ std::vector<query_result> _query(mapnik::vector_tile_impl::merc_tile_ptr const& 
                 tile->y(),
                 tile->z());
             mapnik::featureset_ptr fs = ds->features_at_point(pt, tolerance);
-            if (fs && mapnik::is_valid(fs))
+            if (fs && !mapnik::is_empty(fs))
             {
                 mapnik::feature_ptr feature;
                 while ((feature = fs->next()))
@@ -432,7 +432,7 @@ void _queryMany(queryMany_result& result,
     }
     mapnik::featureset_ptr fs = ds->features(q);
 
-    if (fs && mapnik::is_valid(fs))
+    if (fs && !mapnik::is_empty(fs))
     {
         mapnik::feature_ptr feature;
         unsigned idx = 0;
