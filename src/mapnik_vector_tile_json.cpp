@@ -336,7 +336,7 @@ bool layer_to_geojson(protozero::pbf_reader const& layer,
     }
     mapnik::featureset_ptr fs = ds.features(q);
     bool first = true;
-    if (fs && mapnik::is_valid(fs))
+    if (fs && !mapnik::is_empty(fs))
     {
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))

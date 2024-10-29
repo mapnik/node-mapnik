@@ -6,7 +6,6 @@
   'targets': [
     {
       'target_name': 'mapnik',
-      'product_dir': '../lib/binding',
       'sources': [
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
@@ -142,26 +141,6 @@
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
             }
           },
-        ]
-      ]
-    },
-    {
-      'target_name': 'action_after_build',
-      'type': 'none',
-      'dependencies': [ 'mapnik' ],
-      'hard_dependency': 1,
-      'conditions': [
-        ['OS!="win"',
-          {
-            'actions': [
-              {
-                'action_name': 'postinstall',
-                'inputs': ['./scripts/postinstall.sh'],
-                'outputs': ['./lib/binding/mapnik'],
-                'action': ['./scripts/postinstall.sh']
-              }
-            ]
-          }
         ]
       ]
     },

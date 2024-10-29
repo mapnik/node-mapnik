@@ -70,7 +70,7 @@ void layer_not_simple(protozero::pbf_reader const& layer_msg,
         q.add_property_name(item.get_name());
     }
     mapnik::featureset_ptr fs = ds.features(q);
-    if (fs && mapnik::is_valid(fs))
+    if (fs && !mapnik::is_empty(fs))
     {
         mapnik::feature_ptr feature;
         while ((feature = fs->next()))
@@ -364,7 +364,7 @@ void layer_not_valid(protozero::pbf_reader& layer_msg,
             q.add_property_name(item.get_name());
         }
         mapnik::featureset_ptr fs = ds.features(q);
-        if (fs && mapnik::is_valid(fs))
+        if (fs && !mapnik::is_empty(fs))
         {
             mapnik::feature_ptr feature;
             while ((feature = fs->next()))
