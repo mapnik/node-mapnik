@@ -8,20 +8,21 @@ ARCH=$(node -e "console.log(process.arch)")
 MAPNIK_VERSION=$(node -e "console.log(require('./package.json').optionalDependencies['@mapnik/core-${PLATFORM}-${ARCH}'])")
 
 if [ -z ${MAPNIK_VERSION+x} ]; then
-    echo -e "\033[31m Mapnik core package v${MAPNIK_VERSION} is not available for ${PLATFORM}+${ARCH}"
+    echo -e "\033[31m Mapnik core package v${MAPNIK_VERSION} is not available for ${PLATFORM}+${ARCH}\033[0m"
     exit 1
 fi
 
-NODE_MODULES_DIR=${MODULE_PATH%%node_modules/*}/node_modules
+NODE_MODULES_DIR=${MODULE_PATH%%/node_modules/*}/node_modules
 MAPNIK_CORE_PATH=${NODE_MODULES_DIR}/@mapnik/core-${PLATFORM}-${ARCH}
-echo "MODULE_PATH:${MODULE_PATH}"
-echo "MAPNIK_CORE_PATH:${MAPNIK_CORE_PATH}"
+#echo -e "\033[36mMODULE_PATH:${MODULE_PATH}\033[0m"
+#echo -e "\033[36mMAPNIK_CORE_PATH:${MAPNIK_CORE_PATH}\033[0m"
 
 if [[ ! -d $MAPNIK_CORE_PATH ]]; then
-    echo -e "\033[31m Missing Mapnik Core package - @mapnik/core-${PLATFORM}-${ARCH}-${MAPNIK_VERSION}"
-    exit 1
+    echo -e "\033[36mMissing Mapnik Core package - @mapnik/core-${PLATFORM}-${ARCH}-${MAPNIK_VERSION}\033[0m"
+    echo -e "\033[36mAttempting to build using local mapnik...\033[0m"
+    MAPNIK_VERSION=$(mapnik-config -v)
+    exit 0
 fi
-
 
 cd ${MODULE_PATH}
 ln -sf ${MAPNIK_CORE_PATH}/bin .
