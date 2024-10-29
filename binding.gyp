@@ -6,7 +6,6 @@
   'targets': [
     {
       'target_name': 'mapnik',
-      'product_dir': '../binding',
       'sources': [
         "src/mapnik_logger.cpp",
         "src/node_mapnik.cpp",
