@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.6.5
+
+- `mapnik.Map` - check for valid width/height and throw an exception if not (#990)
+- `mapnik.Map` - add tests for NaN, Infinity and negative width/height
+- Use "optionalDependencies" to pull platform specific core-[platform]-[arch]-[version] package
+- Use `mapnik::is_empty(featureset_ptr)` ref https://github.com/mapnik/mapnik/pull/4479
+
 ## 4.6.1
 
 - Fix bogus shared library (libzstd.1.dylib) used in gdal.input and ogr.input plugins (darwin-arm64)
