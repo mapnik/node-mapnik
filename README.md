@@ -72,6 +72,7 @@ Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binarie
 Currently supported platforms are
 
 * `linux-x64`
+* `linux-arm64` (from v4.6.5)
 * `darwin-x64`
 * `darwin-arm64`
 
@@ -86,8 +87,17 @@ Consult N-API documentation for more details: https://nodejs.org/dist/latest/doc
 Consult "[Installing a package](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
 ". You will need to authenticate to GitHub Packages, see "[Authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages)."
 
+per-user config file `[.npmrc](https://docs.npmjs.com/cli/v10/configuring-npm/npmrc)`, create a new .npmrc file if one doesn't exist.
 
-    npm install @mapnik/mapnik
+edit the .npmrc file to include the following lines, replacing TOKEN with your personal access token.
+```bash
+@mapnik:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=XXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+```bash
+npm install @mapnik/mapnik
+```
 
 Note: This will install the latest node-mapnik 4.6.x series, which is recommended.
 
