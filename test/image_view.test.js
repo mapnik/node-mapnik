@@ -45,6 +45,7 @@ test('isSolid for view should return blue with view being offset', (assert) => {
   view.isSolid(function(err,solid,pixel) {
     assert.equal(solid, true);
     assert.equal(pixel, 4294901760);
+    assert.equal(im.isSolid(), false); // keep `im` alive
     assert.end();
   });
 });
@@ -57,6 +58,7 @@ test('isSolid async works if true', (assert) => {
   view.isSolid(function(err,solid,pixel) {
     assert.equal(solid, true);
     assert.equal(pixel, 0);
+    assert.equal(im.isSolid(), true); // keep mapnik.Image alive
     assert.end();
   });
 });
@@ -70,6 +72,7 @@ test('isSolid async works if true and white', (assert) => {
   view.isSolid(function(err,solid,pixel) {
     assert.equal(solid, true);
     assert.equal(pixel, 4294967295);
+    assert.equal(im.isSolid(), true); // keep mapnik.Image alive
     assert.end();
   });
 });
@@ -83,6 +86,7 @@ test('isSolid async works if false', (assert) => {
   view.isSolid(function(err,solid,pixel) {
     assert.equal(solid, false);
     assert.equal(pixel, undefined);
+    assert.equal(im.isSolid(), false); // keep mapnik.Image alive
     assert.end();
   });
 });
