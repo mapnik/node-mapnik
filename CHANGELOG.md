@@ -5,6 +5,7 @@
 - Mapnik core v4.0.4
 - node-addon-api v8.3.0
 - NAPI_EXPERIMENTAL=1
+- Re-start publishing packages to [npmjs](https://www.npmjs.com/settings/mapnik/packages) as well as GitHub registry.
 
 ## 4.6.5
 
