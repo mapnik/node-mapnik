@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.6.6
+
+- Mapnik core v4.0.4
+- node-addon-api v8.3.0
+- NAPI_EXPERIMENTAL=1
+
 ## 4.6.5
 
 - `mapnik.Map` - check for valid width/height and throw an exception if not (#990)
