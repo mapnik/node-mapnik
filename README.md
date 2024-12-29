@@ -66,7 +66,7 @@ For more sample code see [the tests](./test) and [sample code](https://github.co
 
 ## Requirements
 
-Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binaries on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) using [node-addon-api](https://github.com/nodejs/node-addon-api),
+Starting from `v4.6.0`, `node-mapnik` module is published as "universal" binaries on [GitHub NPM registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry) and [npmjs](https://www.npmjs.com) using [node-addon-api](https://github.com/nodejs/node-addon-api),
 [node-gyp-build](https://github.com/prebuild/node-gyp-build) and [prebuildify](https://github.com/prebuild/prebuildify)
 
 Currently supported platforms are
@@ -84,22 +84,20 @@ Consult N-API documentation for more details: https://nodejs.org/dist/latest/doc
 
 ### With npm
 
-Consult "[Installing a package](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
+```bash
+npm install @mapnik/mapnik
+```
+Note: If using GitHub NPM registry consult "[Installing a package](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
 ". You will need to authenticate to GitHub Packages, see "[Authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages)."
 
-per-user config file `[.npmrc](https://docs.npmjs.com/cli/v10/configuring-npm/npmrc)`, create a new .npmrc file if one doesn't exist.
-
-edit the .npmrc file to include the following lines, replacing TOKEN with your personal access token.
+* Check for config file `[.npmrc](https://docs.npmjs.com/cli/v10/configuring-npm/npmrc)`, create a new .npmrc file if one doesn't exist.
+* Edit the .npmrc file to include the following lines, replacing TOKEN with your personal access token.
 ```bash
 @mapnik:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=XXXXXXXXXXXXXXXXXXXXXXXXX
 ```
-
-```bash
-npm install @mapnik/mapnik
-```
-
 Note: This will install the latest node-mapnik 4.6.x series, which is recommended.
+
 
 
 ### Source Build [WIP]
