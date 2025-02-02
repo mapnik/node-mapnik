@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.6.7
+- Mapnik core v4.0.5
+- Mapnik core dependencies update
+  (See https://github.com/mapnik/mapnik-core-npm/blob/main/README.md for a full list)
+
 ## 4.6.6
 
 - Mapnik core v4.0.4
