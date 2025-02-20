@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.6.8
+- Fix/update proj/gdal/icu data files (ref https://github.com/mapnik/node-mapnik/issues/1011)
+
 ## 4.6.7
 - Mapnik core v4.0.5
 - Mapnik core dependencies update
