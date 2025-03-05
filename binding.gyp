@@ -72,7 +72,8 @@
       ],
       'defines': [
           'MAPNIK_GIT_REVISION="<!@(mapnik-config --git-describe)"',
-          'MAPNIK_VECTOR_TILE_LIBRARY=1'
+          'MAPNIK_VECTOR_TILE_LIBRARY=1',
+          'NAPI_EXPERIMENTAL=1',
       ],
       'conditions': [
         ['"<!@(uname -p)"=="x86_64"',{
