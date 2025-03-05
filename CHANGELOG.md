@@ -2,6 +2,8 @@
 
 ## 4.6.9
 - Mapnik core v4.0.6
+- node-addon-api >= v8.3.1
+- node-gyp >= 4.8.1
 
 ## 4.6.8
 - Fix/update proj/gdal/icu data files (ref https://github.com/mapnik/node-mapnik/issues/1011)
