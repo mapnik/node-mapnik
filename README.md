@@ -90,7 +90,7 @@ npm install @mapnik/mapnik
 Note: If using GitHub NPM registry consult "[Installing a package](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
 ". You will need to authenticate to GitHub Packages, see "[Authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages)."
 
-* Check for config file `[.npmrc](https://docs.npmjs.com/cli/v10/configuring-npm/npmrc)`, create a new .npmrc file if one doesn't exist.
+* Check for config file [`.npmrc`](https://docs.npmjs.com/cli/v10/configuring-npm/npmrc), create a new .npmrc file if one doesn't exist.
 * Edit the .npmrc file to include the following lines, replacing TOKEN with your personal access token.
 ```bash
 @mapnik:registry=https://npm.pkg.github.com
