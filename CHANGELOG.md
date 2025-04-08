@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.6.10
+- Mapnik core v4.0.7
+
 ## 4.6.9
 - Mapnik core v4.0.6
 - node-addon-api >= v8.3.1

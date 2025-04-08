@@ -2,6 +2,7 @@
 
 #include <napi.h>
 #include "mapnik_palette.hpp"
+#include <iostream>
 
 namespace mapnik {
 struct image_any;
@@ -63,7 +64,13 @@ class Image : public Napi::ObjectWrap<Image>
     Napi::Value copySync(Napi::CallbackInfo const& info);
     Napi::Value resize(Napi::CallbackInfo const& info);
     Napi::Value resizeSync(Napi::CallbackInfo const& info);
-
+    void Finalize(Napi::BasicEnv env)
+    {
+        std::cout << "Basic finalizer for instance  called\n";
+        env.PostFinalizer([](Napi::Env env) {
+                    env.RunScript("console.log('Finalizer for instance  called');");
+                });
+    }
     // accessors
     Napi::Value scaling(Napi::CallbackInfo const& info);
     void scaling(Napi::CallbackInfo const& info, Napi::Value const& value);
