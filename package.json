@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
-  "version": "4.7.0",
+  "version": "4.7.1",
   "main": "index.js",
   "directories": {
     "share": "./share",
@@ -53,7 +53,7 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-gyp-build",
-    "prebuildify": "prebuildify --napi --strip",
+    "prebuildify": "prebuildify --napi --strip --target 24.1.0",
     "preinstall" : "./scripts/preinstall.sh",
     "postinstall": "./scripts/postinstall.sh"
   },
