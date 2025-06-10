@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.7.1
+- Fix share/[icu,gdal,proj] versions
+- Add explicit node version --target 24.1.0
+
 ## 4.7.0
 - Mapnik core v4.1.0
 
