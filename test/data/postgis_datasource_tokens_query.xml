@@ -3,7 +3,7 @@
   <Layer name="field_shapes" status="on" srs="epsg:4326">
     <Datasource>
       <Parameter name="type">postgis</Parameter>
-      <Parameter name="host">localhost</Parameter>
+      <!--Parameter name="host">localhost</Parameter-->
       <Parameter name="dbname">node-mapnik-tmp-postgis-test-db</Parameter>
       <Parameter name="srid">4326</Parameter>
       <Parameter name="geometry_field">geom</Parameter>
