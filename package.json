@@ -53,7 +53,7 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-gyp-build",
-    "prebuildify": "prebuildify --napi --strip --target 24.3.0",
+    "prebuildify": "prebuildify --napi --strip --target 24.5.0",
     "preinstall" : "./scripts/preinstall.sh",
     "postinstall": "./scripts/postinstall.sh"
   },
