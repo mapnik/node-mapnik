@@ -24,7 +24,7 @@ if [[ ! -d $MAPNIK_CORE_PATH ]]; then
     exit 0
 fi
 
-cd ${MODULE_PATH}
+cd "${MODULE_PATH}"
 ln -sf ${MAPNIK_CORE_PATH}/bin .
 ln -sf ${MAPNIK_CORE_PATH}/lib .
 

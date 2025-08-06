@@ -21,7 +21,7 @@ module.exports.env = {
     'PROJ_LIB':      '$(mapnik-config --proj-lib)'
 };
 " > ${MODULE_PATH}/mapnik_settings.js
-    cd ${MODULE_PATH}
+    cd "${MODULE_PATH}"
     ln -sf $(mapnik-config --prefix)/bin .
     ln -sf $(mapnik-config --prefix)/lib .
     exit 0
