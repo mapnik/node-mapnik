@@ -4,6 +4,7 @@
 - Mapnik core v4.1.2
 - node-addon-api >= 8.5.0
 - target node v24.5.0
+- fix $MODULE_PATH issue (ref #1018)
 
 ## 4.7.2
 - Mapnik core v4.1.1
