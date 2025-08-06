@@ -39,10 +39,10 @@
     "prebuildify": "^6.0.1"
   },
   "optionalDependencies": {
-    "@mapnik/core-darwin-arm64": "4.1.2",
-    "@mapnik/core-darwin-x64": "4.1.2",
-    "@mapnik/core-linux-arm64": "4.1.2",
-    "@mapnik/core-linux-x64": "4.1.2"
+    "@mapnik/core-darwin-arm64": "4.1.2-1",
+    "@mapnik/core-darwin-x64": "4.1.2-1",
+    "@mapnik/core-linux-arm64": "4.1.2-1",
+    "@mapnik/core-linux-x64": "4.1.2-1"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
