@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
-  "version": "4.7.4-dev",
+  "version": "4.7.4",
   "main": "index.js",
   "directories": {
     "share": "./share",
@@ -39,10 +39,10 @@
     "prebuildify": "^6.0.1"
   },
   "optionalDependencies": {
-    "@mapnik/core-darwin-arm64": "4.1.3-dev",
-    "@mapnik/core-darwin-x64": "4.1.3-dev",
-    "@mapnik/core-linux-arm64": "4.1.3-dev",
-    "@mapnik/core-linux-x64": "4.1.3-dev"
+    "@mapnik/core-darwin-arm64": "4.1.3",
+    "@mapnik/core-darwin-x64": "4.1.3",
+    "@mapnik/core-linux-arm64": "4.1.3",
+    "@mapnik/core-linux-x64": "4.1.3"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
