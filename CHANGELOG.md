@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.7.6
+- Mapnik core v4.2.0
+
 ## 4.7.5
 - Mapnik core v4.1.4
 
