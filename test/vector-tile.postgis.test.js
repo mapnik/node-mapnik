@@ -13,7 +13,7 @@ var hasPostgisAvailable = false;
 
 test("setup", (assert) => {
   // Check that the postgis plugin is available
-  mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'postgis.input'));
+  mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'postgis+pgraster.input'));
   postgis_registered = mapnik.datasources().indexOf('postgis') > -1;
 
   if (postgis_registered) {

@@ -9,7 +9,7 @@ var path = require('path');
 
 test('should be able to open geotiff various ways without crashing', (assert) => {
   assert.plan(5)
-  mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
+  mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal+ogr.input'));
   var vtile = new mapnik.VectorTile(0, 0, 0);
   var map = new mapnik.Map(256, 256);
   map.load('./test/data/vector_tile/raster_layer.xml',{},function(err,_map) { if (err) throw err; assert.ok(_map); });

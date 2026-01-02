@@ -27,7 +27,7 @@ function deepEqualTrunc(json1,json2,assert) {
 }
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
-mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal+ogr.input'));
 
 // generate test data
 var _vtile;

@@ -6,7 +6,7 @@ var exists = require('fs').existsSync || require('path').existsSync;
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
-mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal+ogr.input'));
 
 test('should render to a file', (assert) => {
   var map = new mapnik.Map(600, 400);
