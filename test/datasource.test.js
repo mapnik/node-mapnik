@@ -5,9 +5,8 @@ var mapnik = require('../');
 var path = require('path');
 
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'geojson.input'));
-mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'ogr.input'));
+mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal+ogr.input'));
 mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'shape.input'));
-mapnik.register_datasource(path.join(mapnik.settings.paths.input_plugins,'gdal.input'));
 
 
 let compare_proj_string = (str1, str2) => {
