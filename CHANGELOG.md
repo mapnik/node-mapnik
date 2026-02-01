@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.7.7
+- Mapnik core v4.2.1
+- node target v25.5.0
+
 ## 4.7.6
 - Mapnik core v4.2.0
 
