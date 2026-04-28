@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.7.8
+
+- Mapnik core v4.2.2
+- node target v25.9.0
+- node-addon-api v8.7.0
+- tape v5.9.0
+
 ## 4.7.7
 - Mapnik core v4.2.1
 - node target v25.5.0
