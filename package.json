@@ -4,7 +4,7 @@
   "url": "http://github.com/mapnik/node-mapnik",
   "homepage": "http://mapnik.org",
   "author": "Dane Springmeyer <dane.mapnik@gmail.com>",
-  "version": "4.7.7",
+  "version": "4.7.8",
   "main": "index.js",
   "directories": {
     "share": "./share",
@@ -34,15 +34,15 @@
   ],
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node-addon-api": "^8.5.0",
+    "node-addon-api": "^8.7.0",
     "node-gyp-build": "^4.8.4",
     "prebuildify": "^6.0.1"
   },
   "optionalDependencies": {
-    "@mapnik/core-darwin-arm64": "4.2.1",
-    "@mapnik/core-darwin-x64": "4.2.1",
-    "@mapnik/core-linux-arm64": "4.2.1",
-    "@mapnik/core-linux-x64": "4.2.1"
+    "@mapnik/core-darwin-arm64": "4.2.2",
+    "@mapnik/core-darwin-x64": "4.2.2",
+    "@mapnik/core-linux-arm64": "4.2.2",
+    "@mapnik/core-linux-x64": "4.2.2"
   },
   "bin": {
     "mapnik-index.js": "bin/mapnik-index.js",
@@ -53,12 +53,12 @@
   "scripts": {
     "test": "tape test/*.test.js",
     "install": "node-gyp-build",
-    "prebuildify": "prebuildify --napi --strip --target 25.5.0",
+    "prebuildify": "prebuildify --napi --strip --target 25.9.0",
     "preinstall": "./scripts/preinstall.sh",
     "postinstall": "./scripts/postinstall.sh"
   },
   "devDependencies": {
-    "tape": "^v5.8.1"
+    "tape": "^v5.9.0"
   },
   "jshintConfig": {
     "node": true,
