@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.8.0
+
+- Mapnik core v4.3.0
+- node target v26.5.0
+- node-addon-api v8.9.0
+- tape v5.10.2
+- remove NAPI_EXPERIMENTAL
+
 ## 4.7.8
 
 - Mapnik core v4.2.2
